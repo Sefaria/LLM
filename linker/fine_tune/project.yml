@@ -69,4 +69,4 @@ commands:
     outputs:
       - 'output/fine_tune_completion.json'
     script:
-      - './scripts/use_fine_tune.sh ${env.openai_api_key} output/fine_tune_job.json input/english_citation_input.txt output/fine_tune_completion.json'
+      - 'python ./scripts/use_fine_tune.py ${env.openai_api_key} output/fine_tune_job.json input/english_citation_input.txt output/fine_tune_completion.json'
