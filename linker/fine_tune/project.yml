@@ -1,0 +1,72 @@
+vars:
+  base_model: "curie"
+  input_collection: "ner_en_output2"
+  output_model_suffix: "en_ner"
+env:
+  openai_api_key: OPENAI_API_KEY
+workflows:
+  all:
+    - create_citation_training
+    - upload_files
+    - create_fine_tune
+
+commands:
+  - name: create_citation_training
+    script:
+      - 'python scripts/create_citation_input_for_fine_tuning.py ${vars.input_collection} output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl -i mongo -m localhost -p 27017'
+    outputs:
+      - 'output/gpt_citation_training.jsonl'
+      - 'output/gpt_citation_validation.jsonl'
+
+  - name: delete_all_files
+    script:
+      - "./scripts/delete_all_openai_files.sh ${env.openai_api_key}"
+
+  - name: delete_all_fine_tunes
+    script:
+      - "./scripts/delete_all_fine_tunes.sh ${env.openai_api_key}"
+
+  - name: upload_files
+    deps:
+      - 'output/gpt_citation_training.jsonl'
+      - 'output/gpt_citation_validation.jsonl'
+    outputs:
+      - 'output/gpt_citation_training_upload_data.json'
+      - 'output/gpt_citation_validation_upload_data.json'
+    script:
+      - './scripts/upload_file_to_openai.sh ${env.openai_api_key} output/gpt_citation_training.jsonl output/gpt_citation_training_upload_data.json'
+      - './scripts/upload_file_to_openai.sh ${env.openai_api_key} output/gpt_citation_validation.jsonl output/gpt_citation_validation_upload_data.json'
+
+  - name: create_fine_tune
+    deps:
+      - 'output/gpt_citation_training_upload_data.json'
+      - 'output/gpt_citation_validation_upload_data.json'
+    outputs:
+      - 'output/fine_tune_job.json'
+    script:
+      - './scripts/create_fine_tune.sh ${env.openai_api_key} ${vars.base_model} output/gpt_citation_training_upload_data.json output/gpt_citation_validation_upload_data.json output/fine_tune_job.json ${vars.output_model_suffix}'
+
+  - name: fine_tune_status
+    deps:
+      - 'output/fine_tune_job.json'
+    outputs:
+      - 'output/fine_tune_job.json'
+    script:
+      - './scripts/fine_tune_status.sh ${env.openai_api_key} output/fine_tune_job.json output/fine_tune_job.json'
+
+  - name: fine_tune_stats
+    deps:
+      - 'output/fine_tune_job.json'
+    outputs:
+      - 'output/fine_tune_stats.csv'
+    script:
+      - './scripts/fine_tune_stats.sh ${env.openai_api_key} output/fine_tune_job.json output/fine_tune_stats.csv'
+
+  - name: use_fine_tune
+    deps:
+      - 'input/english_citation_input.txt'
+      - 'output/fine_tune_job.json'
+    outputs:
+      - 'output/fine_tune_completion.json'
+    script:
+      - './scripts/use_fine_tune.sh ${env.openai_api_key} output/fine_tune_job.json input/english_citation_input.txt output/fine_tune_completion.json'
