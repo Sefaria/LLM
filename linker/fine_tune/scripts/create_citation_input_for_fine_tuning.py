@@ -8,6 +8,17 @@ from util.general import load_mongo_docs
 GPT_PROMPT_END_INDICATOR = "\n\n###\n\n"
 GPT_COMPLETION_END_INDICATOR = "###"
 
+SPAN_LABEL_TO_CHAR_WRAPPER = {
+    "Person": "⟲",
+    "Group-of-People": "⎌",
+    "Name-of-God": "⌂",
+    "Citation": "ℏ",
+}
+
+
+def _get_wrap_char(label):
+    return SPAN_LABEL_TO_CHAR_WRAPPER.get(label, None)
+
 
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
@@ -28,8 +39,9 @@ def create_gpt_training_prompts(citation_docs):
     ]
 
 
-def get_wrapped_citation(citation, metadata):
-    return f"[[{citation}]]", 2, 2
+def get_wrapped_citation(citation, label):
+    wrapper = _get_wrap_char(label)
+    return f"{wrapper}{citation}{wrapper}", len(wrapper), len(wrapper)
 
 
 def create_get_prompt_input(citation_doc):
@@ -37,7 +49,7 @@ def create_get_prompt_input(citation_doc):
 
 
 def create_gpt_prompt_output(citation_doc):
-    chars_to_wrap = [(span['start'], span['end'], None) for span in citation_doc['spans']]
+    chars_to_wrap = [(span['start'], span['end'], span['label']) for span in citation_doc['spans'] if span['label'] in SPAN_LABEL_TO_CHAR_WRAPPER]
     return f" {wrap_chars_with_overlaps(citation_doc['text'], chars_to_wrap, get_wrapped_citation)}{GPT_COMPLETION_END_INDICATOR}"
 
 

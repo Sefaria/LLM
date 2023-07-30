@@ -13,7 +13,7 @@ workflows:
 commands:
   - name: create_citation_training
     script:
-      - 'python scripts/create_citation_input_for_fine_tuning.py ${vars.input_collection} output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl -i mongo -m localhost -p 27017'
+      - 'python scripts/create_citation_input_for_fine_tuning.py ${vars.input_collection} output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl -m localhost -p 27017'
     outputs:
       - 'output/gpt_citation_training.jsonl'
       - 'output/gpt_citation_validation.jsonl'
