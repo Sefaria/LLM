@@ -9,14 +9,14 @@ GPT_PROMPT_END_INDICATOR = "\n\n###\n\n"
 GPT_COMPLETION_END_INDICATOR = "###"
 
 SPAN_LABEL_TO_CHAR_WRAPPER = {
-    "Person": "⟲",
-    "Group-of-People": "⎌",
-    "Name-of-God": "⌂",
-    "Citation": "ℏ",
+    "Person": ["↺", "↻"],
+    # "Group-of-People": "⎌",
+    "Name-of-God": ["↺", "↻"],
+    "Citation": ["ℏ", "ħ"],
 }
 
 
-def _get_wrap_char(label):
+def _get_wrap_chars(label):
     return SPAN_LABEL_TO_CHAR_WRAPPER.get(label, None)
 
 
@@ -40,8 +40,8 @@ def create_gpt_training_prompts(citation_docs):
 
 
 def get_wrapped_citation(citation, label):
-    wrapper = _get_wrap_char(label)
-    return f"{wrapper}{citation}{wrapper}", len(wrapper), len(wrapper)
+    wrapper_start, wrapper_end = _get_wrap_chars(label)
+    return f"{wrapper_start}{citation}{wrapper_end}", len(wrapper_start), len(wrapper_end)
 
 
 def create_get_prompt_input(citation_doc):
