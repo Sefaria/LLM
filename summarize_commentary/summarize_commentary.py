@@ -5,8 +5,8 @@ django.setup()
 from sefaria.model import *
 from sefaria.client.wrapper import get_links
 from sefaria.datatype.jagged_array import JaggedTextArray
-import asyncio
-from llm.openai.openai_util.util import get_completion_openai, count_tokens_openai, get_completion_anthropic
+from util.openai import get_completion_openai, count_tokens_openai
+from util.anthropic import get_completion_anthropic
 
 
 def get_prompt(tref, topic_slug, commentary):
@@ -46,7 +46,7 @@ def get_commentary_for_tref(tref, max_tokens=7000):
     return commentary_text
 
 
-async def summarize_commentary(tref, topic_slug, company='openai'):
+def summarize_commentary(tref, topic_slug, company='openai'):
     commentary_text = get_commentary_for_tref(tref)
     prompt = get_prompt(tref, topic_slug, commentary_text)
 
@@ -57,16 +57,16 @@ async def summarize_commentary(tref, topic_slug, company='openai'):
     elif company == 'anthropic':
         num_tokens = anthropic.count_tokens(prompt)
         print(f"Number of commentary tokens: {num_tokens}")
-        completion = await get_completion_anthropic(prompt, max_tokens_to_sample=7000)
+        completion = get_completion_anthropic(prompt, max_tokens_to_sample=7000)
     else:
         raise Exception("No valid company passed. Options are 'openai' or 'anthropic'.")
     return completion
 
 
-async def print_summarized_commentary(tref, topic_slug):
-    completion = await summarize_commentary(tref, topic_slug)
+def print_summarized_commentary(tref, topic_slug):
+    completion = summarize_commentary(tref, topic_slug)
     print(completion)
 
 
 if __name__ == '__main__':
-    asyncio.run(print_summarized_commentary('Exodus 10:1-2', 'haggadah'))
+    print_summarized_commentary('Exodus 10:1-2', 'haggadah')
