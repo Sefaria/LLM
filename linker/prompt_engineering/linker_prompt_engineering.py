@@ -4,7 +4,7 @@ from sefaria.utils.util import wrap_chars_with_overlaps
 
 
 def get_prompt(input_text):
-    return f"{get_task_description()}{get_examples_string()}{get_input_string(input_text)}"
+    return f"{get_task_description()}{get_examples_string_manual()}{get_input_string(input_text)}"
 
 
 def get_input_string(input_text):
@@ -14,10 +14,10 @@ def get_input_string(input_text):
 def get_task_description():
     return "# Task:\n" \
            "Annotate every citation to a Jewish source in input\n" \
-           "Each citation should be wrapped in double brackets\n"
+           "Each citation should be wrapped in double dollar signs\n"
 
 
-def get_examples_string():
+def get_examples_string_mongo():
     citation_docs = list(load_mongo_docs("webpages_en_output3"))
     citation_docs.sort(key=lambda x: len(x["spans"]), reverse=True)
     examples_string = "# Examples\n## Format\nEach example appears on its own line\nEach citation is wrapped in double " \
@@ -31,8 +31,13 @@ def get_examples_string():
     return examples_string
 
 
+def get_examples_string_manual():
+    with open('input/english_citation_examples.txt') as fin:
+        return fin.read() + "\n"
+
+
 def get_wrapped_citation(citation, metadata):
-    return f"[[{citation}]]", 2, 2
+    return f"$${citation}$$", 2, 2
 
 
 def wrap_citations_in_doc(citation_doc):
@@ -41,7 +46,7 @@ def wrap_citations_in_doc(citation_doc):
 
 
 def get_input_text():
-    return "\n".join(open("input/english_citation_input.txt").readlines())
+    return open("input/english_citation_input.txt").read()
 
 
 if __name__ == '__main__':
