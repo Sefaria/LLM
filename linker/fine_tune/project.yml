@@ -1,6 +1,6 @@
 vars:
   base_model: "curie"
-  input_collection: "ner_en_output2"
+  input_collection: "ner_en_output2_gold"
   output_model_suffix: "en_ner"
 env:
   openai_api_key: OPENAI_API_KEY
