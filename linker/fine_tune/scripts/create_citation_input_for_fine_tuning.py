@@ -9,10 +9,10 @@ GPT_PROMPT_END_INDICATOR = "\n\n###\n\n"
 GPT_COMPLETION_END_INDICATOR = "###"
 
 SPAN_LABEL_TO_CHAR_WRAPPER = {
-    "Person": ["↺", "↻"],
-    # "Group-of-People": "⎌",
-    "Name-of-God": ["↺", "↻"],
-    "Citation": ["ℏ", "ħ"],
+    "Person": ["{{", "}}"],
+    "Group-of-People": ["{{", "}}"],
+    "Name-of-God": ["{{", "}}"],
+    "Citation": ["{{", "}}"],
 }
 
 
