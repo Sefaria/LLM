@@ -1,19 +1,27 @@
 vars:
-  base_model: "curie"
+  base_model: "ada"
   input_collection: "ner_en_output2_gold"
-  output_model_suffix: "en_ner"
+  output_model_suffix: "en_entity_classification"
 env:
   openai_api_key: OPENAI_API_KEY
 workflows:
   all:
-    - create_citation_training
+    - create_citation_ner_training
+    - create_citation_classification_training
     - upload_files
     - create_fine_tune
 
 commands:
-  - name: create_citation_training
+  - name: create_citation_ner_training
     script:
-      - 'python scripts/create_citation_input_for_fine_tuning.py ${vars.input_collection} output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl -m localhost -p 27017'
+      - 'python scripts/create_citation_input_for_fine_tuning.py ${vars.input_collection} ner output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl -m localhost -p 27017'
+    outputs:
+      - 'output/gpt_citation_training.jsonl'
+      - 'output/gpt_citation_validation.jsonl'
+
+  - name: create_citation_classification_training
+    script:
+      - 'python scripts/create_citation_input_for_fine_tuning.py ${vars.input_collection} entity_classification output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl -m localhost -p 27017'
     outputs:
       - 'output/gpt_citation_training.jsonl'
       - 'output/gpt_citation_validation.jsonl'

@@ -4,9 +4,8 @@ from sefaria.utils.util import wrap_chars_with_overlaps
 from sklearn.model_selection import train_test_split
 import srsly
 from util.general import load_mongo_docs
+from constants import GPT_PROMPT_END_INDICATOR, GPT_COMPLETION_END_INDICATOR
 
-GPT_PROMPT_END_INDICATOR = "\n\n###\n\n"
-GPT_COMPLETION_END_INDICATOR = "###"
 
 SPAN_LABEL_TO_CHAR_WRAPPER = {
     "Person": ["{{", "}}"],
@@ -15,14 +14,97 @@ SPAN_LABEL_TO_CHAR_WRAPPER = {
     "Citation": ["{{", "}}"],
 }
 
+SPAN_LABEL_TO_CLASSICATION_TAG = {
+    "Person": "Person",
+    "Group-of-People": "Group",
+    "Name-of-God": "Person",
+    "Citation": "Citation",
+}
+
 
 def _get_wrap_chars(label):
     return SPAN_LABEL_TO_CHAR_WRAPPER.get(label, None)
 
 
+def _get_wrapped_citation(citation, label):
+    wrapper_start, wrapper_end = _get_wrap_chars(label)
+    return f"{wrapper_start}{citation}{wrapper_end}", len(wrapper_start), len(wrapper_end)
+
+
+def get_window_around_match(start_char:int, end_char:int, text:str, window:int=10) -> tuple:
+    before_text = text[:start_char]
+    before_window_words = list(filter(lambda x: len(x) > 0, before_text.split()))[-window:]
+    before_window = " ".join(before_window_words)
+
+    after_text = text[end_char:]
+    after_window_words = list(filter(lambda x: len(x) > 0, after_text.split()))[:window]
+    after_window = " ".join(after_window_words)
+
+    return before_window, after_window
+
+
+class GptNerTrainingGenerator:
+
+    def __init__(self, docs):
+        self.docs = docs
+
+    def generate(self):
+        return [
+            {"prompt": self._create_prompt(doc), "completion": self._create_completion(doc)}
+            for doc in self.docs
+        ]
+
+    @staticmethod
+    def _create_prompt(doc):
+        return f"{doc['text']} {GPT_PROMPT_END_INDICATOR}"
+
+    @staticmethod
+    def _create_completion(doc):
+        chars_to_wrap = [(span['start'], span['end'], span['label']) for span in doc['spans'] if span['label'] in
+                         SPAN_LABEL_TO_CHAR_WRAPPER]
+        wrapped_chars = wrap_chars_with_overlaps(doc['text'], chars_to_wrap, _get_wrapped_citation)
+        return f" {wrapped_chars}{GPT_COMPLETION_END_INDICATOR}"
+
+
+class GptEntityClassificationTrainingGenerator:
+
+    def __init__(self, docs):
+        self.docs = docs
+
+    def generate(self):
+        return [
+            {"prompt": self._create_prompt(doc, span), "completion": self._create_completion(doc, span)} for doc in citation_docs for span in doc['spans']
+        ]
+
+    @staticmethod
+    def _create_prompt(doc, span):
+        has_label = span['label'] in SPAN_LABEL_TO_CHAR_WRAPPER
+        chars_to_wrap = [(span['start'], span['end'], span['label'])] if has_label else []
+        before_window, after_window = get_window_around_match(span['start'], span['end'], doc['text'])
+        before_wrapper, after_wrapper = SPAN_LABEL_TO_CHAR_WRAPPER[span['label']]
+        span_text = doc['text'][span['start']:span['end']]
+        wrapped_chars = f"{before_window} {before_wrapper}{span_text}{after_wrapper} {after_window}"
+        return f"{wrapped_chars} {GPT_PROMPT_END_INDICATOR}"
+
+    @staticmethod
+    def _create_completion(doc, span):
+        return f" {SPAN_LABEL_TO_CLASSICATION_TAG[span['label']]} {GPT_COMPLETION_END_INDICATOR}"
+
+
+def get_gpt_training_data(task, docs):
+    if task == "ner":
+        generator = GptNerTrainingGenerator(docs)
+    elif task == "entity_classification":
+        generator = GptEntityClassificationTrainingGenerator(docs)
+    else:
+        raise Exception("Unrecognized task. Options are 'ner', 'entity_classification'.")
+    return generator.generate()
+
+
 def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument('input')
+    parser.add_argument('task')
     parser.add_argument('training_filename')
     parser.add_argument('validation_filename')
     parser.add_argument('-m', '--db-host', dest='db_host')
@@ -32,34 +114,13 @@ def init_argparse() -> argparse.ArgumentParser:
     return parser
 
 
-def create_gpt_training_prompts(citation_docs):
-    return [
-        {"prompt": create_get_prompt_input(doc), "completion": create_gpt_prompt_output(doc)}
-        for doc in citation_docs
-    ]
-
-
-def get_wrapped_citation(citation, label):
-    wrapper_start, wrapper_end = _get_wrap_chars(label)
-    return f"{wrapper_start}{citation}{wrapper_end}", len(wrapper_start), len(wrapper_end)
-
-
-def create_get_prompt_input(citation_doc):
-    return f"{citation_doc['text']} {GPT_PROMPT_END_INDICATOR}"
-
-
-def create_gpt_prompt_output(citation_doc):
-    chars_to_wrap = [(span['start'], span['end'], span['label']) for span in citation_doc['spans'] if span['label'] in SPAN_LABEL_TO_CHAR_WRAPPER]
-    return f" {wrap_chars_with_overlaps(citation_doc['text'], chars_to_wrap, get_wrapped_citation)}{GPT_COMPLETION_END_INDICATOR}"
-
-
 if __name__ == '__main__':
     parser = init_argparse()
     args = parser.parse_args()
     password = os.getenv('MONGO_PASSWORD')
     citation_docs = load_mongo_docs(args.input, args.db_host, args.db_port, args.user, password, args.replicaset)
     citation_docs = [doc for doc in citation_docs if doc['answer'] == 'accept']
-    gpt_training = create_gpt_training_prompts(citation_docs)
+    gpt_training = get_gpt_training_data(args.task, citation_docs)
     training_data, validation_data = train_test_split(gpt_training, random_state=613, train_size=0.8)
     print("TRAINING SIZE:", len(training_data))
     print("VALIDATION SIZE:", len(validation_data))
