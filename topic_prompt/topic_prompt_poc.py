@@ -8,6 +8,7 @@ import tiktoken
 import os
 from sefaria.model import *
 import time
+from get_normalizer import get_normalizer
 
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
@@ -61,13 +62,15 @@ def _get_query_for_ref_topic_link_with_prompt(slug, lang):
 
 def _get_topic_prompt_examples(lang):
     prompt = "# Examples:"
+    normalizer = get_normalizer()
     for islug, slug in enumerate(_get_topic_slugs_with_prompts()):
         topic = Topic.init(slug)
         tlink = RefTopicLink().load(_get_query_for_ref_topic_link_with_prompt(slug, lang))
         if tlink is None:
             print("no prompts for", slug)
             continue
-        source_text = normalize_text(Ref(tlink.ref).text(lang).ja().flatten_to_string())
+
+        source_text = normalizer.normalize(Ref(tlink.ref).text(lang).ja().flatten_to_string())
         example = f"\n\n{islug+1}) Source Text: {source_text}\nTopic: {topic.get_primary_title(lang)}\n" \
                   f"Description: {tlink.descriptions[lang]['prompt']}\nTitle: {tlink.descriptions[lang]['title']}"
         prompt += example
@@ -114,17 +117,14 @@ def get_ref_text_with_fallback(oref: Ref, lang: str) -> str:
         other_lang = "en" if lang == "he" else "he"
         raw_text = get_raw_ref_text(oref, other_lang)
 
-    return normalize_text(raw_text)
+    normalizer = get_normalizer()
+    return normalizer.normalize(raw_text)
 
 
 def count_tokens(prompt, model="gpt-4"):
     encoding = tiktoken.encoding_for_model(model)
     num_tokens = len(encoding.encode(prompt))
     return num_tokens
-
-
-def normalize_text(s):
-    return re.sub(r"<[^>]+>", " ", TextChunk.strip_itags(s))
 
 
 async def get_topic_prompts(tref, topic_slug, lang):
