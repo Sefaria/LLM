@@ -28,11 +28,9 @@ normalizer = get_normalizer()
 
 
 class TopromptLLMOutput(BaseModel):
-    why: str = Field(description="Why should I care about this source? Write a prompt that is specific to this source and not a general introduction to the topic. Limit to one sentence.")
-    what: str = Field(description="What do I need to know to understand this source? Provide information that contexualizes it assuming the reader is a newcomer to Judaism.")
+    why: str = Field(description="Why should I care about this source? Limit to one sentence.")
+    what: str = Field(description="What do I need to know in order to be able to understand this source? Limit to one sentence.")
     title: str = Field(description="contextualizes the source within the topic. DO NOT mention the source book in the title.")
-
-
 
 
 @dataclasses.dataclass
@@ -164,7 +162,6 @@ def _get_examples_prompt(lang: str, topic: Topic, tref: str) -> BasePromptTempla
 
 
 def _get_input_prompt(lang, topic: Topic, tref: str) -> str:
-
     return (
         "{format_instructions} " +
         "# Input:\n" + _get_input_prompt_details(lang, topic, tref)
@@ -223,7 +220,7 @@ def _get_toprompt_options(lang: str, topic: Topic, tref: str) -> TopromptOptions
     human_message = HumanMessage(content=llm_prompt.format())
     responses = []
     topic_prompts = []
-    sescondary_prompt = PromptTemplate.from_template(f"Generate another set of description and title. Refer back the "
+    sescondary_prompt = PromptTemplate.from_template(f"Generate another set of description and title. Refer back to the "
                                                      f"examples provided to stick to the same writing style.\n"
                                                      "{format_instructions}",
                                                      partial_variables={"format_instructions": _get_output_parser().get_format_instructions()})
@@ -322,6 +319,8 @@ def output_toprompts_for_sheet_id_list(lang: str, sheet_ids: List[int]) -> None:
 
 
 if __name__ == '__main__':
-    sheet_ids = [465648]  # [502699, 502661, 499080, 498250, 500844]
+    # sheet_ids = [502699]  # [502699, 502661, 499080, 498250, 500844]
+    sheet_ids = [504798]
+    llm_company = "claude"
     lang = "en"
     output_toprompts_for_sheet_id_list(lang, sheet_ids)
