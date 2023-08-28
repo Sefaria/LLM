@@ -1,3 +1,5 @@
+import django
+django.setup()
 from db_manager import MongoProdigyDBManager
 from sefaria.model.text import Ref
 from sefaria.helper.normalization import NormalizerComposer

@@ -45,13 +45,10 @@ def get_window_around_match(start_char:int, end_char:int, text:str, window:int=1
 
 class GptNerTrainingGenerator:
 
-    def __init__(self, docs):
-        self.docs = docs
-
-    def generate(self):
+    def generate(self, docs):
         return [
             {"prompt": self._create_prompt(doc), "completion": self._create_completion(doc)}
-            for doc in self.docs
+            for doc in docs
         ]
 
     @staticmethod
@@ -68,22 +65,24 @@ class GptNerTrainingGenerator:
 
 class GptEntityClassificationTrainingGenerator:
 
-    def __init__(self, docs):
-        self.docs = docs
+    def __init__(self, before_wrapper="{{", after_wrapper="}}"):
+        self.before_wrapper = before_wrapper
+        self.after_wrapper = after_wrapper
 
-    def generate(self):
-        return [
-            {"prompt": self._create_prompt(doc, span), "completion": self._create_completion(doc, span)} for doc in citation_docs for span in doc['spans']
-        ]
+    def generate(self, docs):
+        data = []
+        for doc in docs:
+            for span in doc['spans']:
+                data += [{
+                    "prompt": self.create_prompt(doc['text'], span['start'], span['end']),
+                    "completion": self._create_completion(doc, span)
+                }]
+        return data
 
-    @staticmethod
-    def _create_prompt(doc, span):
-        has_label = span['label'] in SPAN_LABEL_TO_CHAR_WRAPPER
-        chars_to_wrap = [(span['start'], span['end'], span['label'])] if has_label else []
-        before_window, after_window = get_window_around_match(span['start'], span['end'], doc['text'])
-        before_wrapper, after_wrapper = SPAN_LABEL_TO_CHAR_WRAPPER[span['label']]
-        span_text = doc['text'][span['start']:span['end']]
-        wrapped_chars = f"{before_window} {before_wrapper}{span_text}{after_wrapper} {after_window}"
+    def create_prompt(self, text, start, end):
+        before_window, after_window = get_window_around_match(start, end, text)
+        span_text = text[start:end]
+        wrapped_chars = f"{before_window} {self.before_wrapper}{span_text}{self.after_wrapper} {after_window}"
         return f"{wrapped_chars} {GPT_PROMPT_END_INDICATOR}"
 
     @staticmethod
@@ -93,12 +92,12 @@ class GptEntityClassificationTrainingGenerator:
 
 def get_gpt_training_data(task, docs):
     if task == "ner":
-        generator = GptNerTrainingGenerator(docs)
+        generator = GptNerTrainingGenerator()
     elif task == "entity_classification":
-        generator = GptEntityClassificationTrainingGenerator(docs)
+        generator = GptEntityClassificationTrainingGenerator()
     else:
         raise Exception("Unrecognized task. Options are 'ner', 'entity_classification'.")
-    return generator.generate()
+    return generator.generate(docs)
 
 
 def init_argparse() -> argparse.ArgumentParser:

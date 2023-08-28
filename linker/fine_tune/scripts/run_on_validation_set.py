@@ -5,10 +5,12 @@ from constants import GPT_COMPLETION_END_INDICATOR, GPT_PROMPT_END_INDICATOR
 from langchain.schema import BaseOutputParser
 from dataclasses import dataclass
 from sefaria.helper.normalization import NormalizerComposer, RegexNormalizer
+from create_citation_input_for_fine_tuning import GptEntityClassificationTrainingGenerator, SPAN_LABEL_TO_CLASSICATION_TAG
 import re
 
 
-model = "curie:ft-sefaria:en-ner-2023-08-06-12-59-47"
+entity_recognizer_model = "curie:ft-sefaria:en-ner-2023-08-06-12-59-47"
+entity_classifier_model = "ada:ft-sefaria:en-entity-classification-2023-08-10-18-23-01"
 
 
 @dataclass
@@ -82,22 +84,42 @@ class EntityParser(BaseOutputParser[EntityDoc]):
 class EntityTagger:
 
     def __init__(self):
-        self._llm = OpenAI(model=model)
+        self._llm_recognizer = OpenAI(model=entity_recognizer_model)
+        self._llm_classifier = OpenAI(model=entity_classifier_model)
         self._parser = EntityParser()
         self._template = PromptTemplate.from_template("{input}" + GPT_PROMPT_END_INDICATOR)
 
     def predict(self, text) -> EntityDoc:
+        doc = self._recognize_entities(text)
+        doc = self._classify_entities(doc)
+        return doc
+
+    def _recognize_entities(self, text):
         prompt = self._template.format(input=text)
-        output = self._llm(prompt, stop=[GPT_COMPLETION_END_INDICATOR])
-        print(output)
+        output = self._llm_recognizer(prompt, stop=[GPT_COMPLETION_END_INDICATOR])
         doc = self._parser.parse(output)
         doc.validate(text)
         return doc
 
+    def _classify_entities(self, doc: EntityDoc) -> EntityDoc:
+        for entity in doc.entities:
+            entity.label = self._classify_entity(doc.text, entity)
+        return doc
+
+    def _classify_entity(self, text, entity: Entity) -> str:
+        generator = GptEntityClassificationTrainingGenerator()
+        prompt = generator.create_prompt(text, entity.start, entity.end)
+        output = self._llm_classifier(prompt, stop=[GPT_COMPLETION_END_INDICATOR])
+        output = output.strip()
+        if output not in SPAN_LABEL_TO_CLASSICATION_TAG.values():
+            print(f"NOT good '{output}'")
+            raise AssertionError
+        return output
+
 
 if __name__ == '__main__':
     tagger = EntityTagger()
-    text = "The Torah says in Genesis 1:6 'Thou shalt be cool'."
+    text = "The Torah says in Genesis 1:6 'Thou shalt be cool'. The Ben Yehoyda says that this means you should learn Torah all day."
     doc = tagger.predict(text)
     print(doc)
 
