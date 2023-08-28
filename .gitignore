@@ -161,3 +161,5 @@ cython_debug/
 
 project.lock
 output
+
+.langchain.db
