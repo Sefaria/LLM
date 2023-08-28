@@ -2,7 +2,7 @@ import stanza
 
 
 def sentencize(text):
-    nlp = stanza.Pipeline(lang='en', processors='tokenize', tokenize_no_ssplit=False)
+    nlp = stanza.Pipeline(lang='en', processors='tokenize', tokenize_no_ssplit=False, download_method=None, verbose=False)
     doc = nlp(text)
     return [sent.text for sent in doc.sentences]
 
