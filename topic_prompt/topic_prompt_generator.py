@@ -33,7 +33,7 @@ def _get_toprompt_options(lang: str, topic: Topic, oref: Ref) -> TopromptOptions
 
         output_parser = get_output_parser()
         parsed_output = output_parser.parse(response.content)
-        toprompt_text = parsed_output.why + "  ||| " + parsed_output.what
+        toprompt_text = parsed_output.why + " " + parsed_output.what
         topic_prompts += [Toprompt(topic, oref, toprompt_text, parsed_output.title)]
     return TopromptOptions(topic_prompts)
 
