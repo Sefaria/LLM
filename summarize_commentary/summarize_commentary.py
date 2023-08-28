@@ -6,21 +6,26 @@ from sefaria.model import *
 from sefaria.client.wrapper import get_links
 from sefaria.datatype.jagged_array import JaggedTextArray
 from util.openai import get_completion_openai, count_tokens_openai
-from util.anthropic import get_completion_anthropic
+from langchain.chat_models import ChatAnthropic
+from langchain.schema import HumanMessage
+from langchain.cache import SQLiteCache
+import langchain
+langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 
 def get_prompt(tref, topic_slug, commentary):
     topic_name, topic_description = get_topic_prompt(topic_slug)
-    prompt = f"{anthropic.HUMAN_PROMPT} # Input:\n" \
-             f"1) Commentary: commentary on the verse {tref}.\n" \
-             f"2) Topic: topic which relates to this verse\n" \
-             f"3) Topic Description: description of topic\n" \
-             f"# Task: Summarize the main points discussed by the commentators. Only include points that relate to the" \
-             f" topic \"{topic_name}\".\n" \
-             f"# Output: Numbered list of main points, only when relating to the topic \"{topic_name}\".\n" \
-             f"-----\n" \
-             f"# Input:\n1) Topic: {topic_name}\n2) Topic Description: {topic_description}\n3) Commentary: {commentary}" \
-             f"{anthropic.AI_PROMPT}"
+    prompt = (
+        f"# Input:\n"
+        f"1) Commentary: commentary on the verse {tref}.\n"
+        f"2) Topic: topic which relates to this verse\n"
+        f"3) Topic Description: description of topic\n"
+        f"# Task: Summarize the main points discussed by the commentators. Only include points that relate to the"
+        f" topic \"{topic_name}\".\n"
+        f"# Output: Numbered list of main points, only when relating to the topic \"{topic_name}\".\n"
+        f"-----\n"
+        f"# Input:\n1) Topic: {topic_name}\n2) Topic Description: {topic_description}\n3) Commentary: {commentary}"
+    )
     return prompt
 
 
@@ -55,9 +60,8 @@ def summarize_commentary(tref, topic_slug, company='openai'):
         print(f"Number of commentary tokens: {num_tokens}")
         completion = get_completion_openai(prompt)
     elif company == 'anthropic':
-        num_tokens = anthropic.count_tokens(prompt)
-        print(f"Number of commentary tokens: {num_tokens}")
-        completion = get_completion_anthropic(prompt, max_tokens_to_sample=7000)
+        llm = ChatAnthropic(model="claude-instant-1")
+        completion = llm([HumanMessage(content=prompt)]).content
     else:
         raise Exception("No valid company passed. Options are 'openai' or 'anthropic'.")
     return completion
