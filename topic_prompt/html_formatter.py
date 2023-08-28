@@ -1,6 +1,7 @@
 from typing import List, Dict
 from collections import defaultdict
-from topic_prompt_generator import TopromptOptions, Toprompt
+from toprompt import TopromptOptions, Toprompt
+from util.general import get_raw_ref_text
 from sefaria.model.topic import Topic
 
 

@@ -31,7 +31,7 @@ class TopromptLLMPrompt:
                                                       '"what": "{what}", "title": "{title}"}}}}')
         intro_prompt = TopromptLLMPrompt._get_introduction_prompt() + self._get_formatting_prompt()
         input_prompt = self._get_input_prompt()
-        format_instructions = _get_output_parser().get_format_instructions()
+        format_instructions = get_output_parser().get_format_instructions()
 
         example_selector = LengthBasedExampleSelector(
             examples=examples,
