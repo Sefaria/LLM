@@ -8,31 +8,30 @@ workflows:
   all:
     - create_citation_ner_training
     - create_citation_classification_training
-    - upload_files
     - create_fine_tune
 
 commands:
   - name: create_citation_ner_training
     script:
-      - 'python scripts/create_citation_input_for_fine_tuning.py ${vars.input_collection} ner output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl -m localhost -p 27017'
+      - 'python project_scripts/create_citation_input_for_fine_tuning.py ${vars.input_collection} ner output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl -m localhost -p 27017'
     outputs:
       - 'output/gpt_citation_training.jsonl'
       - 'output/gpt_citation_validation.jsonl'
 
   - name: create_citation_classification_training
     script:
-      - 'python scripts/create_citation_input_for_fine_tuning.py ${vars.input_collection} entity_classification output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl -m localhost -p 27017'
+      - 'python project_scripts/create_citation_input_for_fine_tuning.py ${vars.input_collection} entity_classification output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl -m localhost -p 27017'
     outputs:
       - 'output/gpt_citation_training.jsonl'
       - 'output/gpt_citation_validation.jsonl'
 
   - name: delete_all_files
     script:
-      - "python ./scripts/delete_all_files.py"
+      - "python ./project_scripts/delete_all_files.py"
 
   - name: delete_all_fine_tunes
     script:
-      - "python ./scripts/delete_all_fine_tunes.py"
+      - "python ./project_scripts/delete_all_fine_tunes.py"
 
   - name: create_fine_tune
     deps:
@@ -41,7 +40,7 @@ commands:
     outputs:
       - 'output/fine_tune_job.json'
     script:
-      - 'python ./scripts/create_fine_tune.py ${vars.base_model} output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl ${vars.output_model_suffix}'
+      - 'python ./project_scripts/create_fine_tune.py ${vars.base_model} output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl ${vars.output_model_suffix}'
 
   - name: fine_tune_status
     deps:
@@ -49,7 +48,7 @@ commands:
     outputs:
       - 'output/fine_tune_job.json'
     script:
-      - './scripts/fine_tune_status.sh ${env.openai_api_key} output/fine_tune_job.json output/fine_tune_job.json'
+      - './project_scripts/fine_tune_status.sh ${env.openai_api_key} output/fine_tune_job.json output/fine_tune_job.json'
 
   - name: fine_tune_stats
     deps:
@@ -57,4 +56,4 @@ commands:
     outputs:
       - 'output/fine_tune_stats.csv'
     script:
-      - './scripts/fine_tune_stats.sh ${env.openai_api_key} output/fine_tune_job.json output/fine_tune_stats.csv'
+      - './project_scripts/fine_tune_stats.sh ${env.openai_api_key} output/fine_tune_job.json output/fine_tune_stats.csv'
