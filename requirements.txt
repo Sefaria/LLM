@@ -1,3 +1,4 @@
 langchain[llms]
 stanza
 openai
+typer

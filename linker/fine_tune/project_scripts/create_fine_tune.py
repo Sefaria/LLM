@@ -1,34 +1,27 @@
 import typer
 import os
 import openai
-from time import sleep
-from tqdm import tqdm
+import json
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
-def create_fine_tune_job(api_key: str, model: str, training_filename: str, validation_filename: str, suffix: str):
-    training_file, validation_file = upload_files(api_key, training_filename, validation_filename)
+def _get_file_ids():
+    with open("output/fine_tune_file_ids.json", "r") as fin:
+        file_ids = json.load(fin)
+        return file_ids['training_file_id'], file_ids['validation_file_id']
 
-    # wait until files are "processed" (:shrug:)
-    print("waiting for 'processing'...")
-    for _ in tqdm(range(30)):
-        sleep(1)
 
-    # Create the fine-tuning job
+def create_fine_tune_job(model: str, suffix: str):
+    training_file_id, validation_file_id = _get_file_ids()
+
     fine_tuning_job = openai.FineTuningJob.create(
-        api_key=api_key,
         model=model,
-        training_file=training_file.id,
-        validation_file=validation_file.id,
+        training_file=training_file_id,
+        validation_file=validation_file_id,
         suffix=suffix
     )
 
     return fine_tuning_job["id"]
-
-
-def upload_files(api_key: str, training_filename: str, validation_filename: str):
-    training_file = openai.File.create(api_key=api_key, file=open(training_filename, "r"), purpose='fine-tune')
-    validation_file = openai.File.create(api_key=api_key, file=open(validation_filename, "r"), purpose='fine-tune')
-    return training_file, validation_file
 
 
 def monitor_fine_tune_job(job_id):
