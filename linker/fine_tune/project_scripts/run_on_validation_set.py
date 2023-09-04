@@ -2,7 +2,7 @@ from tqdm import tqdm
 from typing import List, Any
 from langchain.llms import OpenAI
 from langchain import PromptTemplate
-from linker.fine_tune.project_scripts.constants import GPT_COMPLETION_END_INDICATOR, GPT_PROMPT_END_INDICATOR
+from linker.fine_tune.project_scripts import constants
 from langchain.schema import BaseOutputParser
 from dataclasses import dataclass
 from sefaria.helper.normalization import NormalizerComposer, RegexNormalizer, AbstractNormalizer
@@ -108,15 +108,12 @@ class EntityDoc:
         return f"TEXT:\n{self.text}\nENTITIES:\n{entities_str}"
 
 
-pre_wrapper = "{{"
-post_wrapper = "}}"
-pattern = re.compile(fr'{re.escape(pre_wrapper)}(.+?){re.escape(post_wrapper)}')
-bracket_normalizer = RegexNormalizer(fr'{re.escape(pre_wrapper)}|{re.escape(post_wrapper)}', r'')
-strip_normalizer = RegexNormalizer(r'^\s*|\s*$', r'')
-normalizer = NormalizerComposer(steps=[bracket_normalizer, strip_normalizer])
-
-
 class EntityParser(BaseOutputParser[EntityDoc]):
+
+    pattern = re.compile(fr'{re.escape(constants.ENTITY_PRE_WRAPPER)}(.+?){re.escape(constants.ENTITY_POST_WRAPPER)}')
+    bracket_normalizer = RegexNormalizer(fr'{re.escape(constants.ENTITY_PRE_WRAPPER)}|{re.escape(constants.ENTITY_POST_WRAPPER)}', r'')
+    strip_normalizer = RegexNormalizer(r'^\s*|\s*$', r'')
+    normalizer = NormalizerComposer(steps=[bracket_normalizer, strip_normalizer])
 
     @property
     def _type(self) -> str:
@@ -127,16 +124,16 @@ class EntityParser(BaseOutputParser[EntityDoc]):
 
     def parse(self, text: str) -> EntityDoc:
         entities = []
-        for entity_match in pattern.finditer(text):
+        for entity_match in self.pattern.finditer(text):
             entities += [self._create_entity(entity_match)]
-        cleaned_text = normalizer.normalize(text)
+        cleaned_text = self.normalizer.normalize(text)
         corrected_entities = self._correct_entity_locations(text, entities)
         return EntityDoc(text=cleaned_text, entities=corrected_entities)
 
     def _correct_entity_locations(self, text, entities) -> List[Entity]:
-        mapping = normalizer.get_mapping_after_normalization(text, reverse=True)
+        mapping = self.normalizer.get_mapping_after_normalization(text, reverse=True)
         orig_indices = [(e.start, e.end) for e in entities]
-        new_indices = normalizer.convert_normalized_indices_to_unnormalized_indices(orig_indices, mapping, reverse=True)
+        new_indices = self.normalizer.convert_normalized_indices_to_unnormalized_indices(orig_indices, mapping, reverse=True)
         for e, (start, end) in zip(entities, new_indices):
             e.start = start
             e.end = end
@@ -156,7 +153,7 @@ class EntityTagger:
         self._llm_recognizer = OpenAI(model=entity_recognizer_model, temperature=0)
         self._llm_classifier = OpenAI(model=entity_classifier_model, temperature=0)
         self._parser = EntityParser()
-        self._template = PromptTemplate.from_template("{input}" + GPT_PROMPT_END_INDICATOR)
+        self._template = PromptTemplate.from_template("{input}" + constants.GPT_PROMPT_END_INDICATOR)
 
     def predict(self, text) -> EntityDoc:
         doc = self._recognize_entities(text)
@@ -165,7 +162,7 @@ class EntityTagger:
 
     def _recognize_entities(self, text):
         prompt = self._template.format(input=text)
-        output = self._llm_recognizer(prompt, stop=[GPT_COMPLETION_END_INDICATOR])
+        output = self._llm_recognizer(prompt, stop=[constants.GPT_COMPLETION_END_INDICATOR])
         doc = self._parser.parse(output)
         doc.validate(text)
         return doc
@@ -178,7 +175,7 @@ class EntityTagger:
     def _classify_entity(self, text, entity: Entity) -> str:
         generator = GptEntityClassificationTrainingGenerator()
         prompt = generator.create_prompt(text, entity.start, entity.end)
-        output = self._llm_classifier(prompt, stop=[GPT_COMPLETION_END_INDICATOR])
+        output = self._llm_classifier(prompt, stop=[constants.GPT_COMPLETION_END_INDICATOR])
         output = output.strip()
         if output not in SPAN_LABEL_TO_CLASSICATION_TAG.values():
             print(f"NOT good '{output}'")
