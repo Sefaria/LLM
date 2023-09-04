@@ -1,3 +1,4 @@
+from dataclasses import dataclass, asdict
 import os
 import argparse
 from sefaria.utils.util import wrap_chars_with_overlaps
@@ -35,24 +36,39 @@ def get_window_around_match(start_char:int, end_char:int, text:str, window:int=1
     return before_window, after_window
 
 
+@dataclass
+class ChatMessage:
+    role: str
+    content: str
+
+
 class GptNerTrainingGenerator:
 
     def generate(self, docs):
-        return [
-            {"prompt": self._create_prompt(doc), "completion": self._create_completion(doc)}
-            for doc in docs
-        ]
+        generated = []
+        for doc in docs:
+            messages = [
+                ChatMessage("system", self._create_system_prompt()),
+                ChatMessage("user", self._create_prompt(doc)),
+                ChatMessage("assistant", self._create_completion(doc)),
+            ]
+            generated += [{"messages": [asdict(message) for message in messages]}]
+        return generated
+
+    @staticmethod
+    def _create_system_prompt():
+        return "You are Jewish scholar knowledgeable in all Torah texts. Your task is to wrap all people, groups of " \
+               "people and citations in double curly braces."
 
     @staticmethod
     def _create_prompt(doc):
-        return f"{doc['text']} {constants.GPT_PROMPT_END_INDICATOR}"
+        return doc['text']
 
     @staticmethod
     def _create_completion(doc):
         chars_to_wrap = [(span['start'], span['end'], None) for span in doc['spans'] if span['label'] in
                          SPAN_LABEL_TO_CLASSICATION_TAG]
-        wrapped_chars = wrap_chars_with_overlaps(doc['text'], chars_to_wrap, _get_wrapped_citation)
-        return f" {wrapped_chars}{constants.GPT_COMPLETION_END_INDICATOR}"
+        return wrap_chars_with_overlaps(doc['text'], chars_to_wrap, _get_wrapped_citation)
 
 
 class GptEntityClassificationTrainingGenerator:
