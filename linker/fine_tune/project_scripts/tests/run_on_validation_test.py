@@ -1,5 +1,5 @@
 import pytest
-from linker.fine_tune.scripts import run_on_validation_set as r
+from linker.fine_tune.project_scripts import run_on_validation_set as r
 
 
 @pytest.mark.parametrize(('original_text', 'doc', 'expected_doc'), (

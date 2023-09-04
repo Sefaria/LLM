@@ -4,7 +4,7 @@ from sefaria.utils.util import wrap_chars_with_overlaps
 from sklearn.model_selection import train_test_split
 import srsly
 from util.general import load_mongo_docs
-from linker.fine_tune.scripts.constants import GPT_PROMPT_END_INDICATOR, GPT_COMPLETION_END_INDICATOR
+from linker.fine_tune.project_scripts.constants import GPT_PROMPT_END_INDICATOR, GPT_COMPLETION_END_INDICATOR
 
 
 SPAN_LABEL_TO_CHAR_WRAPPER = {

@@ -2,11 +2,11 @@ from tqdm import tqdm
 from typing import List, Any
 from langchain.llms import OpenAI
 from langchain import PromptTemplate
-from linker.fine_tune.scripts.constants import GPT_COMPLETION_END_INDICATOR, GPT_PROMPT_END_INDICATOR
+from linker.fine_tune.project_scripts.constants import GPT_COMPLETION_END_INDICATOR, GPT_PROMPT_END_INDICATOR
 from langchain.schema import BaseOutputParser
 from dataclasses import dataclass
 from sefaria.helper.normalization import NormalizerComposer, RegexNormalizer, AbstractNormalizer
-from linker.fine_tune.scripts.create_citation_input_for_fine_tuning import GptEntityClassificationTrainingGenerator, SPAN_LABEL_TO_CLASSICATION_TAG
+from linker.fine_tune.project_scripts.create_citation_input_for_fine_tuning import GptEntityClassificationTrainingGenerator, SPAN_LABEL_TO_CLASSICATION_TAG
 import re
 import random
 from util.general import load_mongo_docs, get_removal_list
