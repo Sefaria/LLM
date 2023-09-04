@@ -45,8 +45,7 @@ commands:
 
   - name: create_fine_tune
     deps:
-      - 'output/gpt_citation_training.jsonl'
-      - 'output/gpt_citation_validation.jsonl'
+      - 'output/fine_tune_file_ids.json'
     script:
       - 'python ./project_scripts/create_fine_tune.py ${vars.base_model} ${vars.output_model_suffix}'
 
