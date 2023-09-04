@@ -4,12 +4,13 @@ from sefaria.utils.util import wrap_chars_with_overlaps
 from sklearn.model_selection import train_test_split
 import srsly
 from util.general import load_mongo_docs
-from constants import GPT_PROMPT_END_INDICATOR, GPT_COMPLETION_END_INDICATOR
+from linker.fine_tune.scripts.constants import GPT_PROMPT_END_INDICATOR, GPT_COMPLETION_END_INDICATOR
 
 
 SPAN_LABEL_TO_CHAR_WRAPPER = {
     "Person": ["{{", "}}"],
     "Group-of-People": ["{{", "}}"],
+    "Group": ["{{", "}}"],
     "Name-of-God": ["{{", "}}"],
     "Citation": ["{{", "}}"],
 }
@@ -17,6 +18,7 @@ SPAN_LABEL_TO_CHAR_WRAPPER = {
 SPAN_LABEL_TO_CLASSICATION_TAG = {
     "Person": "Person",
     "Group-of-People": "Group",
+    "Group": "Group",
     "Name-of-God": "Person",
     "Citation": "Citation",
 }
@@ -120,7 +122,7 @@ if __name__ == '__main__':
     citation_docs = load_mongo_docs(args.input, args.db_host, args.db_port, args.user, password, args.replicaset)
     citation_docs = [doc for doc in citation_docs if doc['answer'] == 'accept']
     gpt_training = get_gpt_training_data(args.task, citation_docs)
-    training_data, validation_data = train_test_split(gpt_training, random_state=613, train_size=0.8)
+    training_data, validation_data = train_test_split(gpt_training, random_state=613, train_size=0.9999)
     print("TRAINING SIZE:", len(training_data))
     print("VALIDATION SIZE:", len(validation_data))
     srsly.write_jsonl(args.training_filename, training_data)
