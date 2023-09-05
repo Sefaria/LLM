@@ -6,6 +6,8 @@ from sklearn.model_selection import train_test_split
 import srsly
 from util.general import load_mongo_docs
 from linker.fine_tune.project_scripts import constants
+from langchain.chat_models.openai import _convert_message_to_dict
+from langchain.schema import HumanMessage, SystemMessage, AIMessage
 
 
 SPAN_LABEL_TO_CLASSICATION_TAG = {
@@ -36,24 +38,32 @@ def get_window_around_match(start_char:int, end_char:int, text:str, window:int=1
     return before_window, after_window
 
 
-@dataclass
-class ChatMessage:
-    role: str
-    content: str
-
-
 class GptNerTrainingGenerator:
 
-    def generate(self, docs):
-        generated = []
-        for doc in docs:
-            messages = [
-                ChatMessage("system", self._create_system_prompt()),
-                ChatMessage("user", self._create_prompt(doc)),
-                ChatMessage("assistant", self._create_completion(doc)),
-            ]
-            generated += [{"messages": [asdict(message) for message in messages]}]
-        return generated
+    @staticmethod
+    def generate(docs, is_labeled=True):
+        """
+        Generate a list of messages to feed to GPT to either train or run on
+        :param docs: input data in the form of spaCy docs
+        :param is_labeled: are the docs labeled with the correct answers. False for inference use.
+        :return:
+        """
+        examples = [GptNerTrainingGenerator.generate_one(doc, is_labeled) for doc in docs]
+        return [GptNerTrainingGenerator.serialize_messages(example) for example in examples]
+
+    @staticmethod
+    def generate_one(doc, is_labeled=True):
+        messages = [
+            SystemMessage(content=GptNerTrainingGenerator._create_system_prompt()),
+            HumanMessage(content=GptNerTrainingGenerator._create_prompt(doc)),
+        ]
+        if is_labeled:
+            messages += [AIMessage(content=GptNerTrainingGenerator._create_completion(doc))]
+        return messages
+
+    @staticmethod
+    def serialize_messages(messages):
+        return {"messages": [_convert_message_to_dict(message) for message in messages]}
 
     @staticmethod
     def _create_system_prompt():

@@ -1,12 +1,12 @@
 from tqdm import tqdm
+from functools import reduce
 from typing import List, Any
-from langchain.llms import OpenAI
-from langchain import PromptTemplate
+from langchain.chat_models import ChatOpenAI
 from linker.fine_tune.project_scripts import constants
 from langchain.schema import BaseOutputParser
 from dataclasses import dataclass
 from sefaria.helper.normalization import NormalizerComposer, RegexNormalizer, AbstractNormalizer
-from linker.fine_tune.project_scripts.create_citation_input_for_fine_tuning import GptEntityClassificationTrainingGenerator, SPAN_LABEL_TO_CLASSICATION_TAG
+from linker.fine_tune.project_scripts.create_citation_input_for_fine_tuning import GptEntityClassificationTrainingGenerator, SPAN_LABEL_TO_CLASSICATION_TAG, GptNerTrainingGenerator
 import re
 import random
 from util.general import load_mongo_docs, get_removal_list
@@ -25,7 +25,7 @@ langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 random.seed(613)
 
-entity_recognizer_model = "curie:ft-sefaria:en-ner-2023-08-30-12-45-23"  # "curie:ft-sefaria:en-ner-2023-08-06-12-59-47"
+entity_recognizer_model = "ft:gpt-3.5-turbo-0613:sefaria:en-ner:7v9irppe"
 entity_classifier_model = "ada:ft-sefaria:en-ner-2023-08-30-11-17-37"  # "ada:ft-sefaria:en-entity-classification-2023-08-10-18-23-01"
 
 nlp = English()
@@ -47,6 +47,16 @@ class ExampleGenerator:
         for docs in docs_list:
             self._data += docs[:min_count]
         random.shuffle(self._data)
+        self._data = reduce(lambda a, b: a + self._sentencize_doc(b), self._data, [])
+
+    @staticmethod
+    def _sentencize_doc(doc):
+        docs = []
+        for sent in sentencize(doc['text']):
+            curr_doc = doc.copy()
+            curr_doc['text'] = sent
+            docs += [curr_doc]
+        return docs
 
     @staticmethod
     def _filter_bad_sentences(doc):
@@ -108,12 +118,14 @@ class EntityDoc:
         return f"TEXT:\n{self.text}\nENTITIES:\n{entities_str}"
 
 
+pattern = re.compile(fr'{re.escape(constants.ENTITY_PRE_WRAPPER)}(.+?){re.escape(constants.ENTITY_POST_WRAPPER)}')
+bracket_normalizer = RegexNormalizer(fr'{re.escape(constants.ENTITY_PRE_WRAPPER)}|{re.escape(constants.ENTITY_POST_WRAPPER)}', r'')
+strip_normalizer = RegexNormalizer(r'^\s*|\s*$', r'')
+normalizer = NormalizerComposer(steps=[bracket_normalizer, strip_normalizer])
+
+
 class EntityParser(BaseOutputParser[EntityDoc]):
 
-    pattern = re.compile(fr'{re.escape(constants.ENTITY_PRE_WRAPPER)}(.+?){re.escape(constants.ENTITY_POST_WRAPPER)}')
-    bracket_normalizer = RegexNormalizer(fr'{re.escape(constants.ENTITY_PRE_WRAPPER)}|{re.escape(constants.ENTITY_POST_WRAPPER)}', r'')
-    strip_normalizer = RegexNormalizer(r'^\s*|\s*$', r'')
-    normalizer = NormalizerComposer(steps=[bracket_normalizer, strip_normalizer])
 
     @property
     def _type(self) -> str:
@@ -124,16 +136,16 @@ class EntityParser(BaseOutputParser[EntityDoc]):
 
     def parse(self, text: str) -> EntityDoc:
         entities = []
-        for entity_match in self.pattern.finditer(text):
+        for entity_match in pattern.finditer(text):
             entities += [self._create_entity(entity_match)]
-        cleaned_text = self.normalizer.normalize(text)
+        cleaned_text = normalizer.normalize(text)
         corrected_entities = self._correct_entity_locations(text, entities)
         return EntityDoc(text=cleaned_text, entities=corrected_entities)
 
     def _correct_entity_locations(self, text, entities) -> List[Entity]:
-        mapping = self.normalizer.get_mapping_after_normalization(text, reverse=True)
+        mapping = normalizer.get_mapping_after_normalization(text, reverse=True)
         orig_indices = [(e.start, e.end) for e in entities]
-        new_indices = self.normalizer.convert_normalized_indices_to_unnormalized_indices(orig_indices, mapping, reverse=True)
+        new_indices = normalizer.convert_normalized_indices_to_unnormalized_indices(orig_indices, mapping, reverse=True)
         for e, (start, end) in zip(entities, new_indices):
             e.start = start
             e.end = end
@@ -150,21 +162,20 @@ class EntityParser(BaseOutputParser[EntityDoc]):
 class EntityTagger:
 
     def __init__(self):
-        self._llm_recognizer = OpenAI(model=entity_recognizer_model, temperature=0)
-        self._llm_classifier = OpenAI(model=entity_classifier_model, temperature=0)
+        self._llm_recognizer = ChatOpenAI(model=entity_recognizer_model, temperature=0)
+        # self._llm_classifier = OpenAI(model=entity_classifier_model, temperature=0)
         self._parser = EntityParser()
-        self._template = PromptTemplate.from_template("{input}" + constants.GPT_PROMPT_END_INDICATOR)
 
-    def predict(self, text) -> EntityDoc:
-        doc = self._recognize_entities(text)
-        doc = self._classify_entities(doc)
+    def predict(self, spacy_doc) -> EntityDoc:
+        doc = self._recognize_entities(spacy_doc)
+        # doc = self._classify_entities(doc)
         return doc
 
-    def _recognize_entities(self, text):
-        prompt = self._template.format(input=text)
-        output = self._llm_recognizer(prompt, stop=[constants.GPT_COMPLETION_END_INDICATOR])
-        doc = self._parser.parse(output)
-        doc.validate(text)
+    def _recognize_entities(self, spacy_doc):
+        prompt = GptNerTrainingGenerator.generate_one(spacy_doc)
+        output = self._llm_recognizer(prompt)
+        doc = self._parser.parse(output.content)
+        doc.validate(spacy_doc['text'])
         return doc
 
     def _classify_entities(self, doc: EntityDoc) -> EntityDoc:
@@ -198,24 +209,18 @@ def realign_entities(original_text: str, doc: EntityDoc) -> EntityDoc:
 
 if __name__ == '__main__':
     tagger = EntityTagger()
-    # text = "See also Rambam, Commentary on the Mishneh , Avot 5:6; idem , Guide to the Perplexed , Part II, chaps. 25 and 29;"
-    # doc = tagger.predict(text)
-    # print(doc)
-
-    my_db = MongoProdigyDBManager("ner_en_gpt_output2")
+    my_db = MongoProdigyDBManager("ner_en_gpt_output2_TEST")
     my_db.output_collection.delete_many({})
     generator = ExampleGenerator()
     for d in tqdm(generator.get()):
-        text = d['text']
-        for sent in sentencize(text):
-            try:
-                doc = tagger.predict(sent)
-                doc.meta = d['meta']
-                print(doc)
-                mongo_doc = doc.spacy_serialize()
-                my_db.output_collection.insert_one(mongo_doc)
-            except (AssertionError, AttributeError) as e:
-                print("ERROR", sent)
-            print()
+        try:
+            doc = tagger.predict(d)
+            doc.meta = d['meta']
+            print(doc)
+            mongo_doc = doc.spacy_serialize()
+            my_db.output_collection.insert_one(mongo_doc)
+        except (AssertionError, AttributeError) as e:
+            print("ERROR", d['text'])
+        print()
 
 
