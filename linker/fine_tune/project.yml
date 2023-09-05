@@ -1,7 +1,7 @@
 vars:
-  base_model: "gpt-3.5-turbo"
+  base_model: "babbage-002"  # "gpt-3.5-turbo"
   input_collection: "ner_en_gpt_output_gold2"
-  output_model_suffix: "en-ner"
+  output_model_suffix: "en-entity-class"
 env:
   openai_api_key: OPENAI_API_KEY
 workflows:

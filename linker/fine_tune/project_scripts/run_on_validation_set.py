@@ -2,6 +2,7 @@ from tqdm import tqdm
 from functools import reduce
 from typing import List, Any
 from langchain.chat_models import ChatOpenAI
+from langchain.llms import OpenAI
 from linker.fine_tune.project_scripts import constants
 from langchain.schema import BaseOutputParser
 from dataclasses import dataclass
@@ -26,7 +27,7 @@ langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 random.seed(613)
 
 entity_recognizer_model = "ft:gpt-3.5-turbo-0613:sefaria:en-ner:7v9irppe"
-entity_classifier_model = "ada:ft-sefaria:en-ner-2023-08-30-11-17-37"  # "ada:ft-sefaria:en-entity-classification-2023-08-10-18-23-01"
+entity_classifier_model = "ft:babbage-002:sefaria:en-entity-class:7vJXewA9"
 
 nlp = English()
 nlp.tokenizer = inner_punct_tokenizer_factory()(nlp)
@@ -34,12 +35,13 @@ nlp.tokenizer = inner_punct_tokenizer_factory()(nlp)
 
 class ExampleGenerator:
 
-    collections = ["ner_en_output2_gold_left"]  # ["ner_en_sent_input", "ner_en_sent_web_input"]
-
-    def __init__(self):
+    def __init__(self, collections, skip=0, limit=None):
         docs_list = []
-        for collection in self.collections:
-            docs = list(filter(self._filter_bad_sentences, load_mongo_docs(collection)))
+        for collection in collections:
+            docs = list(load_mongo_docs(collection))[skip:]
+            if limit:
+                docs = docs[:skip+limit]
+            docs = list(filter(self._filter_bad_sentences, docs))
             random.shuffle(docs)
             docs_list += [docs]
         min_count = min(len(d) for d in docs_list)
@@ -47,7 +49,6 @@ class ExampleGenerator:
         for docs in docs_list:
             self._data += docs[:min_count]
         random.shuffle(self._data)
-        self._data = reduce(lambda a, b: a + self._sentencize_doc(b), self._data, [])
 
     @staticmethod
     def _sentencize_doc(doc):
@@ -66,7 +67,9 @@ class ExampleGenerator:
         return True
 
     def get(self):
-        return self._data
+        for doc in self._data:
+            for sent_doc in self._sentencize_doc(doc):
+                yield sent_doc
 
 
 @dataclass
@@ -163,12 +166,12 @@ class EntityTagger:
 
     def __init__(self):
         self._llm_recognizer = ChatOpenAI(model=entity_recognizer_model, temperature=0)
-        # self._llm_classifier = OpenAI(model=entity_classifier_model, temperature=0)
+        self._llm_classifier = OpenAI(model=entity_classifier_model, temperature=0)
         self._parser = EntityParser()
 
     def predict(self, spacy_doc) -> EntityDoc:
         doc = self._recognize_entities(spacy_doc)
-        # doc = self._classify_entities(doc)
+        doc = self._classify_entities(doc)
         return doc
 
     def _recognize_entities(self, spacy_doc):
@@ -211,7 +214,7 @@ if __name__ == '__main__':
     tagger = EntityTagger()
     my_db = MongoProdigyDBManager("ner_en_gpt_output2_TEST")
     my_db.output_collection.delete_many({})
-    generator = ExampleGenerator()
+    generator = ExampleGenerator(['ner_en_input'], skip=5000)
     for d in tqdm(generator.get()):
         try:
             doc = tagger.predict(d)
