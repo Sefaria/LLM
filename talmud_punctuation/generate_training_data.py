@@ -2,8 +2,6 @@ import django
 
 
 django.setup()
-superuser_id = 171118
-# import statistics
 import json
 from sefaria.model import *
 from sefaria.utils.hebrew import strip_cantillation
@@ -17,14 +15,13 @@ masechtot_ordered = ["Berakhot", "Shabbat", "Eruvin", "Pesachim", "Rosh Hashanah
                           "Zevachim", "Menachot", "Chullin", "Bekhorot", "Arakhin", "Temurah", "Keritot", "Meilah",
                           "Tamid", "Niddah"]
 
-{"messages": [{"role": "system", "content": "<explain what the task is>"}, {"role": "user", "content": "steinsaltz and no-punctuation talmud"}, {"role": "assistant", "content": "punctuation talmud"}]}
 examples = []
-task_desciption = "Given this non-puncutated talmudic passage and a punctuated interpretation of this passage, output a punctuated version of the passage based on the interpretation I provided"
+task_desciption = "Given a pair ('no_punctuation_talmud': <text>, 'steinsaltz': <text>), where 'no_punctuation_talmud' is a passage from the Talmud without punctuation marks and 'steinsaltz' is a passage that contains the Talmudic text, expands on it, and interprets it, output a punctuated version of the Talmudic passage using the punctuation that appears in the 'steinsaltz' interpretation."
 last_masechet = "Gittin"
 def create_new_context(task_desciption, non_punctuated, steinsalz, punctuated):
     return (
     {"messages": [{"role": "system", "content": task_desciption},
-                  {"role": "user", "content": {"no_punctuation_talmud": non_punctuated, "steinsaltz": steinsalz}},
+                  {"role": "user", "content": f'("no_punctuation_talmud": {non_punctuated}, "steinsaltz": {steinsalz})'},
                   {"role": "assistant", "content": punctuated}]}
     )
 
