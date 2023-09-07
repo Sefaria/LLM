@@ -18,7 +18,10 @@ def create_fine_tune_job(model: str, suffix: str):
         model=model,
         training_file=training_file_id,
         validation_file=validation_file_id,
-        suffix=suffix
+        suffix=suffix,
+        hyperparameters={
+            "n_epochs": 5
+        }
     )
 
     return fine_tuning_job["id"]

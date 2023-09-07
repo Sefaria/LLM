@@ -26,8 +26,8 @@ langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 random.seed(613)
 
-entity_recognizer_model = "ft:gpt-3.5-turbo-0613:sefaria:en-ner:7v9irppe"
-entity_classifier_model = "ft:babbage-002:sefaria:en-entity-class:7vJXewA9"
+entity_recognizer_model = "ft:davinci-002:sefaria:en-ner:7w4wFtsO"
+entity_classifier_model = "ft:babbage-002:sefaria:en-entity-class:7vhclX9U"
 
 nlp = English()
 nlp.tokenizer = inner_punct_tokenizer_factory()(nlp)
@@ -175,8 +175,8 @@ class EntityTagger:
         return doc
 
     def _recognize_entities(self, spacy_doc):
-        prompt = GptNerTrainingGenerator.generate_one(spacy_doc)
-        output = self._llm_recognizer(prompt)
+        prompt = GptNerTrainingGenerator.generate_one(spacy_doc, is_labeled=False)
+        output = self._llm_recognizer(prompt, stop=[constants.GPT_COMPLETION_END_INDICATOR])
         doc = self._parser.parse(output.content)
         doc.validate(spacy_doc['text'])
         return doc
@@ -212,9 +212,9 @@ def realign_entities(original_text: str, doc: EntityDoc) -> EntityDoc:
 
 if __name__ == '__main__':
     tagger = EntityTagger()
-    my_db = MongoProdigyDBManager("ner_en_gpt_output2_TEST")
+    my_db = MongoProdigyDBManager("ner_en_gpt_copper")
     my_db.output_collection.delete_many({})
-    generator = ExampleGenerator(['ner_en_input'], skip=5000)
+    generator = ExampleGenerator(['ner_en_input'], skip=6000)
     for d in tqdm(generator.get()):
         try:
             doc = tagger.predict(d)

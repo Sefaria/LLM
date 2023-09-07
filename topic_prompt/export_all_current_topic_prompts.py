@@ -2,14 +2,14 @@ import django
 django.setup()
 from sefaria.model import *
 import csv
-from get_normalizer import get_normalizer
+from util.general import get_normalizer
 
 
 if __name__ == '__main__':
-    lang = 'en'
+    lang = 'he'
     normalizer = get_normalizer()
     with open("/Users/nss/Downloads/all_topic_prompts.csv", "w") as fout:
-        cout = csv.DictWriter(fout, ["Topic Name", "Reference", "Title", "Prompt", "Source Hebrew", "Source English"])
+        cout = csv.DictWriter(fout, ["Slug", "Topic Name", "Reference", "Title", "Prompt", "Source Hebrew", "Source English"])
         cout.writeheader()
         for rtl in RefTopicLinkSet({f"descriptions.{lang}": {"$exists": True}}):
             oref = Ref(rtl.ref)
@@ -17,8 +17,9 @@ if __name__ == '__main__':
             en = oref.text("en").ja().flatten_to_string()
             topic = Topic.init(rtl.toTopic)
             cout.writerow({
-                "Topic Name": topic.get_primary_title("en"),
-                "Reference": rtl.ref,
+                "Slug": topic.slug,
+                "Topic Name": topic.get_primary_title(lang),
+                "Reference": Ref(rtl.ref).normal(lang),
                 "Title": rtl.descriptions[lang]['title'],
                 "Prompt": rtl.descriptions[lang]['prompt'],
                 "Source Hebrew": normalizer.normalize(he),

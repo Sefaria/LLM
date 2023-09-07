@@ -40,6 +40,8 @@ def get_window_around_match(start_char:int, end_char:int, text:str, window:int=1
 
 class GptNerTrainingGenerator:
 
+    format = "completion"
+
     @staticmethod
     def generate(docs, is_labeled=True):
         """
@@ -49,10 +51,18 @@ class GptNerTrainingGenerator:
         :return:
         """
         examples = [GptNerTrainingGenerator.generate_one(doc, is_labeled) for doc in docs]
+        if GptNerTrainingGenerator.format == "completion":
+            return examples
         return [GptNerTrainingGenerator.serialize_messages(example) for example in examples]
 
     @staticmethod
     def generate_one(doc, is_labeled=True):
+        if GptNerTrainingGenerator.format == "completion":
+            return GptNerTrainingGenerator._generate_one_completion_format(doc, is_labeled)
+        return GptNerTrainingGenerator._generate_one_chat_format(doc, is_labeled)
+
+    @staticmethod
+    def _generate_one_chat_format(doc, is_labeled=True):
         messages = [
             SystemMessage(content=GptNerTrainingGenerator._create_system_prompt()),
             HumanMessage(content=GptNerTrainingGenerator._create_prompt(doc)),
@@ -60,6 +70,19 @@ class GptNerTrainingGenerator:
         if is_labeled:
             messages += [AIMessage(content=GptNerTrainingGenerator._create_completion(doc))]
         return messages
+
+    @staticmethod
+    def _generate_one_completion_format(doc, is_labeled=False):
+        prompt = GptNerTrainingGenerator._create_prompt(doc)
+        completion = GptNerTrainingGenerator._create_completion(doc)
+        prompt_formatted = f"{prompt} {constants.GPT_PROMPT_END_INDICATOR}"
+        completion_formatted = f"{completion}{constants.GPT_COMPLETION_END_INDICATOR}"
+        if is_labeled:
+            return {
+                "prompt": prompt_formatted,
+                "completion": completion_formatted,
+            }
+        return prompt_formatted
 
     @staticmethod
     def serialize_messages(messages):
@@ -132,9 +155,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     password = os.getenv('MONGO_PASSWORD')
     citation_docs = load_mongo_docs(args.input, args.db_host, args.db_port, args.user, password, args.replicaset)
-    citation_docs = [doc for doc in citation_docs if doc['answer'] == 'accept']
+    citation_docs = [doc for doc in citation_docs if doc.get('answer', 'accept') == 'accept']
     gpt_training = get_gpt_training_data(args.task, citation_docs)
-    training_data, validation_data = train_test_split(gpt_training, random_state=613, train_size=0.9999)
+    training_data, validation_data = train_test_split(gpt_training, random_state=613, train_size=0.8)
     print("TRAINING SIZE:", len(training_data))
     print("VALIDATION SIZE:", len(validation_data))
     srsly.write_jsonl(args.training_filename, training_data)
