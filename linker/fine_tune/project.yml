@@ -1,6 +1,8 @@
 vars:
-  base_model: "babbage-002"  # "gpt-3.5-turbo"
-  input_collection: "ner_en_gpt_output_gold2"
+  # base_model: "gpt-3.5-turbo"
+  base_model: "davinci-002"
+  input_collection: "ner_en_gpt_gold"
+  # output_model_suffix: "en-ner"
   output_model_suffix: "en-entity-class"
 env:
   openai_api_key: OPENAI_API_KEY
@@ -54,9 +56,7 @@ commands:
       - 'python ./project_scripts/fine_tune_status.py'
 
   - name: fine_tune_stats
-    deps:
-      - 'output/fine_tune_job.json'
     outputs:
       - 'output/fine_tune_stats.csv'
     script:
-      - './project_scripts/fine_tune_stats.sh ${env.openai_api_key} output/fine_tune_job.json output/fine_tune_stats.csv'
+      - './project_scripts/fine_tune_stats.sh ${env.openai_api_key} "file-IJ8nRijlbPpsVJY7eYLwxog9" output/fine_tune_stats.csv'
