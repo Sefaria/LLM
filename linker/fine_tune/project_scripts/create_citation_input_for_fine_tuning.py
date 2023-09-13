@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 import srsly
 from util.general import load_mongo_docs
 from linker.fine_tune.project_scripts import constants
-from langchain.chat_models.openai import _convert_message_to_dict
+from langchain.chat_models.openai import convert_message_to_dict
 from langchain.schema import HumanMessage, SystemMessage, AIMessage
 
 
@@ -86,7 +86,7 @@ class GptNerTrainingGenerator:
 
     @staticmethod
     def serialize_messages(messages):
-        return {"messages": [_convert_message_to_dict(message) for message in messages]}
+        return {"messages": [convert_message_to_dict(message) for message in messages]}
 
     @staticmethod
     def _create_system_prompt():

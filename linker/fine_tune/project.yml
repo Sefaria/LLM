@@ -30,11 +30,11 @@ commands:
 
   - name: delete_all_files
     script:
-      - "python ./project_scripts/delete_all_files.py"
+      - "python ../../util/fine_tune/delete_all_files.py"
 
   - name: delete_all_fine_tunes
     script:
-      - "python ./project_scripts/delete_all_fine_tunes.py"
+      - "python ../../util/fine_tune/delete_all_fine_tunes.py"
 
   - name: upload_files
     deps:
@@ -43,20 +43,21 @@ commands:
     outputs:
       - 'output/fine_tune_file_ids.json'
     script:
-      - 'python ./project_scripts/upload_fine_tune_files.py output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl'
+      - 'python ../../util/fine_tune/upload_fine_tune_files.py output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl'
+
 
   - name: create_fine_tune
     deps:
       - 'output/fine_tune_file_ids.json'
     script:
-      - 'python ./project_scripts/create_fine_tune.py ${vars.base_model} ${vars.output_model_suffix}'
+      - 'python ../../util/fine_tune/create_fine_tune.py ${vars.base_model} ${vars.output_model_suffix}'
 
   - name: fine_tune_status
     script:
-      - 'python ./project_scripts/fine_tune_status.py'
+      - 'python ../../util/fine_tune/fine_tune_status.py'
 
   - name: fine_tune_stats
     outputs:
       - 'output/fine_tune_stats.csv'
     script:
-      - './project_scripts/fine_tune_stats.sh ${env.openai_api_key} "file-IJ8nRijlbPpsVJY7eYLwxog9" output/fine_tune_stats.csv'
+      - '../../util/fine_tune/fine_tune_stats.sh ${env.openai_api_key} "file-IJ8nRijlbPpsVJY7eYLwxog9" output/fine_tune_stats.csv'
