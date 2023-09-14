@@ -60,4 +60,4 @@ commands:
     outputs:
       - 'output/fine_tune_stats.csv'
     script:
-      - 'python ../../util/fine_tune/fine_tune_stats.py "file-IJ8nRijlbPpsVJY7eYLwxog9" output/fine_tune_stats.csv'
+      - 'python ../../util/fine_tune/fine_tune_stats.py output/fine_tune_stats.csv'
