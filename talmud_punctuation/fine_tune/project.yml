@@ -1,0 +1,47 @@
+vars:
+#  base_model: "gpt-3.5-turbo"
+  base_model: "davinci-002"
+#  input_collection: "punct_en_gpt_gold"
+  output_model_suffix: "he_punct"
+#  output_model_suffix: "en-entity-class"
+env:
+  openai_api_key: OPENAI_API_KEY
+workflows:
+  all:
+    - create_punctiation_training
+    - upload_files
+    - create_fine_tune
+
+commands:
+  - name: create_punctiation_training
+    script:
+      - 'python project_scripts/create_punctuation_input_for_fine_tuning.py output/gpt_punctuation_training.jsonl output/gpt_punctuation_validation.jsonl'
+    outputs:
+      - 'output/gpt_punctuation_training.jsonl'
+      - 'output/gpt_citation_validation.jsonl'
+
+
+  - name: upload_files
+    deps:
+      - 'output/gpt_punctuation_training.jsonl'
+      - 'output/gpt_punctuation_validation.jsonl'
+    outputs:
+      - 'output/fine_tune_file_ids.json'
+    script:
+      - 'python ../../util/fine_tune/upload_fine_tune_files.py output/gpt_punctuation_training.jsonl output/gpt_punctuation_validation.jsonl'
+
+  - name: create_fine_tune
+    deps:
+      - 'output/fine_tune_file_ids.json'
+    script:
+      - 'python ../../util/fine_tune/create_fine_tune.py ${vars.base_model} ${vars.output_model_suffix}'
+
+  - name: fine_tune_status
+    script:
+      - 'python ../../util/fine_tune/fine_tune_status.py'
+
+  - name: fine_tune_stats
+    outputs:
+      - 'output/fine_tune_stats.csv'
+    script:
+      - 'python ../../util/fine_tune/fine_tune_stats.py output/fine_tune_stats.csv'
