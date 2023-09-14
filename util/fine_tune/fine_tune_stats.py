@@ -1,6 +1,6 @@
 import typer
 import subprocess
-
+from openai import File
 
 def fine_tune(openai_api_key: str, results_file_id: str, output_file: str):
     # Check if required inputs are provided
@@ -9,7 +9,14 @@ def fine_tune(openai_api_key: str, results_file_id: str, output_file: str):
         typer.echo("Usage: ./fine_tune.py fine-tune <OPENAI_API_KEY> <RESULTS_FILE_ID> <OUTPUT_FILE>")
         raise typer.Exit(code=1)
 
+    headers = {
+        "Authorization": f"Bearer {openai_api_key}"
+    }
 
+    # Get via File object
+    output_file_object = File.download(results_file_id, openai_api_key)
+
+    # Get via File curl command
     curl_command = [
         "curl",
         f"https://api.openai.com/v1/files/{results_file_id}/content",
