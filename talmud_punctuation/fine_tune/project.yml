@@ -1,6 +1,6 @@
 vars:
-#  base_model: "gpt-3.5-turbo"
-  base_model: "davinci-002"
+  base_model: "gpt-3.5-turbo"
+#  base_model: "davinci-002"
 #  input_collection: "punct_en_gpt_gold"
   output_model_suffix: "he_punct"
 #  output_model_suffix: "en-entity-class"
@@ -8,7 +8,7 @@ env:
   openai_api_key: OPENAI_API_KEY
 workflows:
   all:
-    - create_punctiation_training
+    - create_punctuation_training
     - upload_files
     - create_fine_tune
 
