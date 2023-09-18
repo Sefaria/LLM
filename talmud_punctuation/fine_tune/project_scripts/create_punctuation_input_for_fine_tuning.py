@@ -44,10 +44,7 @@ def create_data(output_training_filename: str, output_validation_filename: str):
                 validation_examples.append(create_new_context(task_desciption, non_punctuated, steinsalz, punctuated))
         if masechet == last_masechet:
             break
-    # with open("output/gpt_punctuation_training.json", 'w') as f:
-    #     json.dump(training_examples, f)
-    # with open("output/gpt_punctuation_validation.json", 'w') as f:
-    #     json.dump(validation_examples, f)
+
     srsly.write_jsonl(output_training_filename, training_examples)
     srsly.write_jsonl(output_validation_filename, validation_examples)
     print("TRAINING SAMPLES: "  + str(len(training_examples)))
