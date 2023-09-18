@@ -60,4 +60,4 @@ commands:
     outputs:
       - 'output/fine_tune_stats.csv'
     script:
-      - '../../util/fine_tune/fine_tune_stats.sh ${env.openai_api_key} "file-IJ8nRijlbPpsVJY7eYLwxog9" output/fine_tune_stats.csv'
+      - './project_scripts/fine_tune_stats.sh ${env.openai_api_key} "file-IJ8nRijlbPpsVJY7eYLwxog9" output/fine_tune_stats.csv'

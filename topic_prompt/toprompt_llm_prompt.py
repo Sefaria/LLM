@@ -1,3 +1,6 @@
+import csv
+import random
+
 from util.openai import count_tokens_openai
 from util.sentencizer import sentencize
 from util.general import get_raw_ref_text, get_ref_text_with_fallback
@@ -9,11 +12,12 @@ from langchain.output_parsers import PydanticOutputParser
 from langchain import PromptTemplate, BasePromptTemplate
 from langchain.prompts.few_shot import FewShotPromptTemplate
 from langchain.prompts.example_selector import LengthBasedExampleSelector
+random.seed(23223)
 
 
 class TopromptLLMOutput(BaseModel):
-    why: str = Field(description="Why should I care about this source? Limit to one sentence.")
-    what: str = Field(description="What do I need to know in order to be able to understand this source? Limit to one sentence.")
+    why: str = Field(description="Why should I care about this source? Limit to one sentence. Do NOT summarize the source. The goal is to engage the reader which summarizing.")
+    what: str = Field(description="What do I need to know in order to be able to understand this source? Limit to one sentence. Do NOT summarize the source. The goal is to engage the reader which summarizing.")
     title: str = Field(description="contextualizes the source within the topic. DO NOT mention the source book in the title.")
 
 
@@ -107,6 +111,17 @@ class TopromptLLMPrompt:
 
 class ToppromptExample:
 
+    _hard_coded_sents = {
+        'In biblical sources, the Temple is presented as God\'s home. This work of rabbinic interpretations on the Book of Exodus asks the question‚ "Where is God?" in light of the destruction of the Temple.': [
+            "In biblical sources, the Temple is presented as God's home.",
+            'This work of rabbinic interpretations on the Book of Exodus asks the question‚ "Where is God?" in light of the destruction of the Temple.',
+        ],
+        'Why is the shofar called a shofar? What does it mean? This ancient midrash from the land of Israel points out that the word “shofar” is spelled in the same order and the same letters as the Hebrew verb that means “to improve” and thereby suggests its meaning.': [
+           'Why is the shofar called a shofar? What does it mean?',
+           'This ancient midrash from the land of Israel points out that the word “shofar” is spelled in the same order and the same letters as the Hebrew verb that means “to improve” and thereby suggests its meaning.',
+        ],
+    }
+
     def __init__(self, lang, ref_topic_link: RefTopicLink):
         self.lang = lang
         self.topic = Topic.init(ref_topic_link.toTopic)
@@ -114,7 +129,7 @@ class ToppromptExample:
         prompt_dict = ref_topic_link.descriptions[lang]
         self.title = prompt_dict['title']
         prompt = prompt_dict['prompt']
-        prompt_sents = sentencize(prompt)
+        prompt_sents = self._hard_coded_sents.get(prompt, sentencize(prompt))
         assert len(prompt_sents) == 2
         self.why = prompt_sents[0]
         self.what = prompt_sents[1]
@@ -135,11 +150,36 @@ class TopromptExampleGenerator:
         self.lang: str = lang
 
     def get(self) -> List[dict]:
-        toprompts = self._get_existing_toprompts()
+        # toprompts = self._get_existing_toprompts()
+        toprompts = self._get_training_set()
         examples = []
         for itopic, ref_topic_link in enumerate(toprompts):
             examples += [ToppromptExample(self.lang, ref_topic_link)]
         return [example.serialize() for example in examples]
+
+    def _get_training_set(self) -> List[RefTopicLink]:
+        ref_topic_links = []
+        with open("input/topic_prompt_training_set.csv", "r") as fin:
+            cin = csv.DictReader(fin)
+            for row in cin:
+                if len(RefTopicLinkSet(self._get_query_for_ref_topic_link_with_prompt(slug=row["Slug"]))) == 0:
+                    print(row["Slug"])
+                    continue
+
+                ref_topic_links += [RefTopicLink(
+                    attrs={
+                        "ref": row["Reference"],
+                        "toTopic": row["Slug"],
+                        "descriptions": {
+                            self.lang: {
+                                "prompt": row["Prompt"],
+                                "title": row["Title"],
+                            }
+                        }
+                    }
+                )]
+        random.shuffle(ref_topic_links)
+        return ref_topic_links
 
     def _get_existing_toprompts(self):
         link_set = RefTopicLinkSet(self._get_query_for_ref_topic_link_with_prompt())

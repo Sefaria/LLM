@@ -9,5 +9,6 @@ if __name__ == '__main__':
         print('Deleting', file.id)
         try:
             openai.File.delete(file.id)
+            openai.File.download()
         except TryAgain:
             print("skip")

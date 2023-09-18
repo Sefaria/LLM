@@ -43,6 +43,7 @@ def _get_topprompts_for_sheet_id(lang, sheet_id: int) -> List[TopromptOptions]:
     toprompt_options = []
     for oref in tqdm(orefs, desc="get toprompts for sheet"):
         toprompt_options += [_get_toprompt_options(lang, topic, oref)]
+        break
     return toprompt_options
 
 
@@ -56,7 +57,7 @@ def output_toprompts_for_sheet_id_list(lang: str, sheet_ids: List[int]) -> None:
 
 if __name__ == '__main__':
     # sheet_ids = [502699]  # [502699, 502661, 499080, 498250, 500844]
-    sheet_ids = [504798]
+    sheet_ids = [498250]
     llm_company = "claude"
     lang = "en"
     output_toprompts_for_sheet_id_list(lang, sheet_ids)

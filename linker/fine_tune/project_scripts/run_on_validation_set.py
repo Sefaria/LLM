@@ -27,7 +27,7 @@ langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 random.seed(613)
 
 entity_recognizer_model = "ft:davinci-002:sefaria:en-ner:7w4wFtsO"
-entity_classifier_model = "ft:babbage-002:sefaria:en-entity-class:7vhclX9U"
+entity_classifier_model = "ft:davinci-002:sefaria:en-entity-class:7w5Mzx49"
 
 nlp = English()
 nlp.tokenizer = inner_punct_tokenizer_factory()(nlp)
@@ -66,10 +66,13 @@ class ExampleGenerator:
             return False
         return True
 
-    def get(self):
+    def get(self, sentencize=True):
         for doc in self._data:
-            for sent_doc in self._sentencize_doc(doc):
-                yield sent_doc
+            if sentencize:
+                for sent_doc in self._sentencize_doc(doc):
+                    yield sent_doc
+            else:
+                yield doc
 
 
 @dataclass
@@ -164,8 +167,10 @@ class EntityParser(BaseOutputParser[EntityDoc]):
 
 class EntityTagger:
 
-    def __init__(self):
-        self._llm_recognizer = ChatOpenAI(model=entity_recognizer_model, temperature=0)
+    def __init__(self, recognizer_is_chat=False):
+        self.recognizer_is_chat = recognizer_is_chat
+        recognizer_model = ChatOpenAI if recognizer_is_chat else OpenAI
+        self._llm_recognizer = recognizer_model(model=entity_recognizer_model, temperature=0)
         self._llm_classifier = OpenAI(model=entity_classifier_model, temperature=0)
         self._parser = EntityParser()
 
@@ -176,8 +181,12 @@ class EntityTagger:
 
     def _recognize_entities(self, spacy_doc):
         prompt = GptNerTrainingGenerator.generate_one(spacy_doc, is_labeled=False)
-        output = self._llm_recognizer(prompt, stop=[constants.GPT_COMPLETION_END_INDICATOR])
-        doc = self._parser.parse(output.content)
+        if self.recognizer_is_chat:
+            output = self._llm_recognizer(prompt)
+            doc = self._parser.parse(output.content)
+        else:
+            output = self._llm_recognizer(prompt, stop=[constants.GPT_COMPLETION_END_INDICATOR])
+            doc = self._parser.parse(output)
         doc.validate(spacy_doc['text'])
         return doc
 
@@ -214,8 +223,8 @@ if __name__ == '__main__':
     tagger = EntityTagger()
     my_db = MongoProdigyDBManager("ner_en_gpt_copper")
     my_db.output_collection.delete_many({})
-    generator = ExampleGenerator(['ner_en_input'], skip=6000)
-    for d in tqdm(generator.get()):
+    generator = ExampleGenerator(['ner_en_input'], skip=7000)
+    for d in tqdm(generator.get(sentencize=True)):
         try:
             doc = tagger.predict(d)
             doc.meta = d['meta']
@@ -224,6 +233,6 @@ if __name__ == '__main__':
             my_db.output_collection.insert_one(mongo_doc)
         except (AssertionError, AttributeError) as e:
             print("ERROR", d['text'])
+            print(e)
         print()
-
 
