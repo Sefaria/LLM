@@ -31,8 +31,11 @@ class TopromptLLMPrompt:
     def get(self) -> BasePromptTemplate:
         example_generator = TopromptExampleGenerator(self.lang)
         examples = example_generator.get()
-        example_prompt = PromptTemplate.from_template('Source Text: {source_text}\nTopic: {topic}\nOutput: {{{{"why": "{why}", '
-                                                      '"what": "{what}", "title": "{title}"}}}}')
+        example_prompt = PromptTemplate.from_template('<source_text>{source_text}</source_text>\n'
+                                                      '<topic>{topic}</topic>\n'
+                                                      '<output>{{{{'
+                                                      '"why": "{why}", "what": "{what}", "title": "{title}"'
+                                                      '}}}}</output>')
         intro_prompt = TopromptLLMPrompt._get_introduction_prompt() + self._get_formatting_prompt()
         input_prompt = self._get_input_prompt()
         format_instructions = get_output_parser().get_format_instructions()
@@ -56,32 +59,37 @@ class TopromptLLMPrompt:
     @staticmethod
     def _get_introduction_prompt() -> str:
         return (
-            "# Identity\n"
+            "<identity>\n"
             "You are a Jewish scholar knowledgeable in all texts relating to Torah, Talmud, Midrash etc. You are writing "
             "for people curious in learning more about Judaism."
-            "# Task\n"
+            "</identity>"
+            "<task>\n"
             "Write description of a Jewish text such that it persuades the reader to read the full source. The description "
             "should orient them with the essential information they need in order to learn the text. "
             "The title should contextualize the source within the topic; it should be inviting and specific to the source."
+            "</task>"
             "\n"
         )
 
     @staticmethod
     def _get_formatting_prompt() -> str:
         return (
-            "# Input Format: Input has the following format:\n"
-            "Topic: <topic>\n"
-            "Source Text: <source text>\n"
-            "Source Author: <author>\n"
-            "Source Publication Year: <year>\n"
-            "Source Book Description (optional): <book description>"
-            "Commentary (optional): when it exists, use commentary to inform understanding of `Source Text`. DO NOT refer to the commentary in the final output. Only use the commentary to help understand the source.\n"
+            "<input_format>Input has the following format:\n"
+            "<topic>Name of the topic</topic>\n"
+            "<source_text>Text of the source</source_text>\n"
+            "<author>Author of the source</author>\n"
+            "<publication_year>Year the source was published</publication_year>\n"
+            "<book_description>Optional. Description of the source book</book_description>"
+            "<commentary> (optional): when it exists, use commentary to inform understanding of `<source_text>`. DO NOT"
+            "refer to the commentary in the final output. Only use the commentary to help understand the source."
+            "</commentary>\n"
+            "</input_format>"
         )
 
     def _get_input_prompt(self) -> str:
         return (
                 "{format_instructions} " +
-                "# Input:\n" + self._get_input_prompt_details()
+                "<input>\n" + self._get_input_prompt_details() + "</input>"
         )
 
     def _get_input_prompt_details(self) -> str:
@@ -96,16 +104,16 @@ class TopromptLLMPrompt:
             author_name = "N/A"
         source_text = get_ref_text_with_fallback(self.oref, self.lang)
         category = index.get_primary_category()
-        prompt = f"Topic: {self.topic.get_primary_title('en')}\n" \
-                 f"Source Text: {source_text}\n" \
-                 f"Source Author: {author_name}\n" \
-                 f"Source Publication Year: {pub_year}"
+        prompt = f"<topic>{self.topic.get_primary_title('en')}</topic>\n" \
+                 f"<source_text>{source_text}</source_text>\n" \
+                 f"<author>{author_name}</author>\n" \
+                 f"<publication_year>{pub_year}</publication_year>"
         if True:  # category not in {"Talmud", "Midrash", "Tanakh"}:
-            prompt += f"\nSource Book Description: {book_desc}"
+            prompt += f"\n<book_description>{book_desc}</book_description>"
         if category in {"Tanakh"}:
             from summarize_commentary.summarize_commentary import summarize_commentary
             commentary_summary = summarize_commentary(self.oref.normal(), self.topic.slug, company='anthropic')
-            prompt += f"\nCommentary: {commentary_summary}"
+            prompt += f"\n<commentary>{commentary_summary}</commentary>"
         return prompt
 
 
