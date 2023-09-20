@@ -1,3 +1,5 @@
+import csv
+
 from tqdm import tqdm
 from typing import List
 from sheet_interface import get_topic_and_orefs
@@ -55,9 +57,29 @@ def output_toprompts_for_sheet_id_list(lang: str, sheet_ids: List[int]) -> None:
     formatter.save("output/topic_prompts.html")
 
 
+def _get_validation_set():
+    validation_set = []
+    with open("input/topic_prompt_validation_set.csv", "r") as fin:
+        cin = csv.DictReader(fin)
+        for row in cin:
+            validation_set += [(Topic.init(row['Slug']), Ref(row['Reference']), row['Title'], row['Prompt '])]
+    return validation_set
+
+
+def output_toprompts_for_validation_set(lang):
+    validation_set = _get_validation_set()
+    toprompt_options = []
+    gold_standard_prompts = []
+    for topic, oref, title, prompt in tqdm(validation_set):
+        toprompt_options += [_get_toprompt_options(lang, topic, oref)]
+        gold_standard_prompts += [(title, prompt)]
+    formatter = HTMLFormatter(toprompt_options, gold_standard_prompts)
+    formatter.save("output/topic_prompts.html")
+
+
 if __name__ == '__main__':
     # sheet_ids = [502699]  # [502699, 502661, 499080, 498250, 500844]
-    sheet_ids = [498250]
-    llm_company = "claude"
+    # sheet_ids = [498250]
     lang = "en"
-    output_toprompts_for_sheet_id_list(lang, sheet_ids)
+    # output_toprompts_for_sheet_id_list(lang, sheet_ids)
+    output_toprompts_for_validation_set(lang)
