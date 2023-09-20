@@ -72,7 +72,7 @@ def output_toprompts_for_validation_set(lang):
     gold_standard_prompts = []
     for topic, oref, title, prompt in tqdm(validation_set):
         toprompt_options += [_get_toprompt_options(lang, topic, oref)]
-        gold_standard_prompts += [(title, prompt)]
+        gold_standard_prompts += [Toprompt(topic, oref, prompt, title)]
     formatter = HTMLFormatter(toprompt_options, gold_standard_prompts)
     formatter.save("output/topic_prompts.html")
 
