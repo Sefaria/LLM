@@ -2,6 +2,7 @@ import django
 django.setup()
 from sefaria.model.text import Ref, library
 
+import re
 import langchain
 from langchain.cache import SQLiteCache
 from langchain.chat_models import ChatOpenAI
@@ -10,17 +11,26 @@ from langchain import PromptTemplate
 from langchain.schema import HumanMessage, SystemMessage
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
+from functools import reduce
 from util.general import get_raw_ref_text
 import typer
 from tqdm import tqdm
+import csv
 
 
 def get_topics_for_title(title: str, lang: str):
     index = library.get_index(title)
-    for segment_oref in tqdm(index.all_section_refs()[:]):
+    rows = []
+    for segment_oref in tqdm(index.all_section_refs()[:20]):
         print('-----')
         print(segment_oref.normal())
-        print("AFTER", get_topics_for_tref(segment_oref, lang))
+        topics = get_topics_for_tref(segment_oref, lang)
+        rows += [{"Ref": segment_oref.normal(), "Text": get_raw_ref_text(segment_oref, lang), "Topics": ", ".join(topics)}]
+    with open("Pri Eitz Chaim Topics.csv", "w") as fout:
+        cout = csv.DictWriter(fout, ['Ref', 'Text', "Topics"])
+        cout.writeheader()
+        cout.writerows(rows)
+
 
 
 def get_topics_for_tref(oref: Ref, lang: str):
@@ -72,19 +82,20 @@ def get_raw_topics(text, lang):
     llm = ChatAnthropic(model="claude-2", temperature=0)
 
     response = llm([system_message, human_message])
-    print("BEFORE\n", response.content)
-    print('---')
-    human_refine = HumanMessage(content="Of the topics above, list the most fundamental topics for understanding the source text. Exclude topics that are very specific.")
-    response2 = llm([system_message, human_message, response, human_refine])
-    human_breakup = HumanMessage(content="Of the topics above, break up complex topics into simpler topics.\n"
-                                         "<examples>\n"
-                                         "<topic>הלכות מזוזה בבית כנסת</topic> should become <topic>מזוזה</topic> and <topic>בית כנסה</topic>\n"
-                                         "<topic>שאלה בדין תקיעת שופר ביום כיפור</topic> should become <topic>תקיעת שופר</topic> and <topic>יום כיפור</topic>\n"
-                                         "<topic>הלכות עירוב</topic> should remain unchanged."
-                                         "</examples>")
+    # print('---')
+    # human_refine = HumanMessage(content="Of the topics above, list the most fundamental topics for understanding the source text. Exclude topics that are very specific.")
+    # response2 = llm([system_message, human_message, response, human_refine])
+    # human_breakup = HumanMessage(content="Of the topics above, break up complex topics into simpler topics.\n"
+    #                                      "<examples>\n"
+    #                                      "<topic>הלכות מזוזה בבית כנסת</topic> should become <topic>מזוזה</topic> and <topic>בית כנסה</topic>\n"
+    #                                      "<topic>שאלה בדין תקיעת שופר ביום כיפור</topic> should become <topic>תקיעת שופר</topic> and <topic>יום כיפור</topic>\n"
+    #                                      "<topic>הלכות עירוב</topic> should remain unchanged."
+    #                                      "</examples>")
+    #
+    # response3 = llm([system_message, human_message, response, human_refine, response2, human_breakup])
+    topics = reduce(lambda a, b: a + [b.group(1).strip()], re.finditer(r"<topic>(.+?)</topic>", response.content), [])
+    return topics
 
-    response3 = llm([system_message, human_message, response, human_refine, response2, human_breakup])
-    return response3.content
 
 
 if __name__ == '__main__':
