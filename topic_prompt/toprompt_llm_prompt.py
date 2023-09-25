@@ -19,7 +19,7 @@ random.seed(23223)
 class TopromptLLMOutput(BaseModel):
     why: str = Field(description="Why should I care about this source? Limit to one sentence. Do NOT summarize the source. The goal is to engage the reader which summarizing.")
     what: str = Field(description="What do I need to know in order to be able to understand this source? Limit to one sentence. Do NOT summarize the source. The goal is to engage the reader which summarizing.")
-    title: str = Field(description="contextualizes the source within the topic. DO NOT mention the source book in the title.")
+    title: str = Field(description="Contextualizes the source within the topic. DO NOT mention the source book in the title.")
 
 
 class TopromptLLMPrompt:
@@ -32,8 +32,7 @@ class TopromptLLMPrompt:
     def get(self) -> BasePromptTemplate:
         example_generator = TopromptExampleGenerator(self.lang)
         examples = example_generator.get()
-        example_prompt = PromptTemplate.from_template('<source_text>{source_text}</source_text>\n'
-                                                      '<topic>{topic}</topic>\n'
+        example_prompt = PromptTemplate.from_template('<topic>{topic}</topic>\n'
                                                       '<unique_aspect>{unique_aspect}</unique_aspect>'
                                                       '<output>{{{{'
                                                       '"why": "{why}", "what": "{what}", "title": "{title}"'
@@ -78,12 +77,11 @@ class TopromptLLMPrompt:
         return (
             "<input_format>Input has the following format:\n"
             "<topic>Name of the topic</topic>\n"
-            "<source_text>Text of the source</source_text>\n"
             "<author>Author of the source</author>\n"
             "<publication_year>Year the source was published</publication_year>\n"
             "<book_description>Optional. Description of the source book</book_description>"
-            "<commentary> (optional): when it exists, use commentary to inform understanding of `<source_text>`. DO NOT"
-            "refer to the commentary in the final output. Only use the commentary to help understand the source."
+            "<commentary> (optional): when it exists, use commentary to inform understanding of `<unique_aspect>`. DO NOT"
+            " refer to the commentary in the final output. Only use the commentary to help understand the source."
             "</commentary>\n"
             "<unique_aspect> Unique perspective this source has on the topic. Use this to understand why a user would "
             "want to learn this source for this topic.</unique_aspect>"
@@ -106,10 +104,8 @@ class TopromptLLMPrompt:
             author_name = Topic.init(index.authors[0]).get_primary_title(self.lang) if len(index.authors) > 0 else "N/A"
         except AttributeError:
             author_name = "N/A"
-        source_text = get_ref_text_with_fallback(self.oref, self.lang)
         category = index.get_primary_category()
         prompt = f"<topic>{self.topic.get_primary_title('en')}</topic>\n" \
-                 f"<source_text>{source_text}</source_text>\n" \
                  f"<author>{author_name}</author>\n" \
                  f"<publication_year>{pub_year}</publication_year>\n" \
                  f"<unique_aspect>{get_uniqueness_of_source(self.oref, self.lang, self.topic)}</unique_aspect>"
@@ -140,7 +136,6 @@ class ToppromptExample:
         self.lang = lang
         self.topic = Topic.init(ref_topic_link.toTopic)
         self.oref = Ref(ref_topic_link.ref)
-        self.source_text = get_raw_ref_text(self.oref, lang)
         prompt_dict = ref_topic_link.descriptions[lang]
         self.title = prompt_dict['title']
         prompt = prompt_dict['prompt']
@@ -154,7 +149,6 @@ class ToppromptExample:
     def serialize(self):
         out = {
             "topic": self.topic.get_primary_title(self.lang),
-            "source_text": self.source_text,
             "title": self.title,
             "why": self.why,
             "what": self.what,

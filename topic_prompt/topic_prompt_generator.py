@@ -11,7 +11,7 @@ from toprompt import Toprompt, TopromptOptions
 
 import langchain
 from langchain.cache import SQLiteCache
-from langchain.chat_models import ChatOpenAI
+from langchain.chat_models import ChatOpenAI, ChatAnthropic
 from langchain import PromptTemplate
 from langchain.schema import HumanMessage
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
@@ -21,8 +21,9 @@ def _get_toprompt_options(lang: str, topic: Topic, oref: Ref) -> TopromptOptions
     # TODO pull out formatting from _get_input_prompt_details
     full_language = "English" if lang == "en" else "Hebrew"
     llm_prompt = TopromptLLMPrompt(lang, topic, oref).get()
-    llm = ChatOpenAI(model="gpt-4")
+    llm = ChatOpenAI(model="gpt-4", temperature=0)
     human_message = HumanMessage(content=llm_prompt.format())
+    print(human_message.content)
     responses = []
     topic_prompts = []
     sescondary_prompt = PromptTemplate.from_template(f"Generate another set of description and title. Refer back to the "
