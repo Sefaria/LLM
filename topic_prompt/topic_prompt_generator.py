@@ -30,7 +30,7 @@ def _get_toprompt_options(lang: str, topic: Topic, oref: Ref) -> TopromptOptions
                                                      f"examples provided to stick to the same writing style.\n"
                                                      "{format_instructions}",
                                                      partial_variables={"format_instructions": get_output_parser().get_format_instructions()})
-    for i in range(3):
+    for i in range(1):
         response = llm([human_message] + responses)
         responses += [response, HumanMessage(content=sescondary_prompt.format())]
 
