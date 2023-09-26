@@ -1,4 +1,5 @@
 import csv
+import re
 
 from tqdm import tqdm
 from typing import List
@@ -17,28 +18,49 @@ from langchain.schema import HumanMessage
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 
-def _get_toprompt_options(lang: str, topic: Topic, oref: Ref) -> TopromptOptions:
+def _get_toprompt_options(lang: str, topic: Topic, oref: Ref, num_tries=1) -> TopromptOptions:
     # TODO pull out formatting from _get_input_prompt_details
     full_language = "English" if lang == "en" else "Hebrew"
     llm_prompt = TopromptLLMPrompt(lang, topic, oref).get()
     llm = ChatOpenAI(model="gpt-4", temperature=0)
     human_message = HumanMessage(content=llm_prompt.format())
-    print(human_message.content)
     responses = []
     topic_prompts = []
-    sescondary_prompt = PromptTemplate.from_template(f"Generate another set of description and title. Refer back to the "
+    secondary_prompt = PromptTemplate.from_template(f"Generate another set of description and title. Refer back to the "
                                                      f"examples provided to stick to the same writing style.\n"
                                                      "{format_instructions}",
                                                      partial_variables={"format_instructions": get_output_parser().get_format_instructions()})
-    for i in range(1):
-        response = llm([human_message] + responses)
-        responses += [response, HumanMessage(content=sescondary_prompt.format())]
+    for i in range(num_tries):
+        curr_response = llm([human_message] + responses)
+        responses += [curr_response]
+        if i < num_tries-1:
+            responses += [HumanMessage(content=secondary_prompt.format())]
 
         output_parser = get_output_parser()
-        parsed_output = output_parser.parse(response.content)
+        parsed_output = output_parser.parse(curr_response.content)
         toprompt_text = parsed_output.why + " " + parsed_output.what
+
+        # improve title
+        if ":" in parsed_output.title:
+            print("OLD")
+            print(parsed_output.title)
+            parsed_output.title = _improve_title(responses)
+            print("NEW")
+            print(parsed_output.title)
+            print("---")
+
         topic_prompts += [Toprompt(topic, oref, toprompt_text, parsed_output.title)]
+
     return TopromptOptions(topic_prompts)
+
+
+def _improve_title(curr_responses):
+    better_title_prompt = PromptTemplate.from_template(f"Rewrite the title, rephrasing to avoid using a colon."
+                                                       f"Wrap the title in <title> tags. It should at most"
+                                                       f"five words and grab the reader's attention.")
+    llm = ChatOpenAI(model="gpt-4", temperature=0.5)
+    title_response = llm(curr_responses + [HumanMessage(content=better_title_prompt.format())])
+    return re.search(r'<title>(.+?)</title>', title_response.content).group(1)
 
 
 def _get_topprompts_for_sheet_id(lang, sheet_id: int) -> List[TopromptOptions]:
