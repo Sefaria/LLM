@@ -67,11 +67,12 @@ class HTMLFormatter:
     def _get_html_for_toprompt_options(self, toprompt_options: TopromptOptions, gold_standard_prompt: Toprompt) -> str:
         oref = toprompt_options.oref
         all_toprompts = toprompt_options.toprompts
-        if gold_standard_prompt:
+        has_gold_standard = gold_standard_prompt is not None
+        if has_gold_standard:
             all_toprompts += [gold_standard_prompt]
         gold_style = 'border: 2px solid gold; background-color: #fffaf0;'
         all_toprompts_html = [f"""
-        <div style="{gold_style if i == len(all_toprompts) - 1 else ''}">
+        <div style="{gold_style if i == len(all_toprompts) - 1 and has_gold_standard else ''}">
         <h3>{toprompt.title}</h3>
         <p>{toprompt.prompt}</p> 
         </div>
