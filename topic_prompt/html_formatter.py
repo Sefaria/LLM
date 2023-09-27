@@ -8,7 +8,7 @@ import math
 
 class HTMLFormatter:
 
-    def __init__(self, toprompt_options_list: List[TopromptOptions], gold_standard_prompts: List[Toprompt]):
+    def __init__(self, toprompt_options_list: List[TopromptOptions], gold_standard_prompts: List[Toprompt] = None):
         self.toprompt_options_list = toprompt_options_list
         self.gold_standard_prompts = gold_standard_prompts
 
@@ -47,7 +47,8 @@ class HTMLFormatter:
 
     def _organize_by_topic(self):
         by_topic = defaultdict(lambda: {"toprompt_options": [], "gold_standard_prompts": []})
-        for toprompt_options, gold_standard_prompt in zip(self.toprompt_options_list, self.gold_standard_prompts):
+        gold_standard_prompts = self.gold_standard_prompts or [None] * len(self.toprompt_options_list)
+        for toprompt_options, gold_standard_prompt in zip(self.toprompt_options_list, gold_standard_prompts):
             curr_dict = by_topic[toprompt_options.topic.slug]
             curr_dict["toprompt_options"] += [toprompt_options]
             curr_dict["gold_standard_prompts"] += [gold_standard_prompt]
@@ -65,7 +66,9 @@ class HTMLFormatter:
 
     def _get_html_for_toprompt_options(self, toprompt_options: TopromptOptions, gold_standard_prompt: Toprompt) -> str:
         oref = toprompt_options.oref
-        all_toprompts = toprompt_options.toprompts + [gold_standard_prompt]
+        all_toprompts = toprompt_options.toprompts
+        if gold_standard_prompt:
+            all_toprompts += [gold_standard_prompt]
         gold_style = 'border: 2px solid gold; background-color: #fffaf0;'
         all_toprompts_html = [f"""
         <div style="{gold_style if i == len(all_toprompts) - 1 else ''}">
