@@ -98,8 +98,10 @@ class TopromptLLMPrompt:
         desc_attr = f"{self.lang}Desc"
         book_desc = getattr(index, desc_attr, "N/A")
         if "Yerushalmi" in index.categories:
-            print(index.title)
             book_desc = book_desc.replace(index.title.replace("Jerusalem Talmud ", ""), index.title)
+            print(book_desc)
+        if index.get_primary_category() == "Mishnah":
+            book_desc = book_desc.replace(index.title.replace("Mishnah ", ""), index.title)
             print(book_desc)
         return book_desc
 
