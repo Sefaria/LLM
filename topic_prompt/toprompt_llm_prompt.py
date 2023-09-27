@@ -94,10 +94,18 @@ class TopromptLLMPrompt:
                 "<input>\n" + self._get_input_prompt_details() + "</input>"
         )
 
+    def _get_book_description(self, index: Index):
+        desc_attr = f"{self.lang}Desc"
+        book_desc = getattr(index, desc_attr, "N/A")
+        if "Yerushalmi" in index.categories:
+            print(index.title)
+            book_desc = book_desc.replace(index.title.replace("Jerusalem Talmud ", ""), index.title)
+            print(book_desc)
+        return book_desc
+
     def _get_input_prompt_details(self) -> str:
         index = self.oref.index
-        desc_attr = f"{self.lang}Desc"
-        book_desc = getattr(index, desc_attr, "N/A")  # getattr(index, "enShortDesc", getattr(index, "enDesc", "N/A"))
+        book_desc = self._get_book_description(index)
         composition_time_period = index.composition_time_period()
         pub_year = composition_time_period.period_string(self.lang) if composition_time_period else "N/A"
         try:

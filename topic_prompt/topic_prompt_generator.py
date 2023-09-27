@@ -42,12 +42,7 @@ def _get_toprompt_options(lang: str, topic: Topic, oref: Ref, num_tries=1) -> To
 
         # improve title
         if ":" in parsed_output.title:
-            print("OLD")
-            print(parsed_output.title)
             parsed_output.title = _improve_title(responses)
-            print("NEW")
-            print(parsed_output.title)
-            print("---")
 
         topic_prompts += [Toprompt(topic, oref, toprompt_text, parsed_output.title)]
 
