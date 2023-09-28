@@ -42,7 +42,9 @@ def _get_toprompt_options(lang: str, topic: Topic, oref: Ref, num_tries=1) -> To
 
         # improve title
         if ":" in parsed_output.title:
-            parsed_output.title = _improve_title(responses)
+            new_title = _improve_title(responses)
+            if new_title:
+                parsed_output.title = new_title
 
         topic_prompts += [Toprompt(topic, oref, toprompt_text, parsed_output.title)]
 
@@ -55,14 +57,17 @@ def _improve_title(curr_responses):
                                                        f"five words and grab the reader's attention.")
     llm = ChatOpenAI(model="gpt-4", temperature=0.5)
     title_response = llm(curr_responses + [HumanMessage(content=better_title_prompt.format())])
-    return re.search(r'<title>(.+?)</title>', title_response.content).group(1)
+    title_match = re.search(r'<title>(.+?)</title>', title_response.content)
+    if title_match is None:
+        return
+    return title_match.group(1)
 
 
 def _get_topprompts_for_sheet_id(lang, sheet_id: int) -> List[TopromptOptions]:
     topic, orefs = get_topic_and_orefs(sheet_id)
     toprompt_options = []
     for oref in tqdm(orefs, desc="get toprompts for sheet"):
-        toprompt_options += [_get_toprompt_options(lang, topic, oref)]
+        toprompt_options += [_get_toprompt_options(lang, topic, oref, num_tries=3)]
     return toprompt_options
 
 
