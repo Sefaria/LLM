@@ -26,7 +26,7 @@ def get_topics_for_title(title: str, lang: str):
         print(segment_oref.normal())
         topics = get_topics_for_tref(segment_oref, lang)
         rows += [{"Ref": segment_oref.normal(), "Text": get_raw_ref_text(segment_oref, lang), "Topics": ", ".join(topics)}]
-    with open("Pri Eitz Chaim Topics.csv", "w") as fout:
+    with open("output/Pri Eitz Chaim Topics.csv", "w") as fout:
         cout = csv.DictWriter(fout, ['Ref', 'Text', "Topics"])
         cout.writeheader()
         cout.writerows(rows)
