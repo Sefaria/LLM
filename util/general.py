@@ -4,6 +4,7 @@ from db_manager import MongoProdigyDBManager
 from sefaria.model.text import Ref
 from sefaria.helper.normalization import NormalizerComposer
 import diff_match_patch
+import re
 
 
 def get_normalizer():
@@ -54,3 +55,11 @@ def get_removal_list(orig, new):
             removal_list += [((curr_start_char, curr_start_char + len(diff_text)), '')]
     removal_list.sort(key=lambda x: (x[0][0], (x[0][1]-x[0][0])))
     return removal_list
+
+
+def get_by_xml_tag(text, tag_name) -> str:
+    match = re.search(fr'<{tag_name}>(.+?)</{tag_name}>', text, re.DOTALL)
+    if not match:
+        return None
+    return match.group(1)
+
