@@ -1,4 +1,5 @@
 vars:
+  script_dir: "../../util/fine_tune"
   # base_model: "gpt-3.5-turbo"
   base_model: "davinci-002"
   input_collection: "ner_en_gpt_gold"
@@ -30,15 +31,15 @@ commands:
 
   - name: delete_all_files
     script:
-      - "python ../../util/fine_tune/delete_all_files.py"
+      - "python ${vars.script_dir}/delete_all_files.py"
 
   - name: delete_all_fine_tunes
     script:
-      - "python ../../util/fine_tune/delete_all_fine_tunes.py"
+      - "python ${vars.script_dir}/delete_all_fine_tunes.py"
 
   - name: delete_last_fine_tune_job
     script:
-      - "python ../../util/fine_tune/delete_last_fine_tune_job.py"
+      - "python ${vars.script_dir}/delete_last_fine_tune_job.py"
 
   - name: upload_files
     deps:
@@ -47,21 +48,21 @@ commands:
     outputs:
       - 'output/fine_tune_file_ids.json'
     script:
-      - 'python ../../util/fine_tune/upload_fine_tune_files.py output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl'
+      - 'python ${vars.script_dir}/upload_fine_tune_files.py output/gpt_citation_training.jsonl output/gpt_citation_validation.jsonl'
 
 
   - name: create_fine_tune
     deps:
       - 'output/fine_tune_file_ids.json'
     script:
-      - 'python ../../util/fine_tune/create_fine_tune.py ${vars.base_model} ${vars.output_model_suffix}'
+      - 'python ${vars.script_dir}/create_fine_tune.py ${vars.base_model} ${vars.output_model_suffix}'
 
   - name: fine_tune_status
     script:
-      - 'python ../../util/fine_tune/fine_tune_status.py'
+      - 'python ${vars.script_dir}/fine_tune_status.py'
 
   - name: fine_tune_stats
     outputs:
       - 'output/fine_tune_stats.csv'
     script:
-      - '../../util/fine_tune/fine_tune_stats.sh ${env.openai_api_key} "file-VRP52zJ1ETBX6crq0vfidXqb" output/fine_tune_stats.csv'
+      - '${vars.script_dir}/fine_tune_stats.sh ${env.openai_api_key} "file-VRP52zJ1ETBX6crq0vfidXqb" output/fine_tune_stats.csv'
