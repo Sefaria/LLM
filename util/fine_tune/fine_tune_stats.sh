@@ -12,5 +12,5 @@ OPENAI_API_KEY=$1
 RESULTS_FILE_ID=$2
 OUTPUT_FILE=$3
 
-curl https://api.openai.com/v1/files/RESULTS_FILE_ID/content \
+curl https://api.openai.com/v1/files/$RESULTS_FILE_ID/content \
   -H "Authorization: Bearer $OPENAI_API_KEY" > "${OUTPUT_FILE}"
