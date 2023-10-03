@@ -3,14 +3,11 @@ from collections import defaultdict
 from toprompt import TopromptOptions, Toprompt
 from util.general import get_raw_ref_text
 from sefaria.model.topic import Topic
+from abstract_formatter import AbstractFormatter
 import math
 
 
-class HTMLFormatter:
-
-    def __init__(self, toprompt_options_list: List[TopromptOptions], gold_standard_prompts: List[Toprompt] = None):
-        self.toprompt_options_list = toprompt_options_list
-        self.gold_standard_prompts = gold_standard_prompts
+class HTMLFormatter(AbstractFormatter):
 
     @staticmethod
     def _get_css_rules():
@@ -37,22 +34,13 @@ class HTMLFormatter:
         }
         """
 
-    def _get_full_html(self, by_topic: Dict[str, Dict[str, Union[List[TopromptOptions], List[Toprompt]]]]) -> str:
+    def _get_full_html(self) -> str:
         html = f"<html><style>{self._get_css_rules()}</style><body>"
-        for slug, toprompt_data in by_topic.items():
+        for slug, toprompt_data in self._by_topic.items():
             topic = Topic.init(slug)
             html += self._get_html_for_topic(topic, toprompt_data['toprompt_options'], toprompt_data['gold_standard_prompts'])
         html += "</body></html>"
         return html
-
-    def _organize_by_topic(self):
-        by_topic = defaultdict(lambda: {"toprompt_options": [], "gold_standard_prompts": []})
-        gold_standard_prompts = self.gold_standard_prompts or [None] * len(self.toprompt_options_list)
-        for toprompt_options, gold_standard_prompt in zip(self.toprompt_options_list, gold_standard_prompts):
-            curr_dict = by_topic[toprompt_options.topic.slug]
-            curr_dict["toprompt_options"] += [toprompt_options]
-            curr_dict["gold_standard_prompts"] += [gold_standard_prompt]
-        return by_topic
 
     def _get_html_for_topic(self, topic: Topic, toprompt_options_list: List[TopromptOptions], gold_standard_prompts: List[Toprompt]) -> str:
         return f"""
@@ -98,6 +86,6 @@ class HTMLFormatter:
         """
 
     def save(self, filename):
-        html = self._get_full_html(self._organize_by_topic())
+        html = self._get_full_html()
         with open(filename, "w") as fout:
             fout.write(html)

@@ -5,6 +5,7 @@ from tqdm import tqdm
 from typing import List
 from sheet_interface import get_topic_and_orefs
 from html_formatter import HTMLFormatter
+from csv_formatter import CSVFormatter
 from sefaria.model.topic import Topic
 from sefaria.model.text import Ref
 from toprompt_llm_prompt import TopromptLLMPrompt, get_output_parser
@@ -76,7 +77,9 @@ def output_toprompts_for_sheet_id_list(lang: str, sheet_ids: List[int]) -> None:
     for sheet_id in sheet_ids:
         toprompt_options += _get_topprompts_for_sheet_id(lang, sheet_id)
     formatter = HTMLFormatter(toprompt_options)
-    formatter.save("output/topic_prompts.html")
+    formatter.save("output/sheet_topic_prompts.html")
+    csv_formatter = CSVFormatter(toprompt_options)
+    csv_formatter.save("output/sheet_topic_prompts.csv")
 
 
 def _get_validation_set():
@@ -95,14 +98,16 @@ def output_toprompts_for_validation_set(lang):
     for topic, oref, title, prompt in tqdm(validation_set):
         toprompt_options += [_get_toprompt_options(lang, topic, oref)]
         gold_standard_prompts += [Toprompt(topic, oref, prompt, title)]
-    formatter = HTMLFormatter(toprompt_options, gold_standard_prompts)
-    formatter.save("output/topic_prompts.html")
+    html_formatter = HTMLFormatter(toprompt_options, gold_standard_prompts)
+    html_formatter.save("output/validation_topic_prompts.html")
+    csv_formatter = CSVFormatter(toprompt_options, gold_standard_prompts)
+    csv_formatter.save("output/validation_topic_prompts.csv")
 
 
 if __name__ == '__main__':
     # sheet_ids = [502699]  # [502699, 502661, 499080, 498250, 500844]
     # sheet_ids = [498250]
-    sheet_ids = [498236]
+    sheet_ids = [514615]
     lang = "en"
     output_toprompts_for_sheet_id_list(lang, sheet_ids)
     # output_toprompts_for_validation_set(lang)

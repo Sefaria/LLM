@@ -11,6 +11,10 @@ class Toprompt:
     prompt: str
     title: str
 
+    @property
+    def prompt_string(self):
+        return f"{self.title}\n\n{self.prompt}"
+
 
 class TopromptOptions:
 
