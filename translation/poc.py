@@ -24,10 +24,11 @@ def translate_segment(tref: str):
                                          "task is to translate the Hebrew text wrapped in <input> tags. Output "
                                             "translation wrapped in <translation> tags.")
     task_message = HumanMessage(content=f"<input>{text}</input>")
-    llm = ChatAnthropic(model="claude-2", temperature=0)
+    llm = ChatAnthropic(model="claude-2", temperature=0, max_tokens_to_sample=1000000)
     response_message = llm([identity_message, task_message])
     translation = get_by_xml_tag(response_message.content, 'translation')
     if translation is None:
+        print(tref)
         print(response_message.content)
         return response_message.content
     return translation
@@ -35,9 +36,9 @@ def translate_segment(tref: str):
 
 def randomly_translate_book(title: str, n: int = 30):
     segment_orefs = library.get_index(title).all_segment_refs()
-    random_segment_orefs = random.sample(segment_orefs, n)
+    # random_segment_orefs = random.sample(segment_orefs, n)
     rows = []
-    for oref in tqdm(random_segment_orefs, desc='randomly translating'):
+    for oref in tqdm(segment_orefs[:16], desc='randomly translating'):
         tref = oref.normal()
         rows += [{
             "Ref": tref,
