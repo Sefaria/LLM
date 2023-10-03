@@ -37,7 +37,7 @@ commands:
     script:
       - "python ${vars.script_dir}/delete_all_fine_tunes.py"
 
-  - name: delete_last_fine_tune_job
+  - name: delete_last_job
     script:
       - "python ${vars.script_dir}/delete_last_fine_tune_job.py"
 
