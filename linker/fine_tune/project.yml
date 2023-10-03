@@ -2,8 +2,8 @@ vars:
   # base_model: "gpt-3.5-turbo"
   base_model: "davinci-002"
   input_collection: "ner_en_gpt_gold"
-  # output_model_suffix: "en-ner"
-  output_model_suffix: "en-entity-class"
+  output_model_suffix: "en-ner"
+  # output_model_suffix: "en-entity-class"
 env:
   openai_api_key: OPENAI_API_KEY
 workflows:
@@ -36,6 +36,10 @@ commands:
     script:
       - "python ../../util/fine_tune/delete_all_fine_tunes.py"
 
+  - name: delete_last_fine_tune_job
+    script:
+      - "python ../../util/fine_tune/delete_last_fine_tune_job.py"
+
   - name: upload_files
     deps:
       - 'output/gpt_citation_training.jsonl'
@@ -60,4 +64,4 @@ commands:
     outputs:
       - 'output/fine_tune_stats.csv'
     script:
-      - './project_scripts/fine_tune_stats.sh ${env.openai_api_key} "file-IJ8nRijlbPpsVJY7eYLwxog9" output/fine_tune_stats.csv'
+      - '../../util/fine_tune/fine_tune_stats.sh ${env.openai_api_key} "file-VRP52zJ1ETBX6crq0vfidXqb" output/fine_tune_stats.csv'
