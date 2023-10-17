@@ -2,7 +2,6 @@ import django
 django.setup()
 import typer
 import json
-import srsly
 from sefaria.model import *
 from sefaria.utils.hebrew import strip_cantillation
 import random
@@ -56,8 +55,17 @@ def create_data(output_training_filename: str, output_validation_filename: str):
     train_samples = random.sample(samples_trimmed, num_train)
     validation_samples = [item for item in samples_trimmed if item not in train_samples]
 
-    srsly.write_jsonl(output_training_filename, train_samples)
-    srsly.write_jsonl(output_validation_filename, validation_samples)
+    with open(output_training_filename, 'w', encoding='utf-8') as jsonl_file:
+        for json_obj in train_samples:
+            # Use ensure_ascii=False to encode Unicode characters
+            json_line = json.dumps(json_obj, ensure_ascii=False)
+            jsonl_file.write(json_line + '\n')
+    with open(output_validation_filename, 'w', encoding='utf-8') as jsonl_file:
+        for json_obj in validation_samples:
+            # Use ensure_ascii=False to encode Unicode characters
+            json_line = json.dumps(json_obj, ensure_ascii=False)
+            jsonl_file.write(json_line + '\n')
+
 
     print("TRAINING SAMPLES: "  + str(len(train_samples)))
     print("VALIDATION SAMPLES: " + str(len(validation_samples)))
