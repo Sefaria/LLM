@@ -9,7 +9,7 @@ import random
 
 seed_value = 613
 random.seed(seed_value)
-sample_size = 10
+sample_size = 2000
 
 train_proportion = 0.8
 
@@ -22,7 +22,7 @@ masechtot_ordered = ["Berakhot", "Shabbat", "Eruvin", "Pesachim", "Rosh Hashanah
                           "Tamid", "Niddah"]
 
 task_desciption = "Given a pair ('no_punctuation_talmud': <text>, 'steinsaltz': <text>), where 'no_punctuation_talmud' is a passage from the Talmud without punctuation marks and 'steinsaltz' is a passage that contains the Talmudic text, expands on it, and interprets it, output a punctuated version of the Talmudic passage using the punctuation that appears in the 'steinsaltz' interpretation."
-last_masechet = "Berakhot"
+last_masechet = "Gittin"
 
 
 def create_new_context(task_desciption, non_punctuated, steinsalz, punctuated):

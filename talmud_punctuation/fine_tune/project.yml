@@ -45,3 +45,9 @@ commands:
       - 'output/fine_tune_stats.csv'
     script:
       - 'python ../../util/fine_tune/fine_tune_stats.py output/fine_tune_stats.csv'
+
+  - name: plot_fine_tune_stats
+    outputs:
+      - 'output/fine_tune_stats_plot.png'
+    script:
+      - 'python ../../util/fine_tune/plot_fine_tune_stats.py output/fine_tune_stats.csv output/fine_tune_stats_plot.png'
