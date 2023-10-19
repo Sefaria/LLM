@@ -3,12 +3,13 @@ django.setup()
 import typer
 import json
 from sefaria.model import *
-from sefaria.utils.hebrew import strip_cantillation
+from sefaria.utils.hebrew import strip_cantillation, sanitize
 import random
+import re
 
 seed_value = 613
 random.seed(seed_value)
-sample_size = 2000
+sample_size = 500
 
 train_proportion = 0.8
 
@@ -20,27 +21,30 @@ masechtot_ordered = ["Berakhot", "Shabbat", "Eruvin", "Pesachim", "Rosh Hashanah
                           "Zevachim", "Menachot", "Chullin", "Bekhorot", "Arakhin", "Temurah", "Keritot", "Meilah",
                           "Tamid", "Niddah"]
 
-task_desciption = "Given a pair ('no_punctuation_talmud': <text>, 'steinsaltz': <text>), where 'no_punctuation_talmud' is a passage from the Talmud without punctuation marks and 'steinsaltz' is a passage that contains the Talmudic text, expands on it, and interprets it, output a punctuated version of the Talmudic passage using the punctuation that appears in the 'steinsaltz' interpretation."
+task_desciption = "Given an unpunctuated passage of the Talmud, output a punctuated version of the passage:"
 last_masechet = "Gittin"
 
 
-def create_new_context(task_desciption, non_punctuated, steinsalz, punctuated):
+def create_new_context(task_desciption, non_punctuated, punctuated):
     return (
     {"messages": [{"role": "system", "content": task_desciption},
-                  {"role": "user", "content": f'("no_punctuation_talmud": {non_punctuated}, "steinsaltz": {steinsalz})'},
+                  {"role": "user", "content": f'{non_punctuated}'},
                   {"role": "assistant", "content": punctuated}]}
     )
 
 def create_data(output_training_filename: str, output_validation_filename: str):
     all_samples = []
+    punctuationre = re.compile(
+        r'[\.\!\?\:\,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))|—\s')
     for masechet in masechtot_ordered:
         print("creating data from Masechet " + masechet)
         all_segment_refs = Ref(masechet).all_segment_refs()
         for segment_ref in all_segment_refs:
-            non_punctuated = segment_ref.text('he', "William Davidson Edition - Aramaic").text
-            punctuated = strip_cantillation(segment_ref.text('he').text, strip_vowels=True)
-            steinsalz = Ref("Steinsaltz on " + segment_ref.normal()).text('he').text
-            all_samples.append(create_new_context(task_desciption, non_punctuated, steinsalz, punctuated))
+            non_punctuated = segment_ref.text('he', "William Davidson Edition - Vocalized Aramaic").text
+            non_punctuated = punctuationre.sub('', non_punctuated)
+            punctuated = segment_ref.text('he').text
+            # steinsalz = Ref("Steinsaltz on " + segment_ref.normal()).text('he').text
+            all_samples.append(create_new_context(task_desciption, non_punctuated, punctuated))
         if masechet == last_masechet:
             break
 

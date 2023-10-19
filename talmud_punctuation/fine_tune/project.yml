@@ -20,6 +20,9 @@ commands:
       - 'output/gpt_punctuation_training.jsonl'
       - 'output/gpt_citation_validation.jsonl'
 
+  - name: delete_all_files
+    script:
+      - "python ../../util/fine_tune/delete_all_files.py"
 
   - name: upload_files
     deps:
