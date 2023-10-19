@@ -12,7 +12,7 @@ from util.general import get_ref_text_with_fallback
 from sheet_interface import get_topic_and_orefs
 
 import langchain
-from langchain import PromptTemplate
+from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage, SystemMessage
 from langchain.chat_models import ChatOpenAI
 from langchain.cache import SQLiteCache
@@ -25,14 +25,14 @@ def _get_prompt_inputs(oref: Ref, other_orefs: List[Ref], topic: Topic):
     comparison_sources_list = []
     max_len = 7000
     for other_oref in other_orefs:
-        other_text = get_ref_text_with_fallback(other_oref, "en")
+        other_text = get_ref_text_with_fallback(other_oref, "en", auto_translate=True)
         curr_len = reduce(lambda a, b: a + len(b), comparison_sources_list, 0)
         if curr_len + len(other_text) < max_len:
             comparison_sources_list += [other_text]
     return {
         "topic_title": topic_title,
         "topic_description": topic_description,
-        "input_source": get_ref_text_with_fallback(oref, "en"),
+        "input_source": get_ref_text_with_fallback(oref, "en", auto_translate=True),
         "comparison_sources": json.dumps(comparison_sources_list)
     }
 
