@@ -10,7 +10,7 @@ from sefaria.model import *
 from pydantic import BaseModel, Field
 
 from langchain.output_parsers import PydanticOutputParser
-from langchain import PromptTemplate, BasePromptTemplate
+from langchain.prompts import PromptTemplate, BasePromptTemplate
 from langchain.prompts.few_shot import FewShotPromptTemplate
 from langchain.prompts.example_selector import LengthBasedExampleSelector
 random.seed(23223)

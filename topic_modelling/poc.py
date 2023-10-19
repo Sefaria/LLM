@@ -7,7 +7,7 @@ import langchain
 from langchain.cache import SQLiteCache
 from langchain.chat_models import ChatOpenAI
 from langchain.chat_models import ChatAnthropic
-from langchain import PromptTemplate
+from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage, SystemMessage
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 

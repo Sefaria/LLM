@@ -14,7 +14,7 @@ from toprompt import Toprompt, TopromptOptions
 import langchain
 from langchain.cache import SQLiteCache
 from langchain.chat_models import ChatOpenAI, ChatAnthropic
-from langchain import PromptTemplate
+from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
@@ -107,7 +107,7 @@ def output_toprompts_for_validation_set(lang):
 if __name__ == '__main__':
     # sheet_ids = [502699]  # [502699, 502661, 499080, 498250, 500844]
     # sheet_ids = [498250]
-    sheet_ids = [514615]
+    sheet_ids = [447035, 446778]
     lang = "en"
     output_toprompts_for_sheet_id_list(lang, sheet_ids)
     # output_toprompts_for_validation_set(lang)
