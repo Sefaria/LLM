@@ -10,7 +10,6 @@ from util.general import get_raw_ref_text, get_by_xml_tag
 import langchain
 from langchain.cache import SQLiteCache
 from langchain.chat_models import ChatOpenAI, ChatAnthropic
-from langchain import PromptTemplate
 from langchain.schema import HumanMessage
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
@@ -28,6 +27,7 @@ def translate_segment(tref: str):
     response_message = llm([identity_message, task_message])
     translation = get_by_xml_tag(response_message.content, 'translation')
     if translation is None:
+        print("TRANSLATION FAILED")
         print(tref)
         print(response_message.content)
         return response_message.content
