@@ -26,8 +26,8 @@ langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 random.seed(613)
 
-entity_recognizer_model = "ft:davinci-002:sefaria:en-ner:7w4wFtsO"
-entity_classifier_model = "ft:davinci-002:sefaria:en-entity-class:7w5Mzx49"
+entity_recognizer_model = "ft:davinci-002:sefaria:en-ner:85JqAfCQ"
+entity_classifier_model = "ft:davinci-002:sefaria:en-entity-class:85dnuVZD"
 
 nlp = English()
 nlp.tokenizer = inner_punct_tokenizer_factory()(nlp)
@@ -223,7 +223,7 @@ if __name__ == '__main__':
     tagger = EntityTagger()
     my_db = MongoProdigyDBManager("ner_en_gpt_copper")
     my_db.output_collection.delete_many({})
-    generator = ExampleGenerator(['ner_en_input'], skip=7000)
+    generator = ExampleGenerator(['ner_en_input'], skip=13000)
     for d in tqdm(generator.get(sentencize=True)):
         try:
             doc = tagger.predict(d)
@@ -236,3 +236,6 @@ if __name__ == '__main__':
             print(e)
         print()
 
+"""
+prodigy ner-recipe ref_tagging ner_en_gpt_copper ner_en_gpt_silver Citation,Person,Group -lang en -dir ltr --view-id ner_manual
+"""
