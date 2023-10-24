@@ -55,9 +55,9 @@ random.seed(seed_value)
 #
 #     print("TRAINING SAMPLES: "  + str(len(train_samples)))
 #     print("VALIDATION SAMPLES: " + str(len(validation_samples)))
-def write_lists_to_csv(list1, list2, list3, filename, header1, header2, header3):
+def write_lists_to_csv(list1, list2, filename, header1, header2):
     # Combine the lists into a list of tuples
-    data = list(zip(list1, list2, list3))
+    data = list(zip(list1, list2))
 
     # Open the CSV file in write mode
     with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
@@ -65,7 +65,7 @@ def write_lists_to_csv(list1, list2, list3, filename, header1, header2, header3)
         csvwriter = csv.writer(csvfile)
 
         # Write the headers
-        csvwriter.writerow([header1, header2, header3])
+        csvwriter.writerow([header1, header2])
 
         # Write the data
         csvwriter.writerows(data)
@@ -86,7 +86,7 @@ def read_json_lines_to_list(file_path):
 
 def get_response_openai(sample, model_name):
     response = openai.ChatCompletion.create(
-        model="ft:gpt-3.5-turbo-0613:sefaria:he-punct:8AGRYwvC",
+        model=model_name,
         messages=[
             {
                 "role": "system",
@@ -113,15 +113,15 @@ def get_response_openai(sample, model_name):
 if __name__ == '__main__':
     # typer.run(visualize)
     print("hi")
-    model_name = "ft:gpt-3.5-turbo-0613:sefaria:he-punct:8AGRYwvC"
+    model_name = "ft:gpt-3.5-turbo-0613:sefaria:he-punct:8ClpgehI"
     golden_standard = read_json_lines_to_list('../output/gpt_punctuation_validation.jsonl')
     golden_standard = random.sample(golden_standard, 50)
     inferred = []
     for sample in golden_standard:
         inferred.append(get_response_openai(sample, model_name))
     golden_standard_valids = [sample["messages"][2]["content"] for sample in golden_standard]
-    golden_standard_valids_steinsaltz = [sample["messages"][1]["content"].split('"steinsaltz":')[1][:-1] for sample in golden_standard]
-    write_lists_to_csv(golden_standard_valids, inferred, golden_standard_valids_steinsaltz,'../output/discrepancies_visualization.csv', "Gold", "Inferred", "Steinsaltz")
+    # golden_standard_valids_steinsaltz = [sample["messages"][1]["content"].split('"steinsaltz":')[1][:-1] for sample in golden_standard]
+    write_lists_to_csv(golden_standard_valids, inferred, '../output/discrepancies_visualization.csv', "Gold", "Inferred")
 
 
 

@@ -40,8 +40,10 @@ commands:
       - 'python ../../util/fine_tune/create_fine_tune.py ${vars.base_model} ${vars.output_model_suffix}'
 
   - name: fine_tune_status
+    outputs:
+      - 'output/fine_tune_status.json'
     script:
-      - 'python ../../util/fine_tune/fine_tune_status.py'
+      - 'python ../../util/fine_tune/fine_tune_status.py output/fine_tune_status.json'
 
   - name: fine_tune_stats
     outputs:
