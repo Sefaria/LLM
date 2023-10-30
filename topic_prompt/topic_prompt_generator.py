@@ -104,10 +104,30 @@ def output_toprompts_for_validation_set(lang):
     csv_formatter.save("output/validation_topic_prompts.csv")
 
 
+def _get_top_n_orefs_for_topic(slug, top_n=10) -> List[Ref]:
+    from sefaria.helper.topic import get_topic
+
+    out = get_topic(True, slug, with_refs=True, ref_link_type_filters=['about', 'popular-writing-of'])
+    return [Ref(d['ref']) for d in out['refs']['about']['refs'][:top_n]]
+
+
+def output_toprompts_for_topic_page(lang, slug, top_n=10):
+    topic = Topic.init(slug)
+    orefs = _get_top_n_orefs_for_topic(slug, top_n)
+    toprompt_options = []
+    for oref in tqdm(orefs, desc="get toprompts for topic page"):
+        toprompt_options += [_get_toprompt_options(lang, topic, oref, num_tries=3)]
+    formatter = HTMLFormatter(toprompt_options)
+    formatter.save("output/topic_page_topic_prompts.html")
+    csv_formatter = CSVFormatter(toprompt_options)
+    csv_formatter.save("output/topic_page_topic_prompts.csv")
+
+
 if __name__ == '__main__':
     # sheet_ids = [502699]  # [502699, 502661, 499080, 498250, 500844]
     # sheet_ids = [498250]
-    sheet_ids = [447035, 446778]
+    sheet_ids = [447068]
     lang = "en"
-    output_toprompts_for_sheet_id_list(lang, sheet_ids)
+    # output_toprompts_for_sheet_id_list(lang, sheet_ids)
     # output_toprompts_for_validation_set(lang)
+    output_toprompts_for_topic_page(lang, 'peace')
