@@ -5,6 +5,7 @@ from util.openai import count_tokens_openai
 from util.sentencizer import sentencize
 from util.general import get_raw_ref_text, get_ref_text_with_fallback
 from uniqueness_of_source import get_uniqueness_of_source
+from contextualize import get_context
 from typing import List
 from sefaria.model import *
 from pydantic import BaseModel, Field
@@ -34,6 +35,7 @@ class TopromptLLMPrompt:
         examples = example_generator.get()
         example_prompt = PromptTemplate.from_template('<topic>{topic}</topic>\n'
                                                       '<unique_aspect>{unique_aspect}</unique_aspect>'
+                                                      '<context>{context}</context>'
                                                       '<output>{{{{'
                                                       '"why": "{why}", "what": "{what}", "title": "{title}"'
                                                       '}}}}</output>')
@@ -84,7 +86,9 @@ class TopromptLLMPrompt:
             " refer to the commentary in the final output. Only use the commentary to help understand the source."
             "</commentary>\n"
             "<unique_aspect> Unique perspective this source has on the topic. Use this to understand why a user would "
-            "want to learn this source for this topic.</unique_aspect>"
+            "want to learn this source for this topic.</unique_aspect>\n"
+            "<context> (optional): when it exists this provides further context about the source. Use this to provide"
+            " more context to the reader."
             "</input_format>"
         )
 
@@ -115,10 +119,15 @@ class TopromptLLMPrompt:
         except AttributeError:
             author_name = "N/A"
         category = index.get_primary_category()
+        context = get_context(self.oref)
+        print(f"Context for {self.oref.normal()}\n"
+              f"{context}")
         prompt = f"<topic>{self.topic.get_primary_title('en')}</topic>\n" \
                  f"<author>{author_name}</author>\n" \
                  f"<publication_year>{pub_year}</publication_year>\n" \
-                 f"<unique_aspect>{get_uniqueness_of_source(self.oref, self.lang, self.topic)}</unique_aspect>"
+                 f"<unique_aspect>{get_uniqueness_of_source(self.oref, self.lang, self.topic)}</unique_aspect>\n" \
+                 f"<context>{context}</context>"
+
         if True:  # category not in {"Talmud", "Midrash", "Tanakh"}:
             prompt += f"\n<book_description>{book_desc}</book_description>"
         if category in {"Tanakh"}:
@@ -154,7 +163,7 @@ class ToppromptExample:
         self.why = prompt_sents[0]
         self.what = prompt_sents[1]
         self.unique_aspect = get_uniqueness_of_source(self.oref, self.lang, self.topic)
-
+        self.context = get_context(self.oref)
 
     def serialize(self):
         out = {
@@ -163,6 +172,7 @@ class ToppromptExample:
             "why": self.why,
             "what": self.what,
             "unique_aspect": self.unique_aspect,
+            "context": self.context,
         }
         return out
 

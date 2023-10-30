@@ -67,8 +67,8 @@ def _improve_title(curr_responses):
 def _get_topprompts_for_sheet_id(lang, sheet_id: int) -> List[TopromptOptions]:
     topic, orefs = get_topic_and_orefs(sheet_id)
     toprompt_options = []
-    for oref in tqdm(orefs, desc="get toprompts for sheet"):
-        toprompt_options += [_get_toprompt_options(lang, topic, oref, num_tries=3)]
+    for oref in tqdm(orefs[:4], desc="get toprompts for sheet"):
+        toprompt_options += [_get_toprompt_options(lang, topic, oref, num_tries=1)]
     return toprompt_options
 
 
@@ -126,8 +126,8 @@ def output_toprompts_for_topic_page(lang, slug, top_n=10):
 if __name__ == '__main__':
     # sheet_ids = [502699]  # [502699, 502661, 499080, 498250, 500844]
     # sheet_ids = [498250]
-    sheet_ids = [447068]
+    sheet_ids = [498236]
     lang = "en"
-    # output_toprompts_for_sheet_id_list(lang, sheet_ids)
+    output_toprompts_for_sheet_id_list(lang, sheet_ids)
     # output_toprompts_for_validation_set(lang)
-    output_toprompts_for_topic_page(lang, 'peace')
+    # output_toprompts_for_topic_page(lang, 'peace')
