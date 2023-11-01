@@ -50,29 +50,20 @@ def context_from_liturgy(oref):
     text = get_ref_text_with_fallback(oref, "en", auto_translate=True)
     llm = ChatOpenAI(model="gpt-4", temperature=0)
     system_message = SystemMessage(content="""
-    Given a text from the Jewish cannon, say if it has significance in Judaism as a liturgical text. Liturgical context
-    means this text is recited on a regular basis by Jews either in prayer or as a Bracha.\n
-    Examples of liturgical texts:
-    - Modeh Ani
-    - Adon Olam
-    - Shema
-    Examples of N/A texts:
-    - A text describing the laws of Passover
-    Only respond with one word, either 'liturgical' or 'N/A'.
+    Given a text from the Jewish cannon, add any relevant context that would help a user understand this text from a
+    Jewish perspective. Relevant context may be:
+    If this text is a prayer, when was it recited and why?
+    Historical significance to Jewish history
+    How this text is viewed nowadays by Jewish people
+    
+    DO NOT offer an interpretation or explanation of the text. Only offer helpful context.
+    
+    Limit to 50 words or less.
     """)
 
     prompt = PromptTemplate.from_template("Citation: {citation}\nText: {text}")
     human_message = HumanMessage(content=prompt.format(text=text, citation=oref.normal()))
     response = llm([system_message, human_message])
-    answer = response.content.strip().lower()
-    if answer not in {'liturgical', 'n/a'}:
-        return "N/A"
-        # raise Exception(f"Answer doesn't fit template. Answer: {answer}")
-    if answer == 'N/A':
-        return "N/A"
-    clarification_message = HumanMessage(content=f"What is the {answer} context of this text in Judaism."
-                                                 f"Limit to 50 words or less.")
-    response = llm([human_message, clarification_message])
     return response.content
 
 
@@ -85,6 +76,6 @@ def get_context(oref: Ref):
 
 
 if __name__ == '__main__':
-    print(context_from_liturgy(Ref("Nehemiah 8:14-16")))
+    print(get_context(Ref("Nehemiah 8:14-16")))
     # print(context_from_section(Ref("Nehemiah 8:14-16")))
 
