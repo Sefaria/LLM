@@ -43,8 +43,10 @@ def _get_toprompt_options(lang: str, topic: Topic, oref: Ref, num_tries=1) -> To
 
         # improve title
         if ":" in parsed_output.title:
-            new_title = _improve_title(responses)
+            new_title = _improve_title(responses, parsed_output.title)
             if new_title:
+                if ":" in new_title:
+                    new_title = _improve_title(responses, new_title)
                 parsed_output.title = new_title
 
         topic_prompts += [Toprompt(topic, oref, toprompt_text, parsed_output.title)]
@@ -52,22 +54,26 @@ def _get_toprompt_options(lang: str, topic: Topic, oref: Ref, num_tries=1) -> To
     return TopromptOptions(topic_prompts)
 
 
-def _improve_title(curr_responses):
-    better_title_prompt = PromptTemplate.from_template(f"Rewrite the title, rephrasing to avoid using a colon."
-                                                       f"Wrap the title in <title> tags. It should at most"
-                                                       f"five words and grab the reader's attention.")
+def _improve_title(curr_responses, curr_title):
+    better_title_prompt = PromptTemplate.from_template(f"Current title is: {curr_title}. "
+                                                       f"Rewrite the title, rephrasing to avoid using a colon."
+                                                       f" Wrap the title in <title> tags. It should at most"
+                                                       f" five words and grab the reader's attention.")
     llm = ChatOpenAI(model="gpt-4", temperature=0.5)
     title_response = llm(curr_responses + [HumanMessage(content=better_title_prompt.format())])
     title_match = re.search(r'<title>(.+?)</title>', title_response.content)
     if title_match is None:
         return
-    return title_match.group(1)
+    new_title = title_match.group(1)
+    new_title = re.sub(r'^"', '', new_title)
+    new_title = re.sub(r'"$', '', new_title)
+    return new_title
 
 
 def _get_topprompts_for_sheet_id(lang, sheet_id: int) -> List[TopromptOptions]:
     topic, orefs = get_topic_and_orefs(sheet_id)
     toprompt_options = []
-    for oref in tqdm(orefs[:4], desc="get toprompts for sheet"):
+    for oref in tqdm(orefs, desc="get toprompts for sheet"):
         toprompt_options += [_get_toprompt_options(lang, topic, oref, num_tries=1)]
     return toprompt_options
 
@@ -124,9 +130,7 @@ def output_toprompts_for_topic_page(lang, slug, top_n=10):
 
 
 if __name__ == '__main__':
-    # sheet_ids = [502699]  # [502699, 502661, 499080, 498250, 500844]
-    # sheet_ids = [498250]
-    sheet_ids = [498236]
+    sheet_ids = [447069, 518761]
     lang = "en"
     output_toprompts_for_sheet_id_list(lang, sheet_ids)
     # output_toprompts_for_validation_set(lang)
