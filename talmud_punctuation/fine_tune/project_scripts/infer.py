@@ -190,7 +190,9 @@ def punctuate_single_word(punctuated_word, unpunctuated_word):
         unpunctuated_word += punctuated_word_no_heifen[-2:]
     elif len(punctuated_word_no_heifen) >= 2 and punctuated_word_no_heifen[-1] in punctuations_end_one_char:
         unpunctuated_word += punctuated_word_no_heifen[-1]
-    elif len(punctuated_word_no_heifen) >= 2 and punctuated_word_no_heifen[0] == "״":
+
+
+    if len(punctuated_word_no_heifen) >= 2 and punctuated_word_no_heifen[0] == "״":
         unpunctuated_word = "״" + unpunctuated_word
 
     if punctuated_word.endswith('—'):
@@ -203,6 +205,8 @@ def is_subsequence(sub, main):
     it = iter(main)
     return all(item in it for item in sub)
 def punctuate_vocalised(punctuated_text: str, vocalised_text: str) -> str:
+    if "ועשה על פיהם״, ״שוגג״ למה לי?" in punctuated_text:
+        halt = True
     punctuated_text_list = punctuated_text.replace(' —', '—').split()
     vocalised_text_list = vocalised_text.split()
     vocalised_text_list_suffix = vocalised_text.split()
