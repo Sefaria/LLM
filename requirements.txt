@@ -2,3 +2,4 @@ langchain[llms]
 stanza
 openai
 typer
+pydantic
