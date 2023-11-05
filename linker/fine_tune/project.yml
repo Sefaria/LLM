@@ -65,4 +65,4 @@ commands:
     outputs:
       - 'output/fine_tune_stats.csv'
     script:
-      - '${vars.script_dir}/fine_tune_stats.sh ${env.openai_api_key} "file-VRP52zJ1ETBX6crq0vfidXqb" output/fine_tune_stats.csv'
+      - 'python ${vars.script_dir}/fine_tune_stats.py output/fine_tune_stats.csv'
