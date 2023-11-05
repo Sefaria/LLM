@@ -23,7 +23,10 @@ def _get_topic_from_name(topic_name: str) -> Topic:
         if len(unique_topic) == 0 and len(topic_set) == 1:
             unique_topic = topic_set
         else:
-            raise ValueError(f"Not only one topic with name {topic_name}. Count {len(unique_topic)}")
+            if topic_name.startswith("The "):
+                return _get_topic_from_name(topic_name.replace("The ", ""))
+            else:
+                raise ValueError(f"Not only one topic with name {topic_name}. Count {len(unique_topic)}")
     return unique_topic[0]
 
 

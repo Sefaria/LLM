@@ -4,6 +4,7 @@ from db_manager import MongoProdigyDBManager
 from sefaria.model.text import Ref
 from sefaria.helper.normalization import NormalizerComposer
 import diff_match_patch
+import re
 
 
 def get_normalizer():
@@ -22,11 +23,15 @@ def get_raw_ref_text(oref: Ref, lang: str) -> str:
     return oref.text(lang).ja().flatten_to_string()
 
 
-def get_ref_text_with_fallback(oref: Ref, lang: str) -> str:
+def get_ref_text_with_fallback(oref: Ref, lang: str, auto_translate=False) -> str:
     raw_text = get_raw_ref_text(oref, lang)
     if len(raw_text) == 0:
-        other_lang = "en" if lang == "he" else "he"
-        raw_text = get_raw_ref_text(oref, other_lang)
+        if auto_translate and lang == "en":
+            from translation.poc import translate_segment
+            raw_text = translate_segment(oref.normal())
+        else:
+            other_lang = "en" if lang == "he" else "he"
+            raw_text = get_raw_ref_text(oref, other_lang)
 
     return normalizer.normalize(raw_text)
 
@@ -54,3 +59,11 @@ def get_removal_list(orig, new):
             removal_list += [((curr_start_char, curr_start_char + len(diff_text)), '')]
     removal_list.sort(key=lambda x: (x[0][0], (x[0][1]-x[0][0])))
     return removal_list
+
+
+def get_by_xml_tag(text, tag_name) -> str:
+    match = re.search(fr'<{tag_name}>(.+?)</{tag_name}>', text, re.DOTALL)
+    if not match:
+        return None
+    return match.group(1)
+
