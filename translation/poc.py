@@ -16,13 +16,18 @@ langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 random.seed(26)
 
 
-def translate_segment(tref: str):
+def translate_segment(tref: str, context: str = None):
     oref = Ref(tref)
     text = get_raw_ref_text(oref, 'he')
     identity_message = HumanMessage(content="You are a Jewish scholar knowledgeable in all Torah and Jewish texts. Your "
-                                         "task is to translate the Hebrew text wrapped in <input> tags. Output "
+                                            "task is to translate the Hebrew text wrapped in <input> tags. Context may be "
+                                            "provided in <context> tags. Use context to provide context to <input> "
+                                            "text. Don't translate <context>. Only translate <input> text. Output "
                                             "translation wrapped in <translation> tags.")
-    task_message = HumanMessage(content=f"<input>{text}</input>")
+    task_prompt = f"<input>{text}</input>"
+    if context:
+        task_prompt = f"<context>{context}</context>{task_prompt}"
+    task_message = HumanMessage(content=task_prompt)
     llm = ChatAnthropic(model="claude-2", temperature=0, max_tokens_to_sample=1000000)
     response_message = llm([identity_message, task_message])
     translation = get_by_xml_tag(response_message.content, 'translation')
