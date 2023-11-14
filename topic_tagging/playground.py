@@ -2,7 +2,7 @@ import csv
 import django
 django.setup()
 # import typer
-# import json
+import json
 from sefaria.model import *
 # from sefaria.utils.hebrew import strip_cantillation
 # import random
@@ -41,14 +41,12 @@ def get_top_topics_slugs():
         writer.writerows([[topic.slug] for topic in top_topics])
 
 
-def get_embeddings(topic_slugs_csv_path):
-    topic_slugs = [row[0] for row in csv.reader(open(topic_slugs_csv_path))]
-    topic
+def embed_text(query):
     embeddings = OpenAIEmbeddings(openai_api_key=api_key)
-    text = "This is a test query."
+    text = query
     query_result = embeddings.embed_query(text)
 
-    print(query_result)
+    return query_result
 
 def query_llm_model(template, text):
     llm = OpenAI(temperature=.7)
@@ -90,14 +88,27 @@ def infer_topic_descriptions_to_csv(slugs_csv_path, query_template, output_csv_p
 
     list_of_tuples_to_csv(slugXdescription_list, output_csv_path)
 
+def embed_topic_descriptions_to_jsonl(slugs_and_descriptions_csv, output_jsonl_path):
+    list_of_embeddings = []
+    slugXdes_list = [(row[0], row[1]) for row in csv.reader(open(slugs_and_descriptions_csv))]
+    for slugXdes in slugXdes_list:
+        slug = slugXdes[0]
+        des = slugXdes[1]
+        list_of_embeddings += [{"slug": slug, "embedding":embed_text(des)}]
+    with open(output_jsonl_path, 'w') as jsonl_file:
+        for item in list_of_embeddings:
+            jsonl_file.write(json.dumps(item) + '\n')
+
+
 if __name__ == '__main__':
     print("Hi")
     # get_embeddings()
-    template = """You are a humanities scholar specializing in Judaism. Given a topic or a term, write a description for that topic from a Jewish perspective.
-    Topic: {text}
-    Description:
-    """
-    infer_topic_descriptions_to_csv("n_topic_slugs.csv", template, "slugs_and_inferred_descriptions.csv")
+    # template = """You are a humanities scholar specializing in Judaism. Given a topic or a term, write a description for that topic from a Jewish perspective.
+    # Topic: {text}
+    # Description:
+    # """
+    # infer_topic_descriptions_to_csv("n_topic_slugs.csv", template, "slugs_and_inferred_descriptions.csv")
+    embed_topic_descriptions_to_jsonl("slugs_and_inferred_descriptions.csv", "description_embeddings.jsonl")
 
 
 
