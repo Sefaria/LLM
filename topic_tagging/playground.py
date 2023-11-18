@@ -12,6 +12,7 @@ from langchain.llms import OpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.chains import SimpleSequentialChain
+import  numpy as np
 # from langchain.chat_models import ChatOpenAI
 # import openai
 # import re
@@ -99,7 +100,7 @@ def embed_topic_descriptions_to_jsonl(slugs_and_descriptions_csv, output_jsonl_p
         for item in list_of_embeddings:
             jsonl_file.write(json.dumps(item) + '\n')
 
-def cluster_slugs():
+def cluster_slugs(slugs_and_embeddings_jsonl):
     import numpy as np
     from sklearn.cluster import KMeans
     from sklearn.metrics import pairwise_distances_argmin_min
@@ -112,7 +113,7 @@ def cluster_slugs():
         # ... more data ...
     ]
 
-    data = [json.loads(line) for line in open('description_embeddings.jsonl', 'r')]
+    data = [json.loads(line) for line in open(slugs_and_embeddings_jsonl, 'r')]
 
 
     # Extract embeddings into a NumPy array
@@ -162,6 +163,34 @@ def cluster_slugs():
     plt.ylabel('Feature 2')
     plt.legend()
     plt.show()
+
+def ask_llm_for_topics_from_segment(segment_text):
+    infer_topics_template = ("You are a humanities scholar specializing in Judaism. Given the following text segment, generate a list of relevant of topics (no more than 3 words for topic) separated by commas:"
+                " {text}")
+    embed_topic_template = """You are a humanities scholar specializing in Judaism. Given a topic or a term, write a description for that topic from a Jewish perspective.
+    Topic: {text}
+    Description:
+    """
+    answer = query_llm_model(infer_topics_template, segment_text)
+    model_topics = [topic.strip() for topic in answer.split(",")]
+
+    def embedding_distance(embedding1, embedding2):
+        return np.linalg.norm(embedding1 - embedding2)
+    existing_topics_dicts = [json.loads(line) for line in open("description_embeddings.jsonl", 'r')]
+    for topic_dict in existing_topics_dicts:
+        topic_dict["embedding"] = np.array(topic_dict["embedding"])
+
+    for topic in model_topics:
+        inferred_topic_embedding = np.array(embed_text(query_llm_model(embed_topic_template, topic)))
+        sorted_data = sorted(existing_topics_dicts, key=lambda x: embedding_distance(x["embedding"], inferred_topic_embedding))
+        print(f"Gpt tagged passage with the topic: {topic}, which is similar to Sefaria's topic: {sorted_data[0]['slug']}")
+
+
+
+
+    print(model_topics)
+
+
 if __name__ == '__main__':
     print("Hi")
     # get_embeddings()
@@ -171,7 +200,10 @@ if __name__ == '__main__':
     # """
     # infer_topic_descriptions_to_csv("n_topic_slugs.csv", template, "slugs_and_inferred_descriptions.csv")
     # embed_topic_descriptions_to_jsonl("slugs_and_inferred_descriptions.csv", "description_embeddings.jsonl")
-    cluster_slugs()
+    # cluster_slugs("description_embeddings.jsonl")
+    ask_llm_for_topics_from_segment(
+        "Speak to the Israelite people, and say to them: When any of you presents an offering of cattle to יהוה: You shall choose your offering from the herd or from the flock."
+    )
 
 
 
