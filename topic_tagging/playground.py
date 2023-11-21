@@ -1,6 +1,9 @@
 import csv
 import django
 django.setup()
+# We can do the same thing with a SQLite cache
+# from langchain.cache import SQLiteCache
+# set_llm_cache(SQLiteCache(database_path=".langchain.db"))
 # import typer
 import json
 from sefaria.model import *
@@ -49,12 +52,23 @@ def embed_text(query):
 
     return query_result
 
-def query_llm_model(template, text):
+def query_llm_model(template, text1, text2=None, text3=None):
     llm = OpenAI(temperature=.7)
+    if not text2:
+        prompt_template = PromptTemplate(input_variables=["text"], template=template)
+        answer_chain = LLMChain(llm=llm, prompt=prompt_template)
+        answer = answer_chain.run(text1)
+    if text2 and not text3:
+        prompt_template = PromptTemplate(input_variables=["text1", "text2"], template=template)
+        # prompt_template.format(text1='text1', text2='text2')
+        answer_chain = LLMChain(llm=llm, prompt=prompt_template)
+        answer = answer_chain.predict(text1=text1, text2=text2)
+    if text2 and text3:
+        prompt_template = PromptTemplate(input_variables=["text1", "text2", "text3"], template=template)
+        answer_chain = LLMChain(llm=llm, prompt=prompt_template)
+        answer = answer_chain.predict(text1=text1, text2=text2, text3=text3)
 
-    prompt_template = PromptTemplate(input_variables=["text"], template=template)
-    answer_chain = LLMChain(llm=llm, prompt=prompt_template)
-    answer = answer_chain.run(text)
+
     return answer
 
 def topic_slugs_list_from_csv(slugs_path_csv):
@@ -65,6 +79,9 @@ def topic_list_from_slugs_csv(slugs_path_csv):
     for slug in slugs:
         topics += [TopicSet({"slug":slug})[0]]
     return topics
+
+def slugs_and_description_dict_from_csv():
+    return dict((row[0], row[1]) for row in csv.reader(open('slugs_and_inferred_descriptions.csv')))
 
 def list_of_tuples_to_csv(data, file_path):
     """
@@ -165,8 +182,8 @@ def cluster_slugs(slugs_and_embeddings_jsonl):
     plt.show()
 
 def ask_llm_for_topics_from_segment(segment_text):
-    infer_topics_template = ("You are a humanities scholar specializing in Judaism. Given the following text segment, generate a list of relevant of topics (no more than 3 words for topic) separated by commas:"
-                " {text}")
+    infer_topics_template = ("You are a humanities scholar specializing in Judaism. Given the following text segment, generate a list of relevant of topics separated by commas. topics can also be general conepts and creative, and don't have to appear in the text itself. If texts talks about a general concept that does not apear explicitly in the text, I still consider that as a valid topic for the text."
+                             "the text: {text}")
     embed_topic_template = """You are a humanities scholar specializing in Judaism. Given a topic or a term, write a description for that topic from a Jewish perspective.
     Topic: {text}
     Description:
@@ -185,6 +202,20 @@ def ask_llm_for_topics_from_segment(segment_text):
         sorted_data = sorted(existing_topics_dicts, key=lambda x: embedding_distance(x["embedding"], inferred_topic_embedding))
         print(f"Gpt tagged passage with the topic: {topic}, which is similar to Sefaria's topic: {sorted_data[0]['slug']}")
 
+        slug_desc_dict = slugs_and_description_dict_from_csv()
+        verifier_template = """
+            "You are a humanities scholar specializing in Judaism. Given a passage, a topic and a description of that topic, return YES if the passage can be tagged with this topic. note: even if the topic is not mentioned explicitly in the passage, but the passage refers to ghe general concept of the topic, the passage can be tagged with that topic.
+             if it's not a good topic tagging for the passage, return NO . if you are unsure, return NO .
+             Passage: {text1}
+             Possible Topic: {text2}
+             Topic Description: {text3}
+        """
+        nearest_slug = sorted_data[0]['slug']
+        description = slug_desc_dict[nearest_slug]
+        ver = query_llm_model(verifier_template, segment_text, nearest_slug, description)
+        print(f"Verification: {ver}")
+
+
 
 
 
@@ -201,9 +232,7 @@ if __name__ == '__main__':
     # infer_topic_descriptions_to_csv("n_topic_slugs.csv", template, "slugs_and_inferred_descriptions.csv")
     # embed_topic_descriptions_to_jsonl("slugs_and_inferred_descriptions.csv", "description_embeddings.jsonl")
     # cluster_slugs("description_embeddings.jsonl")
-    ask_llm_for_topics_from_segment(
-        "Speak to the Israelite people, and say to them: When any of you presents an offering of cattle to יהוה: You shall choose your offering from the herd or from the flock."
-    )
+    ask_llm_for_topics_from_segment(Ref("Mekhilta_DeRabbi_Yishmael.19.17").text().text)
 
 
 
