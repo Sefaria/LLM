@@ -5,6 +5,7 @@ django.setup()
 # from langchain.cache import SQLiteCache
 # set_llm_cache(SQLiteCache(database_path=".langchain.db"))
 # import typer
+import re
 import json
 from sefaria.model import *
 # from sefaria.utils.hebrew import strip_cantillation
@@ -12,8 +13,10 @@ from sefaria.model import *
 import os
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.llms import OpenAI
+from langchain.chat_models import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
+from langchain.schema import HumanMessage
 from langchain.chains import SimpleSequentialChain
 import  numpy as np
 # from langchain.chat_models import ChatOpenAI
@@ -51,25 +54,25 @@ def embed_text(query):
     query_result = embeddings.embed_query(text)
 
     return query_result
+def format_string(fstring, arguments):
+    try:
+        formatted_string = fstring.format(*arguments)
+        return formatted_string
+    except IndexError:
+        print("Error: Number of arguments does not match placeholders in the string.")
+    except KeyError:
+        print("Error: Invalid placeholder in the string.")
+    except Exception as e:
+        print(f"Error: {e}")
 
-def query_llm_model(template, text1, text2=None, text3=None):
-    llm = OpenAI(temperature=.7)
-    if not text2:
-        prompt_template = PromptTemplate(input_variables=["text"], template=template)
-        answer_chain = LLMChain(llm=llm, prompt=prompt_template)
-        answer = answer_chain.run(text1)
-    if text2 and not text3:
-        prompt_template = PromptTemplate(input_variables=["text1", "text2"], template=template)
-        # prompt_template.format(text1='text1', text2='text2')
-        answer_chain = LLMChain(llm=llm, prompt=prompt_template)
-        answer = answer_chain.predict(text1=text1, text2=text2)
-    if text2 and text3:
-        prompt_template = PromptTemplate(input_variables=["text1", "text2", "text3"], template=template)
-        answer_chain = LLMChain(llm=llm, prompt=prompt_template)
-        answer = answer_chain.predict(text1=text1, text2=text2, text3=text3)
+def query_llm_model(template_fstirng, arguments_list):
+    formatted_string = template_fstirng.format(*arguments_list)
+    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=.5)
+    user_prompt = PromptTemplate.from_template("# Input\n{text}")
+    human_message = HumanMessage(content=user_prompt.format(text=formatted_string))
+    answer = llm([human_message])
 
-
-    return answer
+    return answer.content
 
 def topic_slugs_list_from_csv(slugs_path_csv):
     return [row[0] for row in csv.reader(open(slugs_path_csv))]
@@ -94,14 +97,87 @@ def list_of_tuples_to_csv(data, file_path):
     with open(file_path, 'w', newline='') as csvfile:
         csv_writer = csv.writer(csvfile)
         csv_writer.writerows(data)
-def infer_topic_descriptions_to_csv(slugs_csv_path, query_template, output_csv_path):
+def _get_top_n_orefs_for_topic(slug, top_n=10):
+    from sefaria.helper.topic import get_topic
+
+    out = get_topic(True, slug, with_refs=True, ref_link_type_filters=['about', 'popular-writing-of'])
+    result = []
+    for d in out['refs']['about']['refs'][:top_n]:
+        try:
+            result.append(Ref(d['ref']))
+        except Exception as e:
+            print (e)
+    return result
+def _get_first_k_categorically_distinct_refs(refs, k):
+    distinct_categories = set()
+    result = []
+
+    for ref in refs:
+        category = ref.primary_category
+        if category is not None and category not in distinct_categories:
+            distinct_categories.add(category)
+            result.append(ref)
+
+            if len(result) == k:
+                break
+
+    return result
+def _concatenate_passages(passages, separetaor_token):
+    result = ""
+
+    for i, passage in enumerate(passages, 1):
+        result += f"{separetaor_token} {i}:\n{passage}\n"
+
+    return result
+def _get_relevant_example_passages_from_slug(slug, n=3, discard_longest = 0):
+    refs = _get_top_n_orefs_for_topic(slug, 200)
+    refs = _get_first_k_categorically_distinct_refs(refs, n)
+    def _get_length_of_ref(ref):
+        return len(ref.text().text)
+    for i in range(0, discard_longest):
+        longest_element = max(refs, key=_get_length_of_ref)
+        refs.remove(longest_element)
+    text = _concatenate_passages([ref.tref + ': ' + str(ref.text().text) for ref in refs], "Passage")
+
+    return text
+
+def infer_topic_descriptions_to_csv(slugs_csv_path, output_csv_path):
+    template = """You are a humanities scholar specializing in Judaism. Given a Topic or a term and a list of passages that relate to that topic, write a description for that topic from a Jewish perspective.
+    Don't quote the passages in your answer, don't summarize the passages, but rather explain the general concept to the Topic.
+    Topic: {0}
+    Related Passages: {1}
+    Description:
+    """
+
 
     topic_list = topic_list_from_slugs_csv(slugs_csv_path)
     slugXdescription_list = []
+    # for topic in topic_list:
+    #     print(topic.get_primary_title())
+    #     des = query_llm_model(template, topic.get_primary_title())
+    #     slug = topic.slug
+    #     slugXdescription_list += [(slug, des)]
     for topic in topic_list:
         print(topic.get_primary_title())
-        des = query_llm_model(query_template, topic.get_primary_title())
         slug = topic.slug
+        # if slug != "peace":
+        #     continue
+        passages = _get_relevant_example_passages_from_slug(slug)
+        try:
+            des = query_llm_model(template, [topic.get_primary_title(), passages])
+        except:
+            try:
+                passages = _get_relevant_example_passages_from_slug(slug, discard_longest=1)
+                des = query_llm_model(template, [topic.get_primary_title(), passages])
+            except:
+                try:
+                    passages = _get_relevant_example_passages_from_slug(slug, discard_longest=2)
+                    des = query_llm_model(template, [topic.get_primary_title(), passages])
+                except:
+                    des = query_llm_model(template, [topic.get_primary_title(), ''])
+
+
+
         slugXdescription_list += [(slug, des)]
 
     list_of_tuples_to_csv(slugXdescription_list, output_csv_path)
@@ -182,23 +258,29 @@ def cluster_slugs(slugs_and_embeddings_jsonl):
     plt.show()
 
 def ask_llm_for_topics_from_segment(segment_text):
-    infer_topics_template = ("You are a humanities scholar specializing in Judaism. Given the following text segment, generate a list of relevant of topics separated by commas. topics can also be general conepts and creative, and don't have to appear in the text itself. If texts talks about a general concept that does not apear explicitly in the text, I still consider that as a valid topic for the text."
-                             "the text: {text}")
+    infer_topics_template = ("You are a humanities scholar specializing in Judaism. "
+                             + "Given the following text segment, generate an unumbered list of relevant short topics or tags separated by commas."
+                             + "Topics can also be general conepts and creative, and don't have to appear in the text itself. If texts talks about a general concept that does not apear explicitly in the text, I still consider that as a valid topic for the text.\n"
+                            #  +"Output must be a simple string of topics separated by commas\n"
+                            #  +"Example Output:\n"
+                            # +"First Topic, Second Topic, Third Topic\n\n"
+
+                             +"The Text: {0}")
     embed_topic_template = """You are a humanities scholar specializing in Judaism. Given a topic or a term, write a description for that topic from a Jewish perspective.
-    Topic: {text}
+    Topic: {0}
     Description:
     """
-    answer = query_llm_model(infer_topics_template, segment_text)
-    model_topics = [topic.strip() for topic in answer.split(",")]
-
+    answer = query_llm_model(infer_topics_template, [segment_text])
+    # model_topics = [topic.strip() for topic in answer.split(",")]
+    model_topics = [topic.strip() for topic in answer.split("\n-")]
     def embedding_distance(embedding1, embedding2):
         return np.linalg.norm(embedding1 - embedding2)
-    existing_topics_dicts = [json.loads(line) for line in open("description_embeddings.jsonl", 'r')]
+    existing_topics_dicts = [json.loads(line) for line in open("description_with_sources_prompts_embeddings.jsonl", 'r')]
     for topic_dict in existing_topics_dicts:
         topic_dict["embedding"] = np.array(topic_dict["embedding"])
 
     for topic in model_topics:
-        inferred_topic_embedding = np.array(embed_text(query_llm_model(embed_topic_template, topic)))
+        inferred_topic_embedding = np.array(embed_text(query_llm_model(embed_topic_template, [topic])))
         sorted_data = sorted(existing_topics_dicts, key=lambda x: embedding_distance(x["embedding"], inferred_topic_embedding))
         print(f"Gpt tagged passage with the topic: {topic}, which is similar to Sefaria's topic: {sorted_data[0]['slug']}")
 
@@ -206,33 +288,30 @@ def ask_llm_for_topics_from_segment(segment_text):
         verifier_template = """
             "You are a humanities scholar specializing in Judaism. Given a passage, a topic and a description of that topic, return YES if the passage can be tagged with this topic. note: even if the topic is not mentioned explicitly in the passage, but the passage refers to ghe general concept of the topic, the passage can be tagged with that topic.
              if it's not a good topic tagging for the passage, return NO . if you are unsure, return NO .
-             Passage: {text1}
-             Possible Topic: {text2}
-             Topic Description: {text3}
+             Passage: {0}
+             Possible Topic: {1}
+             Topic Description: {2}
         """
         nearest_slug = sorted_data[0]['slug']
         description = slug_desc_dict[nearest_slug]
-        ver = query_llm_model(verifier_template, segment_text, nearest_slug, description)
+        ver = query_llm_model(verifier_template, [segment_text, nearest_slug, description]).replace('# Output', '').strip()
         print(f"Verification: {ver}")
-
-
-
-
-
     print(model_topics)
+
+
+
 
 
 if __name__ == '__main__':
     print("Hi")
     # get_embeddings()
-    # template = """You are a humanities scholar specializing in Judaism. Given a topic or a term, write a description for that topic from a Jewish perspective.
-    # Topic: {text}
-    # Description:
-    # """
-    # infer_topic_descriptions_to_csv("n_topic_slugs.csv", template, "slugs_and_inferred_descriptions.csv")
-    # embed_topic_descriptions_to_jsonl("slugs_and_inferred_descriptions.csv", "description_embeddings.jsonl")
+    # infer_topic_descriptions_to_csv("n_topic_slugs.csv",  "slugs_and_inferred_descriptions_prompt_with_sources.csv")
+    # embed_topic_descriptions_to_jsonl("slugs_and_inferred_descriptions_prompt_with_sources.csv", "description_with_sources_prompts_embeddings.jsonl")
     # cluster_slugs("description_embeddings.jsonl")
-    ask_llm_for_topics_from_segment(Ref("Mekhilta_DeRabbi_Yishmael.19.17").text().text)
+    ask_llm_for_topics_from_segment(Ref("Sanhedrin.99a.2").text().text)
+
+
+
 
 
 
