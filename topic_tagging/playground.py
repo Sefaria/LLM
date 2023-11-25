@@ -299,7 +299,93 @@ def ask_llm_for_topics_from_segment(segment_text):
     print(model_topics)
 
 
+class TopicTagger:
+    # Class attribute
+    species = "Canis familiaris"
+    # Template for inferring topics from the given text segment
+    infer_topics_template = (
+        "You are a humanities scholar specializing in Judaism. "
+        "Given the following text segment, generate an unnumbered list of relevant short topics or tags separated by commas. "
+        "Topics can also be general concepts and creative, and don't have to appear in the text itself. "
+        "If the text talks about a general concept that does not appear explicitly in the text, I still consider that as a valid topic for the text.\n"
+        "The Text: {0}"
+    )
+    # Template for embedding a topic and getting its description
+    embed_topic_template = (
+        "You are a humanities scholar specializing in Judaism. Given a topic or a term, write a description for that topic from a Jewish perspective.\n"
+        "Topic: {0}\nDescription:"
+    )
+    verifier_template = (
+        "You are a humanities scholar specializing in Judaism. Given a passage, a topic, and a description of that topic, return YES if the passage can be tagged with this topic. "
+        "Note: Even if the topic is not mentioned explicitly in the passage, but the passage refers to the general concept of the topic, the passage can be tagged with that topic. "
+        "If it's not a good topic tagging for the passage, return NO. If you are unsure, return NO.\n"
+        "Passage: {0}\nPossible Topic: {1}\nTopic Description: {2}"
+    )
 
+    # Constructor method
+    def __init__(self, slugs_embeddings_jsonl, slugs_descriptions_csv):
+        # self.slugs_embeddings_jsonl = slugs_embeddings_jsonl
+        # self.slugs_descriptions_csv = slugs_descriptions_csv
+        self.slug_descriptions_dict = {row[0]: row[1] for row in csv.reader(open(slugs_descriptions_csv, 'r'))}
+        slug_embeddings_list_of_dicts = [json.loads(line) for line in
+                                 open(slugs_embeddings_jsonl, 'r')]
+        slug_embeddings_dict = {}
+        for topic_dict in slug_embeddings_list_of_dicts:
+            slug_embeddings_dict[topic_dict["slug"]] = np.array(topic_dict["embedding"])
+        self.slug_embeddings_dict = slug_embeddings_dict
+
+        # Instance attribute
+
+    def _get_inferred_topics(self, template, segment_text):
+        answer = query_llm_model(template, [segment_text])
+        return [topic.strip() for topic in answer.split("\n-")]
+
+    def _load_existing_topics(self, jsonl_path):
+        existing_topics_dicts = [json.loads(line) for line in
+                                 open(jsonl_path, 'r')]
+        for topic_dict in existing_topics_dicts:
+            topic_dict["embedding"] = np.array(topic_dict["embedding"])
+        return existing_topics_dicts
+
+    def _embed_and_get_embedding(self, template, topic):
+        return np.array(embed_text(query_llm_model(template, [topic])))
+
+    def _get_Sefaria_nearest_topic(self, inferred_topic):
+        inferred_topic_embedding = self._embed_and_get_embedding(self.embed_topic_template, inferred_topic)
+        sefaria_topic_embeddings_list = [(key, value) for key, value in self.slug_embeddings_dict.items()]
+        sorted_data = sorted(sefaria_topic_embeddings_list,
+                             key=lambda x: self._embedding_distance(x[1], inferred_topic_embedding))
+        sefaria_slug = sorted_data[0][0]
+        # print(f"GPT tagged passage with the topic: {inferred_topic}, which is similar to Sefaria's topic: {sefaria_slug}")
+        return sefaria_slug
+    def _embedding_distance(self, embedding1, embedding2):
+        return np.linalg.norm(embedding1 - embedding2)
+    def _is_tagging_verified(self, sefaria_slug, segment_text):
+
+        description = self.slug_descriptions_dict[sefaria_slug]
+        ver_response = query_llm_model(self.verifier_template, [segment_text, sefaria_slug, description]).replace('# Output',
+                                                                                                    '').strip()
+        ver_approved = False
+        if "YES" in ver_response:
+            ver_approved = True
+        if "NO" in ver_response:
+            ver_approved = False
+        return ver_approved
+
+    # Instance method
+    def tag_segment(self, segment_text):
+        # Query the language model to infer topics from the text segment
+        model_topics = self._get_inferred_topics(self.infer_topics_template, segment_text)
+
+
+        # Iterate over inferred topics and find the most similar existing topic
+        for inferred_topic in model_topics:
+            sefaria_slug = self._get_Sefaria_nearest_topic(inferred_topic)
+            verified = self._is_tagging_verified(sefaria_slug, segment_text)
+            if verified:
+                print("https://www.sefaria.org/topics/" + sefaria_slug)
+
+        print(model_topics)
 
 
 if __name__ == '__main__':
@@ -308,7 +394,9 @@ if __name__ == '__main__':
     # infer_topic_descriptions_to_csv("n_topic_slugs.csv",  "slugs_and_inferred_descriptions_prompt_with_sources.csv")
     # embed_topic_descriptions_to_jsonl("slugs_and_inferred_descriptions_prompt_with_sources.csv", "description_with_sources_prompts_embeddings.jsonl")
     # cluster_slugs("description_embeddings.jsonl")
-    ask_llm_for_topics_from_segment(Ref("Sanhedrin.99a.2").text().text)
+    # ask_llm_for_topics_from_segment(Ref("Sanhedrin.99a.2").text().text)
+    tagger = TopicTagger(slugs_embeddings_jsonl="description_embeddings.jsonl", slugs_descriptions_csv="slugs_and_inferred_descriptions_prompt_with_sources.csv")
+    tagger.tag_segment(Ref("Midrash_Tanchuma, Bereshit.1.9").text().text)
 
 
 
