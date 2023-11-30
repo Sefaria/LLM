@@ -8,12 +8,17 @@ from sefaria.model.text import Ref
 class Toprompt:
     topic: Topic
     oref: Ref
-    prompt: str
+    why: str
+    what: str
     title: str
 
     @property
     def prompt_string(self):
         return f"{self.title}\n\n{self.prompt}"
+
+    @property
+    def prompt(self):
+        return f"{self.why} {self.what}"
 
 
 class TopromptOptions:

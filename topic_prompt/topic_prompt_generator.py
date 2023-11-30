@@ -49,7 +49,7 @@ def _get_toprompt_options(lang: str, topic: Topic, oref: Ref, num_tries=1) -> To
                     new_title = _improve_title(responses, new_title)
                 parsed_output.title = new_title
 
-        topic_prompts += [Toprompt(topic, oref, toprompt_text, parsed_output.title)]
+        topic_prompts += [Toprompt(topic, oref, parsed_output.why, parsed_output.what, parsed_output.title)]
 
     return TopromptOptions(topic_prompts)
 
@@ -130,7 +130,7 @@ def output_toprompts_for_topic_page(lang, slug, top_n=10):
 
 
 if __name__ == '__main__':
-    sheet_ids = [447069, 518761]
+    sheet_ids = [523952, 518927, 514196, 512433, 514703, 511743]
     lang = "en"
     output_toprompts_for_sheet_id_list(lang, sheet_ids)
     # output_toprompts_for_validation_set(lang)
