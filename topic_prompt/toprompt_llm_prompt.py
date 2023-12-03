@@ -25,10 +25,11 @@ class TopromptLLMOutput(BaseModel):
 
 class TopromptLLMPrompt:
 
-    def __init__(self, lang: str, topic: Topic, oref: Ref):
+    def __init__(self, lang: str, topic: Topic, oref: Ref, other_orefs: List[Ref]):
         self.lang: str = lang
         self.topic: Topic = topic
         self.oref: Ref = oref
+        self.other_orefs: List[Ref] = other_orefs
 
     def get(self) -> BasePromptTemplate:
         example_generator = TopromptExampleGenerator(self.lang)
@@ -120,12 +121,13 @@ class TopromptLLMPrompt:
             author_name = "N/A"
         category = index.get_primary_category()
         context = get_context(self.oref)
-        print(f"Context for {self.oref.normal()}\n"
-              f"{context}")
+        unique_aspect = get_uniqueness_of_source(self.oref, self.topic, self.lang, other_orefs=self.other_orefs)
+        print(f"Unique aspect for {self.oref.normal()}\n"
+              f"{unique_aspect}")
         prompt = f"<topic>{self.topic.get_primary_title('en')}</topic>\n" \
                  f"<author>{author_name}</author>\n" \
                  f"<publication_year>{pub_year}</publication_year>\n" \
-                 f"<unique_aspect>{get_uniqueness_of_source(self.oref, self.lang, self.topic)}</unique_aspect>\n" \
+                 f"<unique_aspect>{unique_aspect}</unique_aspect>\n" \
                  f"<context>{context}</context>"
 
         if True:  # category not in {"Talmud", "Midrash", "Tanakh"}:
@@ -162,7 +164,7 @@ class ToppromptExample:
         assert len(prompt_sents) == 2
         self.why = prompt_sents[0]
         self.what = prompt_sents[1]
-        self.unique_aspect = get_uniqueness_of_source(self.oref, self.lang, self.topic)
+        self.unique_aspect = get_uniqueness_of_source(self.oref, self.topic, self.lang)
         self.context = get_context(self.oref)
 
     def serialize(self):

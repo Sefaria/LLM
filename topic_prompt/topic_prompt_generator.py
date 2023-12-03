@@ -19,10 +19,10 @@ from langchain.schema import HumanMessage
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 
-def _get_toprompt_options(lang: str, topic: Topic, oref: Ref, num_tries=1) -> TopromptOptions:
+def _get_toprompt_options(lang: str, topic: Topic, oref: Ref, other_orefs: List[Ref], num_tries=1) -> TopromptOptions:
     # TODO pull out formatting from _get_input_prompt_details
     full_language = "English" if lang == "en" else "Hebrew"
-    llm_prompt = TopromptLLMPrompt(lang, topic, oref).get()
+    llm_prompt = TopromptLLMPrompt(lang, topic, oref, other_orefs).get()
     llm = ChatOpenAI(model="gpt-4", temperature=0)
     human_message = HumanMessage(content=llm_prompt.format())
     responses = []
@@ -74,7 +74,8 @@ def _get_topprompts_for_sheet_id(lang, sheet_id: int) -> List[TopromptOptions]:
     topic, orefs = get_topic_and_orefs(sheet_id)
     toprompt_options = []
     for oref in tqdm(orefs, desc="get toprompts for sheet"):
-        toprompt_options += [_get_toprompt_options(lang, topic, oref, num_tries=1)]
+        other_orefs = [r for r in orefs if r.normal() != oref.normal()]
+        toprompt_options += [_get_toprompt_options(lang, topic, oref, other_orefs, num_tries=1)]
     return toprompt_options
 
 
@@ -97,6 +98,7 @@ def _get_validation_set():
     return validation_set
 
 
+# TODO not maintaining for now since some assumptions have been made that break validation set
 def output_toprompts_for_validation_set(lang):
     validation_set = _get_validation_set()
     toprompt_options = []
@@ -122,7 +124,8 @@ def output_toprompts_for_topic_page(lang, slug, top_n=10):
     orefs = _get_top_n_orefs_for_topic(slug, top_n)
     toprompt_options = []
     for oref in tqdm(orefs, desc="get toprompts for topic page"):
-        toprompt_options += [_get_toprompt_options(lang, topic, oref, num_tries=3)]
+        other_oref = [r for r in orefs if r.normal() != oref.normal()]
+        toprompt_options += [_get_toprompt_options(lang, topic, oref, other_oref, num_tries=3)]
     formatter = HTMLFormatter(toprompt_options)
     formatter.save("output/topic_page_topic_prompts.html")
     csv_formatter = CSVFormatter(toprompt_options)
@@ -130,7 +133,7 @@ def output_toprompts_for_topic_page(lang, slug, top_n=10):
 
 
 if __name__ == '__main__':
-    sheet_ids = [523952, 518927, 514196, 512433, 514703, 511743]
+    sheet_ids = [515293]
     lang = "en"
     output_toprompts_for_sheet_id_list(lang, sheet_ids)
     # output_toprompts_for_validation_set(lang)

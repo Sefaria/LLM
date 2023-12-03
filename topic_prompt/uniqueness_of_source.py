@@ -7,7 +7,7 @@ from functools import reduce
 import django
 django.setup()
 from sefaria.model import *
-from typing import List
+from typing import List, Optional
 from util.general import get_ref_text_with_fallback
 from sheet_interface import get_topic_and_orefs
 
@@ -37,6 +37,14 @@ def _get_prompt_inputs(oref: Ref, other_orefs: List[Ref], topic: Topic):
     }
 
 def _get_other_orefs_on_topic(oref: Ref, lang: str, topic: Topic) -> List[Ref]:
+    """
+    Assumes topic already has toprompts
+    This is a valid assumption for refs coming from the training set
+    :param oref:
+    :param lang:
+    :param topic:
+    :return:
+    """
     ref_topics_links = topic.link_set("refTopic", {f"descriptions.{lang}": {"$exists": True}, "ref": {"$ne": oref.normal()}})
     other_orefs = []
     for link in ref_topics_links:
@@ -47,8 +55,8 @@ def _get_other_orefs_on_topic(oref: Ref, lang: str, topic: Topic) -> List[Ref]:
     return other_orefs
 
 
-def get_uniqueness_of_source(oref: Ref, lang: str, topic: Topic) -> str:
-    other_orefs = _get_other_orefs_on_topic(oref, lang, topic)
+def get_uniqueness_of_source(oref: Ref, topic: Topic, lang: str, other_orefs: Optional[List[Ref]] = None) -> str:
+    other_orefs = other_orefs or _get_other_orefs_on_topic(oref, lang, topic)
     return _get_uniqueness_of_source_as_compared_to_other_sources(oref, other_orefs, topic)
 
 
