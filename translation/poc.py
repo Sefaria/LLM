@@ -10,7 +10,7 @@ from util.general import get_raw_ref_text, get_by_xml_tag
 import langchain
 from langchain.cache import SQLiteCache
 from langchain.chat_models import ChatOpenAI, ChatAnthropic
-from langchain.schema import HumanMessage
+from langchain.schema import HumanMessage, SystemMessage
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 random.seed(26)
@@ -19,10 +19,10 @@ random.seed(26)
 def translate_segment(tref: str, context: str = None):
     oref = Ref(tref)
     text = get_raw_ref_text(oref, 'he')
-    identity_message = HumanMessage(content="You are a Jewish scholar knowledgeable in all Torah and Jewish texts. Your "
-                                            "task is to translate the Hebrew text wrapped in <input> tags. Context may be "
-                                            "provided in <context> tags. Use context to provide context to <input> "
-                                            "text. Don't translate <context>. Only translate <input> text. Output "
+    context_prompt = "Context is provided in <context> tags. Use context to provide context to <input> " \
+                     "text. Don't translate <context>. Only translate <input> text. "
+    identity_message = SystemMessage(content="You are a Jewish scholar knowledgeable in all Torah and Jewish texts. Your "
+                                            f"task is to translate the Hebrew text wrapped in <input> tags. {context_prompt if context else ''}Output "
                                             "translation wrapped in <translation> tags.")
     task_prompt = f"<input>{text}</input>"
     if context:
@@ -37,6 +37,29 @@ def translate_segment(tref: str, context: str = None):
         print(response_message.content)
         return response_message.content
     return translation
+
+
+def validate_translation(he, en):
+    """
+    Doesn't actually work on invalid translations
+    :param he:
+    :param en:
+    :return:
+    """
+    identity_message = SystemMessage(content="Input is Hebrew text (wrapped in <hebrew> tags) with an English "
+                                             "translation (wrapped in <english> tags). Output \"yes\" if the "
+                                             "translation is an accurate translation of the Hebrew. Output \"no\" "
+                                             "if it is not accurate. Translation is inaccurate if the meaning of any "
+                                             "Hebrew word is mistranslated. Output should be wrapped in <answer> tags.")
+    task_message = HumanMessage(content=f"<hebrew>{he}</hebrew>\n<english>{en}</english>")
+    llm = ChatAnthropic(model="claude-2", temperature=0, max_tokens_to_sample=1000000)
+    response_message = llm([identity_message, task_message])
+    answer = get_by_xml_tag(response_message.content, 'answer')
+    if answer is None:
+        print("VALIDATION FAILED")
+        print(response_message.content)
+        return response_message.content
+    return answer == "yes"
 
 
 def randomly_translate_book(title: str, n: int = 30):
@@ -57,4 +80,7 @@ def randomly_translate_book(title: str, n: int = 30):
 
 
 if __name__ == '__main__':
-    typer.run(randomly_translate_book)
+    # typer.run(randomly_translate_book)
+    sa = """ מי שיצא (אם) מוציא אחרים. ובו ג סעיפים: על כל פירות ושאר דברים חוץ מפת ויין אם היו האוכלים שנים או יותר אחד פוטר את חבירו אפי' בלא הסיבה ומיהו ישיבה מיהא בעי דדוקא פת ויין בעי הסיבה ולדידן הוי ישיבה כמו הסיבה לדידהו ולפי זה לדידן דלית לן הסיבה אין חילוק בין פת ויין לשאר דברים דבישיבה אפילו פת ויין אחד מברך לכולם ושלא בישיבה בשאר דברים נמי כל אחד מברך לעצמו. והא דאמרינן דאחד מברך לכולם בשאר דברים חוץ מן הפת ה"מ בברכה ראשונה אבל בברכה אחרונה צריכין ליחלק וכל אחד מברך לעצמו דאין זימון לפירות: הגה וי"א דבכל הדברים חוץ מפת ויין לא מהני הסיבה וה"ה ישיבה לדידן (ב"י סי' קע"ד בשם הראב"ד) ולכן נהגו עכשיו בפירות שכ"א מברך לעצמו: """
+    print(translate_segment("Mishnah Berurah 213:12", context=sa))
+
