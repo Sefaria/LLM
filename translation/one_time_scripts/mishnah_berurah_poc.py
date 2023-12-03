@@ -7,6 +7,7 @@ from util.general import get_raw_ref_text, normalizer
 import random
 from tqdm import tqdm
 import csv
+from functools import partial
 
 
 def choose_sections(n) -> List[Ref]:
@@ -45,28 +46,37 @@ def get_sa_section_text(mb_oref, lang):
         yield normalizer.normalize(get_raw_ref_text(sa_seg, lang))
 
 
-def get_csv_rows():
-    mb_sections = choose_sections(10)
+def get_csv_rows(get_segs, get_context_seg=None, context_lang='he'):
+    segs = get_segs()
+    context_segs = [get_context_seg(seg) for seg in segs] if get_context_seg else [None]*len(segs)
     rows = []
-    for mb_section in tqdm(mb_sections):
-        mb_he_list = list(get_section_text(mb_section, 'he'))
-        sa_he_list = list(get_sa_section_text(mb_section, 'he'))
-        mb_en_list = list(translate_section(mb_section, sa_he_list))
-        mb_segments = mb_section.all_segment_refs()
-        for mb_he, mb_en, sa_he, mb_seg in zip(mb_he_list, mb_en_list, sa_he_list, mb_segments):
-            rows += [{
-                "MB He": mb_he,
-                "MB En": mb_en,
-                "SA He": sa_he,
-                "MB Ref": mb_seg.normal(),
-            }]
+    for seg, context_seg in tqdm(zip(segs, context_segs), total=len(segs)):
+        seg_he = get_raw_ref_text(seg, 'he')
+        context_text = get_raw_ref_text(context_seg, context_lang) if context_seg else None
+        seg_en = translate_segment(seg.normal(), context_text)
+        rows += [{
+            "He": seg_he,
+            "En": seg_en,
+            "Context": context_text,
+            "Ref": seg.normal(),
+        }]
     return rows
 
 
+def get_random_segs_from_book(title, n) -> List[Ref]:
+    index = library.get_index(title)
+    return random.sample(index.all_segment_refs(), n)
+
+
+def get_segs_from_ref(ref: Ref):
+    return ref.all_segment_refs()
+
+
 if __name__ == '__main__':
-    rows = get_csv_rows()
-    with open("../output/mb_poc.csv", "w") as fout:
-        cout = csv.DictWriter(fout, ['MB Ref', 'MB He', 'MB En', 'SA He'])
+    tref = "Iggerot HaRambam, Maamar Tekhiyat HaMetim"
+    rows = get_csv_rows(partial(get_segs_from_ref, Ref(tref)))
+    with open(f"../output/{tref}_poc.csv", "w") as fout:
+        cout = csv.DictWriter(fout, ['Ref', 'He', 'En', 'Context'])
         cout.writeheader()
         cout.writerows(rows)
 
