@@ -18,9 +18,13 @@ random.seed(23223)
 
 
 class TopromptLLMOutput(BaseModel):
-    why: str = Field(description="Why should I care about this source? Limit to one sentence. Do NOT summarize the source. The goal is to engage the reader which summarizing.")
-    what: str = Field(description="What do I need to know in order to be able to understand this source? Limit to one sentence. Do NOT summarize the source. The goal is to engage the reader which summarizing.")
-    title: str = Field(description="Contextualizes the source within the topic. DO NOT mention the source book in the title.")
+    why: str = Field(description="Why should I care about this source? Limit to one sentence. Do NOT summarize the "
+                                 "source. Focus on <unique_aspect> explain why the user should care about this source.")
+    what: str = Field(description="What do I need to know in order to be able to understand this source? Limit to one "
+                                  "sentence. Do NOT summarize the source. The goal is to engage the reader without "
+                                  "summarizing.")
+    title: str = Field(description="Contextualizes the source within the topic. DO NOT mention the source book in the "
+                                   "title.")
 
 
 class TopromptLLMPrompt:
@@ -104,10 +108,8 @@ class TopromptLLMPrompt:
         book_desc = getattr(index, desc_attr, "N/A")
         if "Yerushalmi" in index.categories:
             book_desc = book_desc.replace(index.title.replace("Jerusalem Talmud ", ""), index.title)
-            print(book_desc)
         if index.get_primary_category() == "Mishnah":
             book_desc = book_desc.replace(index.title.replace("Mishnah ", ""), index.title)
-            print(book_desc)
         return book_desc
 
     def _get_input_prompt_details(self) -> str:
@@ -122,8 +124,8 @@ class TopromptLLMPrompt:
         category = index.get_primary_category()
         context = get_context(self.oref)
         unique_aspect = get_uniqueness_of_source(self.oref, self.topic, self.lang, other_orefs=self.other_orefs)
-        print(f"Unique aspect for {self.oref.normal()}\n"
-              f"{unique_aspect}")
+        # print(f"Unique aspect for {self.oref.normal()}\n"
+        #      f"{unique_aspect}")
         prompt = f"<topic>{self.topic.get_primary_title('en')}</topic>\n" \
                  f"<author>{author_name}</author>\n" \
                  f"<publication_year>{pub_year}</publication_year>\n" \
@@ -135,7 +137,7 @@ class TopromptLLMPrompt:
         if category in {"Tanakh"}:
             from summarize_commentary.summarize_commentary import summarize_commentary
             commentary_summary = summarize_commentary(self.oref.normal(), self.topic.slug, company='anthropic')
-            print("commentary\n\n", commentary_summary)
+            # print("commentary\n\n", commentary_summary)
             prompt += f"\n<commentary>{commentary_summary}</commentary>"
         return prompt
 
@@ -197,7 +199,9 @@ class TopromptExampleGenerator:
         with open("input/topic_prompt_training_set.csv", "r") as fin:
             cin = csv.DictReader(fin)
             for row in cin:
-                if len(RefTopicLinkSet(self._get_query_for_ref_topic_link_with_prompt(slug=row["Slug"]))) == 0:
+                if len(row["Prompt"].strip()) == 0:
+                    continue
+                if not Topic.init(row["Slug"]):
                     print(row["Slug"])
                     continue
 
