@@ -15,14 +15,24 @@ from langchain.cache import SQLiteCache
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 
-def context_from_section(segment_oref: Ref) -> str:
+def _get_context_ref(segment_oref: Ref):
+    if segment_oref.primary_category == "Tanakh":
+        return segment_oref.section_ref()
+    elif segment_oref.index.get_primary_corpus() == "Bavli":
+        passage = Passage.containing_segment(segment_oref)
+        return passage.ref()
+    return None
+
+
+def context_from_section(segment_oref: Ref, context_oref: Ref) -> str:
     """
     Given a segment ref, provide context from its section ref
     :param segment_oref:
+    :param context_oref:
     :return: context from section ref
     """
     segment_text = get_ref_text_with_fallback(segment_oref, "en", auto_translate=True)
-    section_text = get_ref_text_with_fallback(segment_oref.section_ref(), "en", auto_translate=True)
+    section_text = get_ref_text_with_fallback(context_oref, "en", auto_translate=True)
     system_message = SystemMessage(content="# Identity\nYou are a Jewish scholar familiar with all Torah texts.\n"
                                            "# Task\nGiven a segment of Torah text and surrounding context text, output"
                                            "a summary of the relevant parts of the context that will help users"
@@ -39,7 +49,7 @@ def context_from_section(segment_oref: Ref) -> str:
                                          f"<context>{section_text}</context>")
     llm = ChatAnthropic(model="claude-2", temperature=0, max_tokens_to_sample=100000)
     response = llm([system_message, human_message])
-    context = get_by_xml_tag(response.content, "relevant_context")
+    context = get_by_xml_tag(response.content, "relevant_context").strip()
     if context is None:
         return response.content
     context = re.sub(r"^The context describes ", "", context)
@@ -68,14 +78,13 @@ def context_from_liturgy(oref):
 
 
 def get_context(oref: Ref):
-    if oref.primary_category == "Tanakh":
-        context = context_from_section(oref)
-    else:
-        context = context_from_liturgy(oref)
-    return context
+    context_oref = _get_context_ref(oref)
+    if context_oref:
+        return context_from_section(oref, context_oref)
+    return context_from_liturgy(oref)
 
 
 if __name__ == '__main__':
-    print(get_context(Ref("Nehemiah 8:14-16")))
-    # print(context_from_section(Ref("Nehemiah 8:14-16")))
+    # print(get_context(Ref("Nehemiah 8:14-16")))
+    print(get_context(Ref("Berakhot 61b:9-10")))
 
