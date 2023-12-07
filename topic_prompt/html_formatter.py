@@ -69,9 +69,13 @@ class HTMLFormatter(AbstractFormatter):
         <div class="topic-prompt">
             <h2>{oref.normal()}</h2>
             {HTMLFormatter._get_n_column_table(2, all_toprompts_html)}
+            <details>
+            <summary>
             <h3>Text</h3>
+            </summary>
             <p class="he">{get_raw_ref_text(oref, "he")}</p>
             <p>{get_raw_ref_text(oref, "en")}</p>
+            </details>
         </div>
         """
 
