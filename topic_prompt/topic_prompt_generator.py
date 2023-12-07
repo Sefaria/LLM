@@ -10,7 +10,7 @@ from sefaria.model.topic import Topic
 from sefaria.model.text import Ref
 from toprompt_llm_prompt import TopromptLLMPrompt, get_output_parser
 from toprompt import Toprompt, TopromptOptions
-from differentiate_writing import repeated_phrase, differentiate_writing
+from differentiate_writing import repeated_phrase, remove_dependent_clause
 
 import langchain
 from langchain.cache import SQLiteCache
@@ -88,7 +88,7 @@ def _improve_title(curr_responses, curr_title):
 def _get_topprompts_for_sheet_id(lang, sheet_id: int) -> List[TopromptOptions]:
     topic, orefs = get_topic_and_orefs(sheet_id)
     toprompt_options = []
-    for oref in tqdm(orefs, desc="get toprompts for sheet"):
+    for oref in tqdm(orefs, desc=f"get toprompts for sheet {topic.get_primary_title('en')}"):
         other_orefs = [r for r in orefs if r.normal() != oref.normal()]
         toprompt_options += [_get_toprompt_options(lang, topic, oref, other_orefs, num_tries=1)]
     toprompt_options = differentiate_prompts(toprompt_options, orefs, lang, topic)
@@ -103,17 +103,18 @@ def differentiate_prompts(toprompt_options: List[TopromptOptions], orefs, lang, 
     """
     differentiated = []
     seen_phrases = set()
-    for i, (oref, toprompt_option) in tqdm(enumerate(zip(orefs, toprompt_options)), total=len(orefs)):
+    for i, (oref, toprompt_option) in tqdm(enumerate(zip(orefs, toprompt_options)), total=len(orefs), desc='differentiate'):
         why = toprompt_option.toprompts[0].why
+        other_orefs = [r for r in orefs if r.normal() != oref.normal()]
         other_whys = [option.toprompts[0].why for j, option in enumerate(toprompt_options) if j != i]
-        phrase = repeated_phrase(why, other_whys).strip()
-        if phrase not in seen_phrases:
-            seen_phrases.add(phrase)
-        elif phrase is None:
+        phrase = repeated_phrase(why, other_whys)
+        if phrase is None:
             pass
+        elif phrase not in seen_phrases:
+            seen_phrases.add(phrase)
         else:
-            new_why = differentiate_writing(why, phrase)
-            toprompt_option.toprompts[0].why = new_why
+            diff_prompt_option = _get_toprompt_options(lang, topic, oref, other_orefs, num_tries=1, phrase_to_avoid=phrase)
+            toprompt_option = diff_prompt_option
         differentiated += [toprompt_option]
     return differentiated
 
@@ -172,7 +173,8 @@ def output_toprompts_for_topic_page(lang, slug, top_n=10):
 
 
 if __name__ == '__main__':
-    sheet_ids = [515293]
+    # sheet_ids = [515293]
+    sheet_ids = [526652, 505331, 523939, 518625]
     lang = "en"
     output_toprompts_for_sheet_id_list(lang, sheet_ids)
     # output_toprompts_for_validation_set(lang)

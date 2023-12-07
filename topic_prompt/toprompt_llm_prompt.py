@@ -18,8 +18,8 @@ random.seed(23223)
 
 
 class TopromptLLMOutput(BaseModel):
-    why: str = Field(description="Why should I care about this source? Limit to one sentence. Do NOT summarize the "
-                                 "source. Focus on <unique_aspect> explain why the user should care about this source.")
+    why: str = Field(description="Why should I care about this source? Focus on <unique_aspect> to explain why the user "
+                                 "should care about this source. Limit to ONE sentence.")
     what: str = Field(description="What do I need to know in order to be able to understand this source? Limit to one "
                                   "sentence. Do NOT summarize the source. The goal is to engage the reader without "
                                   "summarizing.")
