@@ -1,5 +1,6 @@
 import csv
 import re
+from loguru import logger
 
 from tqdm import tqdm
 from typing import List
@@ -172,7 +173,15 @@ def output_toprompts_for_topic_page(lang, slug, top_n=10):
     csv_formatter.save("output/topic_page_topic_prompts.csv")
 
 
+def init_logger():
+    with open("yo.log", "w") as fin:
+        pass
+    logger.remove(0)
+    logger.add("yo.log", level="TRACE", format="{message}")
+
+
 if __name__ == '__main__':
+    init_logger()
     sheet_ids = [515293]
     # sheet_ids = [526652, 505331, 523939, 518625]
     lang = "en"

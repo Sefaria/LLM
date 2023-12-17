@@ -3,3 +3,4 @@ stanza
 openai
 typer
 pydantic
+loguru

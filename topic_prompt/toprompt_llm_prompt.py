@@ -1,5 +1,6 @@
 import csv
 import random
+from loguru import logger
 
 from util.openai import count_tokens_openai
 from util.sentencizer import sentencize
@@ -167,6 +168,11 @@ class ToppromptExample:
         self.why = prompt_sents[0]
         self.what = prompt_sents[1]
         self.unique_aspect = get_uniqueness_of_source(self.oref, self.topic, self.lang, context_hint=ref_topic_link.context)
+        logger.trace(f"----EXAMPLE----")
+        logger.trace(f"Ref: {self.oref.normal()}")
+        logger.trace(f"Context hint:\n{ref_topic_link.context}")
+        logger.trace(f"Unique Aspect:\n{self.unique_aspect}")
+
         self.context = get_context(self.oref, context_hint=ref_topic_link.context)
 
     def serialize(self):
