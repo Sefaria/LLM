@@ -24,11 +24,12 @@ def _get_context_ref(segment_oref: Ref):
     return None
 
 
-def context_from_section(segment_oref: Ref, context_oref: Ref) -> str:
+def context_from_section(segment_oref: Ref, context_oref: Ref, context_hint: str) -> str:
     """
     Given a segment ref, provide context from its section ref
     :param segment_oref:
     :param context_oref:
+    :param context_hint:
     :return: context from section ref
     """
     segment_text = get_ref_text_with_fallback(segment_oref, "en", auto_translate=True)
@@ -40,13 +41,15 @@ def context_from_section(segment_oref: Ref, context_oref: Ref) -> str:
                                            "# Input format\n"
                                            "- Segment of Torah text surrounded by <segment> XML tags.\n"
                                            "- Context text surrounded by <context> XML tags.\n"
+                                           "- Hint as to what the relevant context is surrounded by <hint> XML tags. This hint gives a very good indication as to the relevant context. Use it!\n"
                                            "# Output format\n"
                                            "Summary of the relevant context text to help users understand <segment>"
                                            " text. Output should be surrounded in <relevant_context> XML"
                                            " tags. No more than 50 words. Summary should start with the word 'The"
                                            " context describes'.")
     human_message = HumanMessage(content=f"<segment>{segment_text}</segment>\n"
-                                         f"<context>{section_text}</context>")
+                                         f"<context>{section_text}</context>\n"
+                                         f"<hint>{context_hint}</hint>")
     llm = ChatAnthropic(model="claude-2", temperature=0, max_tokens_to_sample=100000)
     response = llm([system_message, human_message])
     context = get_by_xml_tag(response.content, "relevant_context").strip()
@@ -56,10 +59,10 @@ def context_from_section(segment_oref: Ref, context_oref: Ref) -> str:
     return context
 
 
-def context_from_liturgy(oref):
+def general_context(oref, context_hint):
     text = get_ref_text_with_fallback(oref, "en", auto_translate=True)
     llm = ChatOpenAI(model="gpt-4", temperature=0)
-    system_message = SystemMessage(content="""
+    system_message = SystemMessage(content=f"""
     Given a text from the Jewish cannon, add any relevant context that would help a user understand this text from a
     Jewish perspective. Relevant context may be:
     If this text is a prayer, when was it recited and why?
@@ -68,11 +71,14 @@ def context_from_liturgy(oref):
     
     DO NOT offer an interpretation or explanation of the text. Only offer helpful context.
     
+    Hint as to what the relevant context is surrounded by <hint> XML tags. 
+    This hint gives a very good indication as to the relevant context. Use it!
+    
     Limit to 50 words or less.
     """)
 
-    prompt = PromptTemplate.from_template("Citation: {citation}\nText: {text}")
-    human_message = HumanMessage(content=prompt.format(text=text, citation=oref.normal()))
+    prompt = PromptTemplate.from_template("Citation: {citation}\nText: {text}\nHint: {hint}")
+    human_message = HumanMessage(content=prompt.format(text=text, citation=oref.normal(), hint=context_hint))
     response = llm([system_message, human_message])
     return response.content
 
@@ -80,8 +86,8 @@ def context_from_liturgy(oref):
 def get_context(oref: Ref, context_hint=None):
     context_oref = _get_context_ref(oref)
     if context_oref:
-        return context_from_section(oref, context_oref)
-    return context_from_liturgy(oref)
+        return context_from_section(oref, context_oref, context_hint)
+    return general_context(oref, context_hint)
 
 
 if __name__ == '__main__':

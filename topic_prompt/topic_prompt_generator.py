@@ -21,10 +21,11 @@ from langchain.schema import HumanMessage
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 
-def _get_toprompt_options(lang: str, topic: Topic, oref: Ref, other_orefs: List[Ref], num_tries=1, phrase_to_avoid=None) -> TopromptOptions:
+def _get_toprompt_options(lang: str, topic: Topic, oref: Ref, other_orefs: List[Ref], num_tries=1,
+                          phrase_to_avoid=None, context_hint=None) -> TopromptOptions:
     # TODO pull out formatting from _get_input_prompt_details
     full_language = "English" if lang == "en" else "Hebrew"
-    llm_prompt = TopromptLLMPrompt(lang, topic, oref, other_orefs).get()
+    llm_prompt = TopromptLLMPrompt(lang, topic, oref, other_orefs, context_hint).get()
     llm = ChatOpenAI(model="gpt-4", temperature=0)
     human_message = HumanMessage(content=llm_prompt.format())
     responses = []
@@ -87,11 +88,11 @@ def _improve_title(curr_responses, curr_title):
 
 
 def _get_topprompts_for_sheet_id(lang, sheet_id: int) -> List[TopromptOptions]:
-    topic, orefs = get_topic_and_orefs(sheet_id)
+    topic, orefs, context_hints = get_topic_and_orefs(sheet_id)
     toprompt_options = []
-    for oref in tqdm(orefs, desc=f"get toprompts for sheet {topic.get_primary_title('en')}"):
+    for oref, context_hint in tqdm(zip(orefs, context_hints), total=len(orefs), desc=f"get toprompts for sheet {topic.get_primary_title('en')}"):
         other_orefs = [r for r in orefs if r.normal() != oref.normal()]
-        toprompt_options += [_get_toprompt_options(lang, topic, oref, other_orefs, num_tries=1)]
+        toprompt_options += [_get_toprompt_options(lang, topic, oref, other_orefs, context_hint=context_hint, num_tries=1)]
     toprompt_options = differentiate_prompts(toprompt_options, orefs, lang, topic)
     return toprompt_options
 
@@ -182,7 +183,7 @@ def init_logger():
 
 if __name__ == '__main__':
     init_logger()
-    sheet_ids = [515293]
+    sheet_ids = [516244, 528300, 526337, 510848, 518723]
     # sheet_ids = [526652, 505331, 523939, 518625]
     lang = "en"
     output_toprompts_for_sheet_id_list(lang, sheet_ids)

@@ -30,11 +30,12 @@ class TopromptLLMOutput(BaseModel):
 
 class TopromptLLMPrompt:
 
-    def __init__(self, lang: str, topic: Topic, oref: Ref, other_orefs: List[Ref]):
+    def __init__(self, lang: str, topic: Topic, oref: Ref, other_orefs: List[Ref], context_hint: str):
         self.lang: str = lang
         self.topic: Topic = topic
         self.oref: Ref = oref
         self.other_orefs: List[Ref] = other_orefs
+        self.context_hint: str = context_hint
 
     def get(self) -> BasePromptTemplate:
         example_generator = TopromptExampleGenerator(self.lang)
@@ -123,8 +124,9 @@ class TopromptLLMPrompt:
         except AttributeError:
             author_name = "N/A"
         category = index.get_primary_category()
-        context = get_context(self.oref)
-        unique_aspect = get_uniqueness_of_source(self.oref, self.topic, self.lang, other_orefs=self.other_orefs)
+        context = get_context(self.oref, context_hint=self.context_hint)
+        unique_aspect = get_uniqueness_of_source(self.oref, self.topic, self.lang, other_orefs=self.other_orefs,
+                                                 context_hint=self.context_hint)
         # print(f"Unique aspect for {self.oref.normal()}\n"
         #      f"{unique_aspect}")
         prompt = f"<topic>{self.topic.get_primary_title('en')}</topic>\n" \
@@ -168,12 +170,12 @@ class ToppromptExample:
         self.why = prompt_sents[0]
         self.what = prompt_sents[1]
         self.unique_aspect = get_uniqueness_of_source(self.oref, self.topic, self.lang, context_hint=ref_topic_link.context)
+        self.context = get_context(self.oref, context_hint=ref_topic_link.context)
         logger.trace(f"----EXAMPLE----")
         logger.trace(f"Ref: {self.oref.normal()}")
         logger.trace(f"Context hint:\n{ref_topic_link.context}")
         logger.trace(f"Unique Aspect:\n{self.unique_aspect}")
-
-        self.context = get_context(self.oref, context_hint=ref_topic_link.context)
+        logger.trace(f"Context:\n{self.context}")
 
     def serialize(self):
         out = {
