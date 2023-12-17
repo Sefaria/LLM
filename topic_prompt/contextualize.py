@@ -77,7 +77,7 @@ def context_from_liturgy(oref):
     return response.content
 
 
-def get_context(oref: Ref):
+def get_context(oref: Ref, context_hint=None):
     context_oref = _get_context_ref(oref)
     if context_oref:
         return context_from_section(oref, context_oref)

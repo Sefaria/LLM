@@ -157,7 +157,7 @@ class ToppromptExample:
 
     def __init__(self, lang, ref_topic_link: RefTopicLink):
         self.lang = lang
-        self.topic = Topic.init(ref_topic_link.toTopic)
+        self.topic: Topic = Topic.init(ref_topic_link.toTopic)
         self.oref = Ref(ref_topic_link.ref)
         prompt_dict = ref_topic_link.descriptions[lang]
         self.title = prompt_dict['title']
@@ -166,8 +166,8 @@ class ToppromptExample:
         assert len(prompt_sents) == 2
         self.why = prompt_sents[0]
         self.what = prompt_sents[1]
-        self.unique_aspect = get_uniqueness_of_source(self.oref, self.topic, self.lang)
-        self.context = get_context(self.oref)
+        self.unique_aspect = get_uniqueness_of_source(self.oref, self.topic, self.lang, context_hint=ref_topic_link.context)
+        self.context = get_context(self.oref, context_hint=ref_topic_link.context)
 
     def serialize(self):
         out = {
@@ -214,7 +214,8 @@ class TopromptExampleGenerator:
                                 "prompt": row["Prompt"],
                                 "title": row["Title"],
                             }
-                        }
+                        },
+                        "context": row["Context sentence"],
                     }
                 )]
         random.shuffle(ref_topic_links)

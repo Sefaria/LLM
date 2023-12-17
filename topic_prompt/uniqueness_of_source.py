@@ -19,7 +19,7 @@ from langchain.cache import SQLiteCache
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 
-def _get_prompt_inputs(oref: Ref, other_orefs: List[Ref], topic: Topic):
+def _get_prompt_inputs(oref: Ref, other_orefs: List[Ref], topic: Topic, context_hint: str):
     topic_title = topic.get_primary_title("en")
     topic_description = getattr(topic, "description", {}).get("en", "N/A")
     comparison_sources_list = []
@@ -33,8 +33,10 @@ def _get_prompt_inputs(oref: Ref, other_orefs: List[Ref], topic: Topic):
         "topic_title": topic_title,
         "topic_description": topic_description,
         "input_source": get_ref_text_with_fallback(oref, "en", auto_translate=True),
-        "comparison_sources": json.dumps(comparison_sources_list)
+        "comparison_sources": json.dumps(comparison_sources_list),
+        "hint": context_hint,
     }
+
 
 def _get_other_orefs_on_topic(oref: Ref, lang: str, topic: Topic) -> List[Ref]:
     """
@@ -55,9 +57,9 @@ def _get_other_orefs_on_topic(oref: Ref, lang: str, topic: Topic) -> List[Ref]:
     return other_orefs
 
 
-def get_uniqueness_of_source(oref: Ref, topic: Topic, lang: str, other_orefs: Optional[List[Ref]] = None) -> str:
+def get_uniqueness_of_source(oref: Ref, topic: Topic, lang: str, other_orefs: Optional[List[Ref]] = None, context_hint=None) -> str:
     other_orefs = other_orefs or _get_other_orefs_on_topic(oref, lang, topic)
-    return _get_uniqueness_of_source_as_compared_to_other_sources(oref, other_orefs, topic)
+    return _get_uniqueness_of_source_as_compared_to_other_sources(oref, other_orefs, topic, context_hint)
 
 
 def summarize_based_on_uniqueness(text: str, uniqueness: str) -> str:
@@ -83,9 +85,9 @@ def summarize_based_on_uniqueness(text: str, uniqueness: str) -> str:
     return re.search(r"<summary>\s*The text discusses (.+?)</summary>", response.content).group(1)
 
 
-def _get_uniqueness_of_source_as_compared_to_other_sources(oref: Ref, other_orefs: List[Ref], topic: Topic) -> str:
+def _get_uniqueness_of_source_as_compared_to_other_sources(oref: Ref, other_orefs: List[Ref], topic: Topic, context_hint: str) -> str:
     uniqueness_preamble = "The input source emphasizes"
-    prompt_inputs = _get_prompt_inputs(oref, other_orefs, topic)
+    prompt_inputs = _get_prompt_inputs(oref, other_orefs, topic, context_hint)
     system_message = SystemMessage(content=
                                    "You are an intelligent Jewish scholar who is knowledgeable in all aspects of the Torah and Jewish texts.\n"
                                    "# Task\n"
@@ -96,7 +98,8 @@ def _get_uniqueness_of_source_as_compared_to_other_sources(oref: Ref, other_oref
                                    '"topicTitle": "Title of the topic the sources are focusing on",'
                                    '"topicDescription": "Description of the topic",'
                                    '"inputSource": "Text of the source we want to differentiate from `comparisonSources`",'
-                                   '"comparisonSources": "List of text of sources to compare `inputSource` to"'
+                                   '"comparisonSources": "List of text of sources to compare `inputSource` to",'
+                                   '"hint": "A hint as to what makes inputSource unique. This hint gives a very good indication as to what makes input source unique. Use it!'
                                    '}\n'
                                    "# Output format\n"
                                    "Output a summary that explains the aspect of `inputSource` that differentiates it "
@@ -107,7 +110,8 @@ def _get_uniqueness_of_source_as_compared_to_other_sources(oref: Ref, other_oref
                                    )
     prompt = PromptTemplate.from_template('{{{{'
                                           '"topicTitle": "{topic_title}", "topicDescription": "{topic_description}",'
-                                          '"inputSource": "{input_source}", "comparisonSources": {comparison_sources}'
+                                          '"inputSource": "{input_source}", "comparisonSources": {comparison_sources},'
+                                          '"hint": "{hint}"'
                                           '}}}}')
     human_message = HumanMessage(content=prompt.format(**prompt_inputs))
     llm = ChatOpenAI(model="gpt-4", temperature=0)
