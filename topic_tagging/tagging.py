@@ -359,12 +359,10 @@ class TopicsVectorSpace:
         "Topic: {0}\nDescription:"
     )
 
-    def __init__(self, slugs_embeddings_jsonl):
-        slug_embeddings_list_of_dicts = [json.loads(line) for line in
-                                         open(slugs_embeddings_jsonl, 'r')]
-        slug_embeddings_dict = {}
-        for topic_dict in slug_embeddings_list_of_dicts:
-            slug_embeddings_dict[topic_dict["slug"]] = np.array(topic_dict["embedding"])
+    def __init__(self, data_handler: TopicsData):
+        slug_embeddings_dict = data_handler.get_slugs_and_embeddings_dict()
+        for slug in slug_embeddings_dict.keys():
+            slug_embeddings_dict[slug] = np.array(slug_embeddings_dict[slug])
         self.slug_embeddings_dict = slug_embeddings_dict
 
     def _embed_and_get_embedding(self, template, topic):
@@ -471,12 +469,13 @@ if __name__ == '__main__':
     # embedder.generate_description("money")
     # embedder.generate_embedding("money")
 
-    embedder.generate_description("happiness")
-    embedder.generate_embedding("happiness")
+    # embedder.generate_description("happiness")
+    # embedder.generate_embedding("happiness")
 
-    # verifier = TopicVerifier(slugs_descriptions_csv="slugs_and_inferred_descriptions_prompt_with_sources.csv")
-    # topics_space = TopicsVectorSpace(slugs_embeddings_jsonl="description_embeddings.jsonl")
-    # tagger = TopicTagger(topics_space=topics_space, verifier=verifier)
+    verifier = TopicVerifier(data_handler)
+    topics_space = TopicsVectorSpace(data_handler)
+    tagger = TopicTagger(topics_space=topics_space, verifier=verifier)
+    tagger.tag_segment(Ref("Kohelet_Rabbah.1.7.1").text().text)
 
 
 
