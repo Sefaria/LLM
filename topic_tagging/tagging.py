@@ -53,8 +53,8 @@ def embed_text(query):
     embeddings = OpenAIEmbeddings(openai_api_key=api_key, request_timeout=120)
     text = query
     query_result = embeddings.embed_query(text)
-
     return query_result
+
 def format_string(fstring, arguments):
     try:
         formatted_string = fstring.format(*arguments)
@@ -187,135 +187,173 @@ def embed_topic_descriptions_to_jsonl(slugs_and_descriptions_csv, output_jsonl_p
         for item in list_of_embeddings:
             jsonl_file.write(json.dumps(item) + '\n')
 
-def cluster_slugs(slugs_and_embeddings_jsonl):
-    import numpy as np
-    from sklearn.cluster import KMeans
-    from sklearn.metrics import pairwise_distances_argmin_min
-    import matplotlib.pyplot as plt
-
-    # Assuming you have a list of dicts with slugs and embeddings
-    data = [
-        {"slug": "slug1", "embedding": np.array([0.1, 0.2, 0.3])},
-        {"slug": "slug2", "embedding": np.array([0.4, 0.5, 0.6])},
-        # ... more data ...
-    ]
-
-    data = [json.loads(line) for line in open(slugs_and_embeddings_jsonl, 'r')]
 
 
-    # Extract embeddings into a NumPy array
-    embeddings = np.array([item["embedding"] for item in data])
 
-    # Choose the number of clusters (you might need to tune this)
-    num_clusters = 5
+class TopicsData:
+    def __init__(self, data_jsonl_filename):
+        self.data_jsonl_filename = data_jsonl_filename
 
-    # Perform K-means clustering
-    kmeans = KMeans(n_clusters=num_clusters, random_state=42)
-    kmeans.fit(embeddings)
+    def _read_jsonl_into_list_of_dicts(self):
+        with open(self.data_jsonl_filename, 'r') as file:
+            data_list = [json.loads(line) for line in file]
+        return data_list
 
-    # Get the cluster labels
-    cluster_labels = kmeans.labels_
+    def _get_dict_by_key_value(self, dict_list, key, value):
+        for d in dict_list:
+            if d.get(key) == value:
+                return d
+        return None
 
-    # Assign each data point to its nearest cluster
-    closest_points, _ = pairwise_distances_argmin_min(embeddings, kmeans.cluster_centers_)
+    def _write_list_of_dicts_to_jsonl(self, list_of_dicts):
+        with open(self.data_jsonl_filename, 'w') as jsonl_file:
+            for item in list_of_dicts:
+                jsonl_file.write(json.dumps(item) + '\n')
 
-    # Create a dictionary to store the clusters
-    clusters = {i: [] for i in range(num_clusters)}
+    def get_description(self, slug):
+        topics_data_list = self._read_jsonl_into_list_of_dicts()
+        topic_dict = self._get_dict_by_key_value(topics_data_list, "slug", slug)
+        description = None
+        if topic_dict:
+            description = topic_dict.get("description")
+        return description
 
-    # Assign each data point to its cluster in the dictionary
-    for i, point_index in enumerate(closest_points):
-        clusters[cluster_labels[i]].append(data[i]["slug"])
+    def get_embedding(self, slug):
+        topics_data_list = self._read_jsonl_into_list_of_dicts()
+        topic_dict = self._get_dict_by_key_value(topics_data_list, "slug", slug)
+        embedding = None
+        if topic_dict:
+            embedding = topic_dict.get("embedding")
+        return embedding
 
-    # Print the clusters
-    for cluster_label, cluster_slugs in clusters.items():
-        print(f"Cluster {cluster_label + 1}: {cluster_slugs}")
+    def set_description(self, slug, description):
+        topics_data_list = self._read_jsonl_into_list_of_dicts()
+        topic_dict = self._get_dict_by_key_value(topics_data_list, "slug", slug)
+        if topic_dict:
+            topic_dict["description"] = description
+        else:
+            topics_data_list += [{"slug": slug, "description": description}]
+        self._write_list_of_dicts_to_jsonl(topics_data_list)
 
-    # Plot the clusters
-    plt.figure(figsize=(24, 16))
+    def set_embedding(self, slug, embedding):
+        topics_data_list = self._read_jsonl_into_list_of_dicts()
+        topic_dict = self._get_dict_by_key_value(topics_data_list, "slug", slug)
+        if topic_dict:
+            topic_dict["embedding"] = embedding
+        else:
+            topics_data_list += {"slug": slug, "embedding": embedding}
+        self._write_list_of_dicts_to_jsonl(topics_data_list)
 
-    for i in range(num_clusters):
-        cluster_points = embeddings[cluster_labels == i]
-        plt.scatter(cluster_points[:, 0], cluster_points[:, 1], label=f'Cluster {i + 1}')
+    def get_slugs_and_descriptions_dict(self):
+        data_list_of_dicts = self._read_jsonl_into_list_of_dicts()
+        result_dict = {}
+        for topic_dict in data_list_of_dicts:
+            slug = topic_dict.get("slug")
+            description = topic_dict.get("description")
+            if description:
+                result_dict[slug] = description
+        return result_dict
 
-    # Plot the cluster centers
-    plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], marker='x', s=200, c='red',
-                label='Centroids')
+    def get_slugs_and_embeddings_dict(self):
+        data_list_of_dicts = self._read_jsonl_into_list_of_dicts()
+        result_dict = {}
+        for topic_dict in data_list_of_dicts:
+            slug = topic_dict.get("slug")
+            embedding = topic_dict.get("embedding")
+            if embedding:
+                result_dict[slug] = embedding
+        return result_dict
 
-    # Annotate points with slugs
-    for i, txt in enumerate([item["slug"] for item in data]):
-        plt.annotate(txt, (embeddings[i, 0], embeddings[i, 1]), textcoords="offset points", xytext=(0, 5), ha='center')
 
-    plt.title('K-means Clustering')
-    plt.xlabel('Feature 1')
-    plt.ylabel('Feature 2')
-    plt.legend()
-    plt.show()
-
-def ask_llm_for_topics_from_segment(segment_text):
-    infer_topics_template = ("You are a humanities scholar specializing in Judaism. "
-                             + "Given the following text segment, generate an unumbered list of relevant short topics or tags separated by commas."
-                             + "Topics can also be general conepts and creative, and don't have to appear in the text itself. If texts talks about a general concept that does not apear explicitly in the text, I still consider that as a valid topic for the text.\n"
-                            #  +"Output must be a simple string of topics separated by commas\n"
-                            #  +"Example Output:\n"
-                            # +"First Topic, Second Topic, Third Topic\n\n"
-
-                             +"The Text: {0}")
-    embed_topic_template = """You are a humanities scholar specializing in Judaism. Given a topic or a term, write a description for that topic from a Jewish perspective.
+class TopicsEmbedder:
+    description_generation_prompt_template = """You are a humanities scholar specializing in Judaism. Given a Topic or a term and a list of passages that relate to that topic, write a description for that topic from a Jewish perspective.
+    Don't quote the passages in your answer, don't summarize the passages, but rather explain the general concept to the Topic.
     Topic: {0}
+    Related Passages: {1}
     Description:
     """
-    answer = query_llm_model(infer_topics_template, [segment_text])
-    # model_topics = [topic.strip() for topic in answer.split(",")]
-    model_topics = [topic.strip() for topic in answer.split("\n-")]
-    def embedding_distance(embedding1, embedding2):
-        return np.linalg.norm(embedding1 - embedding2)
-    existing_topics_dicts = [json.loads(line) for line in open("description_with_sources_prompts_embeddings.jsonl", 'r')]
-    for topic_dict in existing_topics_dicts:
-        topic_dict["embedding"] = np.array(topic_dict["embedding"])
 
-    for topic in model_topics:
-        inferred_topic_embedding = np.array(embed_text(query_llm_model(embed_topic_template, [topic])))
-        sorted_data = sorted(existing_topics_dicts, key=lambda x: embedding_distance(x["embedding"], inferred_topic_embedding))
-        print(f"Gpt tagged passage with the topic: {topic}, which is similar to Sefaria's topic: {sorted_data[0]['slug']}")
+    def __init__(self, data_handler: TopicsData):
+        self.data_handler = data_handler
 
-        slug_desc_dict = slugs_and_description_dict_from_csv()
-        verifier_template = """
-            "You are a humanities scholar specializing in Judaism. Given a passage, a topic and a description of that topic, return YES if the passage can be tagged with this topic. note: even if the topic is not mentioned explicitly in the passage, but the passage refers to ghe general concept of the topic, the passage can be tagged with that topic.
-             if it's not a good topic tagging for the passage, return NO . if you are unsure, return NO .
-             Passage: {0}
-             Possible Topic: {1}
-             Topic Description: {2}
-        """
-        nearest_slug = sorted_data[0]['slug']
-        description = slug_desc_dict[nearest_slug]
-        ver = query_llm_model(verifier_template, [segment_text, nearest_slug, description]).replace('# Output', '').strip()
-        print(f"Verification: {ver}")
-    print(model_topics)
+    def _get_top_n_orefs_for_topic(self, slug, top_n=10):
+        from sefaria.helper.topic import get_topic
 
-class TopicVerifier:
-    verifier_template = (
-        "You are a humanities scholar specializing in Judaism. Given a passage, a topic, and a description of that topic, return YES if the passage can be tagged with this topic. "
-        "Note: Even if the topic is not mentioned explicitly in the passage, but the passage refers to the general concept of the topic, or the general concept coud be found within the passage, return YES."
-        "If it's not a good topic tagging for the passage, return NO. If you are unsure, return NO.\n"
-        "Passage: {0}\nPossible Topic: {1}\nTopic Description: {2}"
-    )
+        out = get_topic(True, slug, with_refs=True, ref_link_type_filters=['about', 'popular-writing-of'])
+        result = []
+        for d in out['refs']['about']['refs'][:top_n]:
+            try:
+                result.append(Ref(d['ref']))
+            except Exception as e:
+                print(e)
+        return result
 
-    def __init__(self, slugs_descriptions_csv):
-        self.slug_descriptions_dict = {row[0]: row[1] for row in csv.reader(open(slugs_descriptions_csv, 'r'))}
+    def _get_first_k_categorically_distinct_refs(self, refs, k):
+        distinct_categories = set()
+        result = []
 
-    def verify_topic(self, sefaria_slug, segment_text):
-        description = self.slug_descriptions_dict[sefaria_slug]
-        ver_response = query_llm_model(self.verifier_template, [segment_text, sefaria_slug, description]).replace('# Output',
-                                                                                                    '').strip()
-        ver_approved = False
-        if "YES" in ver_response:
-            ver_approved = True
-        if "NO" in ver_response:
-            ver_approved = False
-        return ver_approved
+        for ref in refs:
+            category = ref.primary_category
+            if category is not None and category not in distinct_categories:
+                distinct_categories.add(category)
+                result.append(ref)
+
+                if len(result) == k:
+                    break
+
+        return result
+    def _get_relevant_example_passages_from_slug(self, slug, n=3, discard_longest=0):
+        refs = self._get_top_n_orefs_for_topic(slug, 200)
+        refs = self._get_first_k_categorically_distinct_refs(refs, n)
+
+        def _get_length_of_ref(ref):
+            return len(ref.text().text)
+
+        for i in range(0, discard_longest):
+            longest_element = max(refs, key=_get_length_of_ref)
+            refs.remove(longest_element)
+        text = _concatenate_passages([ref.tref + ': ' + str(ref.text().text) for ref in refs], "Passage")
+        return text
+
+    def _get_topic_object(self, slug):
+        return TopicSet({"slug": slug})[0]
+
+    def _embed_text(self, text):
+        embeddings = OpenAIEmbeddings(openai_api_key=api_key, request_timeout=120)
+        query_result = embeddings.embed_query(text)
+        return query_result
+
+    def _try_to_get_description_based_on_sources(self, slug, query_template):
+        source_passages = self._get_relevant_example_passages_from_slug(slug)
+        topic_object = self._get_topic_object(slug)
+        topic_title = topic_object.get_primary_title()
+        try:
+            des = query_llm_model(query_template, [topic_title, source_passages])
+        except:
+            try:
+                source_passages = self.__get_relevant_example_passages_from_slug(slug, discard_longest=1)
+                des = query_llm_model(query_template, [topic_title, source_passages])
+            except:
+                try:
+                    source_passages = self.__get_relevant_example_passages_from_slug(slug, discard_longest=2)
+                    des = query_llm_model(query_template, [topic_title, source_passages])
+                except:
+                    des = query_llm_model(query_template, [topic_title, ''])
+        return des
+
+    def generate_description(self, slug):
+        description = self._try_to_get_description_based_on_sources(slug, self.description_generation_prompt_template)
+        self.data_handler.set_description(slug, description)
+
+    def generate_embedding(self, slug):
+        description = self.data_handler.get_description(slug)
+        if not description:
+            raise ValueError(f"No description found for slug: {slug}")
+        embedding = self._embed_text(description)
+        self.data_handler.set_embedding(slug, embedding)
+
 
 class TopicsVectorSpace:
-
     embed_topic_template = (
         "You are a humanities scholar specializing in Judaism. Given a topic or a term, write a description for that topic from a Jewish perspective.\n"
         "Topic: {0}\nDescription:"
@@ -339,13 +377,30 @@ class TopicsVectorSpace:
         sorted_data = sorted(sefaria_topic_embeddings_list,
                              key=lambda x: self._embedding_distance(x[1], inferred_topic_embedding))
         sefaria_slug = sorted_data[0][0]
-        # print(f"GPT tagged passage with the topic: {inferred_topic}, which is similar to Sefaria's topic: {sefaria_slug}")
         return sefaria_slug
 
+class TopicVerifier:
+    verifier_template = (
+        "You are a humanities scholar specializing in Judaism. Given a passage, a topic, and a description of that topic, return YES if the passage can be tagged with this topic. "
+        "Note: Even if the topic is not mentioned explicitly in the passage, but the passage refers to the general concept of the topic, or the general concept coud be found within the passage, return YES."
+        "If it's not a good topic tagging for the passage, return NO. If you are unsure, return NO.\n"
+        "Passage: {0}\nPossible Topic: {1}\nTopic Description: {2}"
+    )
+
+    def __init__(self, data_handler: TopicsData):
+        self.slug_descriptions_dict = data_handler.get_slugs_and_descriptions_dict()
+
+    def verify_topic(self, sefaria_slug, segment_text):
+        description = self.slug_descriptions_dict[sefaria_slug]
+        ver_response = query_llm_model(self.verifier_template, [segment_text, sefaria_slug, description]).replace('# Output',
+                                                                                                    '').strip()
+        ver_approved = False
+        if "YES" in ver_response:
+            ver_approved = True
+        if "NO" in ver_response:
+            ver_approved = False
+        return ver_approved
 class TopicTagger:
-    # Class attribute
-    species = "Canis familiaris"
-    # Template for inferring topics from the given text segment
     infer_topics_template = (
         "You are a humanities scholar specializing in Judaism. "
         "Given the following text segment, generate an unnumbered list of relevant short topics or tags. "
@@ -405,66 +460,23 @@ class TopicTagger:
 
 
 
+
 if __name__ == '__main__':
     print("Hi")
-    # get_embeddings()
-    # infer_topic_descriptions_to_csv("n_topic_slugs.csv",  "slugs_and_inferred_descriptions_prompt_with_sources.csv")
-    # embed_topic_descriptions_to_jsonl("slugs_and_inferred_descriptions_prompt_with_sources.csv", "description_with_sources_prompts_embeddings.jsonl")
-    # cluster_slugs("description_embeddings.jsonl")
-    # ask_llm_for_topics_from_segment(Ref("Sanhedrin.99a.2").text().text)
-    verifier = TopicVerifier(slugs_descriptions_csv="slugs_and_inferred_descriptions_prompt_with_sources.csv")
-    topics_space = TopicsVectorSpace(slugs_embeddings_jsonl="description_embeddings.jsonl")
-    tagger = TopicTagger(topics_space=topics_space, verifier=verifier)
-    # tagger.tag_segment(Ref("Bereshit_Rabbah.62.2").text().text)
-    refs_for_presentation =[
-        # "Shabbat.53b.17-18",
-        # "Pirkei_Avot.3.17",
-        # "Megillah.29a.4",
-        # "Chagigah.5b.15",
-        # "Berakhot.61a.27-61b.3",
-        # "Sanhedrin.59b.13",
-        # "Midrash Tanchuma, Beshalach 10:4-6",
-        # "Sifra, Kedoshim, Chapter 4.12",
-        # "Sefer_HaChinukh.132.2",
-        # "Rabbeinu_Bahya, Shemot 21 19.1",
-        # "Sanhedrin.38b.11-12",
-        # "Berakhot.42a.9",
-        # "Kohelet_Rabbah.1.7.1"
 
-        # "Kohelet_Rabbah.3.11.1",
-        # "Mishneh Torah, Human_Dispositions.6.6-7",
-        # "Berakhot.34b.22",
-        # "Sifra, Emor, Chapter 1.6",
-        # "Yevamot 62b:13",
-        # "Bava Metzia 85b:4-7",
-        # "Yoma 82a:1-7",
-        # "Sanhedrin.21b.20"
+    data_handler = TopicsData("experiment.jsonl")
+    embedder = TopicsEmbedder(data_handler)
+    # embedder.generate_description("shabbat")
+    # embedder.generate_embedding("shabbat")
+    # embedder.generate_description("money")
+    # embedder.generate_embedding("money")
 
-        # "Vayikra Rabbah 34:4",
-        # "Bava Metzia 31b:7",
-        # "Shabbat 28a:4",
-        # "Berakhot 55a:13",
-        # "Ramban on Genesis 5:1:1",
-        # "Radak on Genesis 6:6:3",
-        # "Sanhedrin 38a:12",
-        # "Mesilat Yesharim 23:18-22"
-        "Yevamot 49b:10"
-    ]
-    result_tuples = []
-    for ref in refs_for_presentation:
-        print(f"Ref: {Ref(ref).normal()}")
-        model_topics, verified_slugs = tagger.tag_segment(Ref(ref).text().text)
-        print(verified_slugs)
-    #     result_tuples.append((Ref(ref).normal(), Ref(ref).text().text, str(model_topics), str(verified_slugs)))
-    # with open("results.csv", 'w', newline='') as csv_file:
-    #     csv_writer = csv.writer(csv_file)
-    #     csv_writer.writerows(result_tuples)
+    embedder.generate_description("happiness")
+    embedder.generate_embedding("happiness")
 
-
-
-
-
-
+    # verifier = TopicVerifier(slugs_descriptions_csv="slugs_and_inferred_descriptions_prompt_with_sources.csv")
+    # topics_space = TopicsVectorSpace(slugs_embeddings_jsonl="description_embeddings.jsonl")
+    # tagger = TopicTagger(topics_space=topics_space, verifier=verifier)
 
 
 
