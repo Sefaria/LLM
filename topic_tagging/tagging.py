@@ -203,7 +203,7 @@ class TopicsEmbedder:
         self.generate_embedding(slug)
 
     def generate_description_and_embedding_idempotent(self, slug):
-        if self.data_handler.get_description(slug) and self.data_handler.get_description(slug):
+        if self.data_handler.get_description(slug) and self.data_handler.get_embedding(slug):
             return
         if self.data_handler.get_description(slug):
             self.generate_embedding(slug)
