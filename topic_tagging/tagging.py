@@ -1,15 +1,7 @@
-import csv
 import django
 django.setup()
-# We can do the same thing with a SQLite cache
-# from langchain.cache import SQLiteCache
-# set_llm_cache(SQLiteCache(database_path=".langchain.db"))
-# import typer
-import re
 import json
 from sefaria.model import *
-# from sefaria.utils.hebrew import strip_cantillation
-# import random
 import os
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.llms import OpenAI
@@ -20,176 +12,27 @@ from langchain.schema import HumanMessage
 from langchain.chains import SimpleSequentialChain
 import  numpy as np
 
-# from langchain.chat_models import ChatOpenAI
-# import openai
-# import re
-# from sefaria.helper.normalization import NormalizerComposer, RegexNormalizer, AbstractNormalizer
-# from util.general import get_removal_list
 
 api_key = os.getenv("OPENAI_API_KEY")
 
-def get_top_topics_slugs():
-    # Read topics to promote from file
-    topics_slugs = []
-    with open('good_to_promote_topics.txt', 'r') as file:
-        lines = file.readlines()
-        topics_slugs = [line.replace("',\n", '')[2:].lower().replace(" ", '-') for line in lines]
+class LLMOracle:
+    def __init__(self, chat_model_name="gpt-3.5-turbo", temperature=.5):
+        self.chat_model_name = chat_model_name
+        self.temperature = temperature
 
-    # Retrieve main topics list
-    main_topics_list = [TopicSet({"slug": slug}).array()[0] for slug in topics_slugs]
+    def query_llm(self, template_fstring, arguments_list):
+        formatted_string = template_fstring.format(*arguments_list)
+        llm = ChatOpenAI(model=self.chat_model_name, temperature=self.temperature, request_timeout=120)
+        user_prompt = PromptTemplate.from_template("# Input\n{text}")
+        human_message = HumanMessage(content=user_prompt.format(text=formatted_string))
+        answer = llm([human_message])
 
-    # Sort topics based on numSources
-    key_function = lambda topic: getattr(topic, 'numSources', 0)
-    top_topics = sorted(main_topics_list, key=key_function, reverse=True)[:100]
+        return answer.content
 
-    # Write top topic slugs to CSV
-    csv_file = "n_topic_slugs.csv"
-    with open(csv_file, 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerows([[topic.slug] for topic in top_topics])
-
-
-def embed_text(query):
-    embeddings = OpenAIEmbeddings(openai_api_key=api_key, request_timeout=120)
-    text = query
-    query_result = embeddings.embed_query(text)
-    return query_result
-
-def format_string(fstring, arguments):
-    try:
-        formatted_string = fstring.format(*arguments)
-        return formatted_string
-    except IndexError:
-        print("Error: Number of arguments does not match placeholders in the string.")
-    except KeyError:
-        print("Error: Invalid placeholder in the string.")
-    except Exception as e:
-        print(f"Error: {e}")
-
-def query_llm_model(template_fstirng, arguments_list):
-    formatted_string = template_fstirng.format(*arguments_list)
-    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=.5, request_timeout=120)
-    user_prompt = PromptTemplate.from_template("# Input\n{text}")
-    human_message = HumanMessage(content=user_prompt.format(text=formatted_string))
-    answer = llm([human_message])
-
-    return answer.content
-
-def topic_slugs_list_from_csv(slugs_path_csv):
-    return [row[0] for row in csv.reader(open(slugs_path_csv))]
-def topic_list_from_slugs_csv(slugs_path_csv):
-    slugs = topic_slugs_list_from_csv(slugs_path_csv)
-    topics = []
-    for slug in slugs:
-        topics += [TopicSet({"slug":slug})[0]]
-    return topics
-
-def slugs_and_description_dict_from_csv():
-    return dict((row[0], row[1]) for row in csv.reader(open('slugs_and_inferred_descriptions.csv')))
-
-def list_of_tuples_to_csv(data, file_path):
-    with open(file_path, 'w', newline='') as csvfile:
-        csv_writer = csv.writer(csvfile)
-        csv_writer.writerows(data)
-def _get_top_n_orefs_for_topic(slug, top_n=10):
-    from sefaria.helper.topic import get_topic
-
-    out = get_topic(True, slug, with_refs=True, ref_link_type_filters=['about', 'popular-writing-of'])
-    result = []
-    for d in out['refs']['about']['refs'][:top_n]:
-        try:
-            result.append(Ref(d['ref']))
-        except Exception as e:
-            print (e)
-    return result
-def _get_first_k_categorically_distinct_refs(refs, k):
-    distinct_categories = set()
-    result = []
-
-    for ref in refs:
-        category = ref.primary_category
-        if category is not None and category not in distinct_categories:
-            distinct_categories.add(category)
-            result.append(ref)
-
-            if len(result) == k:
-                break
-
-    return result
-def _concatenate_passages(passages, separetaor_token):
-    result = ""
-
-    for i, passage in enumerate(passages, 1):
-        result += f"{separetaor_token} {i}:\n{passage}\n"
-
-    return result
-def _get_relevant_example_passages_from_slug(slug, n=3, discard_longest = 0):
-    refs = _get_top_n_orefs_for_topic(slug, 200)
-    refs = _get_first_k_categorically_distinct_refs(refs, n)
-    def _get_length_of_ref(ref):
-        return len(ref.text().text)
-    for i in range(0, discard_longest):
-        longest_element = max(refs, key=_get_length_of_ref)
-        refs.remove(longest_element)
-    text = _concatenate_passages([ref.tref + ': ' + str(ref.text().text) for ref in refs], "Passage")
-
-    return text
-
-def infer_topic_descriptions_to_csv(slugs_csv_path, output_csv_path):
-    template = """You are a humanities scholar specializing in Judaism. Given a Topic or a term and a list of passages that relate to that topic, write a description for that topic from a Jewish perspective.
-    Don't quote the passages in your answer, don't summarize the passages, but rather explain the general concept to the Topic.
-    Topic: {0}
-    Related Passages: {1}
-    Description:
-    """
-
-
-    topic_list = topic_list_from_slugs_csv(slugs_csv_path)
-    slugXdescription_list = []
-    # for topic in topic_list:
-    #     print(topic.get_primary_title())
-    #     des = query_llm_model(template, topic.get_primary_title())
-    #     slug = topic.slug
-    #     slugXdescription_list += [(slug, des)]
-    for topic in topic_list:
-        print(topic.get_primary_title())
-        slug = topic.slug
-        # if slug != "peace":
-        #     continue
-        passages = _get_relevant_example_passages_from_slug(slug)
-        try:
-            des = query_llm_model(template, [topic.get_primary_title(), passages])
-        except:
-            try:
-                passages = _get_relevant_example_passages_from_slug(slug, discard_longest=1)
-                des = query_llm_model(template, [topic.get_primary_title(), passages])
-            except:
-                try:
-                    passages = _get_relevant_example_passages_from_slug(slug, discard_longest=2)
-                    des = query_llm_model(template, [topic.get_primary_title(), passages])
-                except:
-                    des = query_llm_model(template, [topic.get_primary_title(), ''])
-
-
-
-        slugXdescription_list += [(slug, des)]
-
-    list_of_tuples_to_csv(slugXdescription_list, output_csv_path)
-
-def embed_topic_descriptions_to_jsonl(slugs_and_descriptions_csv, output_jsonl_path):
-    list_of_embeddings = []
-    slugXdes_list = [(row[0], row[1]) for row in csv.reader(open(slugs_and_descriptions_csv))]
-    for slugXdes in slugXdes_list:
-        slug = slugXdes[0]
-        des = slugXdes[1]
-        list_of_embeddings += [{"slug": slug, "embedding":embed_text(des)}]
-    with open(output_jsonl_path, 'w') as jsonl_file:
-        for item in list_of_embeddings:
-            jsonl_file.write(json.dumps(item) + '\n')
-
-
-
-
+    def embed_text(self, text):
+        embeddings = OpenAIEmbeddings(openai_api_key=api_key, request_timeout=120)
+        query_result = embeddings.embed_query(text)
+        return query_result
 class TopicsData:
     def __init__(self, data_jsonl_filename):
         self.data_jsonl_filename = data_jsonl_filename
@@ -241,7 +84,7 @@ class TopicsData:
         if topic_dict:
             topic_dict["embedding"] = embedding
         else:
-            topics_data_list += {"slug": slug, "embedding": embedding}
+            topics_data_list += [{"slug": slug, "embedding": embedding}]
         self._write_list_of_dicts_to_jsonl(topics_data_list)
 
     def get_slugs_and_descriptions_dict(self):
@@ -273,8 +116,9 @@ class TopicsEmbedder:
     Description:
     """
 
-    def __init__(self, data_handler: TopicsData):
+    def __init__(self, data_handler: TopicsData, oracle: LLMOracle):
         self.data_handler = data_handler
+        self.oracle = oracle
 
     def _get_top_n_orefs_for_topic(self, slug, top_n=10):
         from sefaria.helper.topic import get_topic
@@ -302,6 +146,13 @@ class TopicsEmbedder:
                     break
 
         return result
+
+    def _concatenate_passages(self, passages, separetaor_token):
+        result = ""
+        for i, passage in enumerate(passages, 1):
+            result += f"{separetaor_token} {i}:\n{passage}\n"
+
+        return result
     def _get_relevant_example_passages_from_slug(self, slug, n=3, discard_longest=0):
         refs = self._get_top_n_orefs_for_topic(slug, 200)
         refs = self._get_first_k_categorically_distinct_refs(refs, n)
@@ -312,33 +163,42 @@ class TopicsEmbedder:
         for i in range(0, discard_longest):
             longest_element = max(refs, key=_get_length_of_ref)
             refs.remove(longest_element)
-        text = _concatenate_passages([ref.tref + ': ' + str(ref.text().text) for ref in refs], "Passage")
+        text = self._concatenate_passages([ref.tref + ': ' + str(ref.text().text) for ref in refs], "Passage")
         return text
 
     def _get_topic_object(self, slug):
         return TopicSet({"slug": slug})[0]
-
-    def _embed_text(self, text):
-        embeddings = OpenAIEmbeddings(openai_api_key=api_key, request_timeout=120)
-        query_result = embeddings.embed_query(text)
-        return query_result
-
     def _try_to_get_description_based_on_sources(self, slug, query_template):
-        source_passages = self._get_relevant_example_passages_from_slug(slug)
+        # source_passages = self._get_relevant_example_passages_from_slug(slug)
+        #
+        # topic_object = self._get_topic_object(slug)
+        # topic_title = topic_object.get_primary_title()
+        # try:
+        #     des = self.oracle.query_llm(query_template, [topic_title, source_passages])
+        # except:
+        #     try:
+        #         source_passages = self._get_relevant_example_passages_from_slug(slug, discard_longest=1)
+        #         des = self.oracle.query_llm(query_template, [topic_title, source_passages])
+        #     except:
+        #         try:
+        #             source_passages = self._get_relevant_example_passages_from_slug(slug, discard_longest=2)
+        #             des = self.oracle.query_llm(query_template, [topic_title, source_passages])
+        #         except:
+        #             des = self.oracle.query_llm(query_template, [topic_title, ''])
+        # return des
+        # source_passages = self._get_relevant_example_passages_from_slug(slug)
         topic_object = self._get_topic_object(slug)
         topic_title = topic_object.get_primary_title()
-        try:
-            des = query_llm_model(query_template, [topic_title, source_passages])
-        except:
+
+        discard_attempts = [0, 1, 2]
+        for discard_count in discard_attempts:
             try:
-                source_passages = self.__get_relevant_example_passages_from_slug(slug, discard_longest=1)
-                des = query_llm_model(query_template, [topic_title, source_passages])
-            except:
-                try:
-                    source_passages = self.__get_relevant_example_passages_from_slug(slug, discard_longest=2)
-                    des = query_llm_model(query_template, [topic_title, source_passages])
-                except:
-                    des = query_llm_model(query_template, [topic_title, ''])
+                source_passages = self._get_relevant_example_passages_from_slug(slug, discard_longest=discard_count)
+                des = self.oracle.query_llm(query_template, [topic_title, source_passages])
+                break  # Break the loop if successful
+            except Exception as e:
+                if discard_count == discard_attempts[-1]:
+                    des = self.oracle.query_llm(query_template, [topic_title, ''])
         return des
 
     def generate_description(self, slug):
@@ -349,8 +209,12 @@ class TopicsEmbedder:
         description = self.data_handler.get_description(slug)
         if not description:
             raise ValueError(f"No description found for slug: {slug}")
-        embedding = self._embed_text(description)
+        embedding = self.oracle.embed_text(description)
         self.data_handler.set_embedding(slug, embedding)
+
+    def generate_description_and_embedding(self, slug):
+        self.generate_description(slug)
+        self.generate_embedding(slug)
 
 
 class TopicsVectorSpace:
@@ -359,14 +223,17 @@ class TopicsVectorSpace:
         "Topic: {0}\nDescription:"
     )
 
-    def __init__(self, data_handler: TopicsData):
+    def __init__(self, data_handler: TopicsData, oracle: LLMOracle):
         slug_embeddings_dict = data_handler.get_slugs_and_embeddings_dict()
         for slug in slug_embeddings_dict.keys():
             slug_embeddings_dict[slug] = np.array(slug_embeddings_dict[slug])
         self.slug_embeddings_dict = slug_embeddings_dict
+        self.oracle = oracle
 
     def _embed_and_get_embedding(self, template, topic):
-        return np.array(embed_text(query_llm_model(template, [topic])))
+        text = self.oracle.query_llm(template, [topic])
+        embedding = np.array(self.oracle.embed_text(text))
+        return np.array(embedding)
     def _embedding_distance(self, embedding1, embedding2):
         return np.linalg.norm(embedding1 - embedding2)
     def get_nearest_topic(self, slug):
@@ -385,12 +252,13 @@ class TopicVerifier:
         "Passage: {0}\nPossible Topic: {1}\nTopic Description: {2}"
     )
 
-    def __init__(self, data_handler: TopicsData):
+    def __init__(self, data_handler: TopicsData, oracle: LLMOracle):
         self.slug_descriptions_dict = data_handler.get_slugs_and_descriptions_dict()
+        self.oracle = oracle
 
     def verify_topic(self, sefaria_slug, segment_text):
         description = self.slug_descriptions_dict[sefaria_slug]
-        ver_response = query_llm_model(self.verifier_template, [segment_text, sefaria_slug, description]).replace('# Output',
+        ver_response = self.oracle.query_llm(self.verifier_template, [segment_text, sefaria_slug, description]).replace('# Output',
                                                                                                     '').strip()
         ver_approved = False
         if "YES" in ver_response:
@@ -409,13 +277,14 @@ class TopicTagger:
     )
 
 
-    def __init__(self, topics_space: TopicsVectorSpace, verifier: TopicVerifier):
+    def __init__(self, topics_space: TopicsVectorSpace, verifier: TopicVerifier, oracle: LLMOracle):
         self.verifier = verifier
         self.topics_space = topics_space
+        self.oracle = oracle
 
 
     def _get_inferred_topics(self, template, segment_text):
-        answer = query_llm_model(template, [segment_text])
+        answer = self.oracle.query_llm(template, [segment_text])
         return [topic.strip() for topic in answer.split("\n-")]
 
     def _load_existing_topics(self, jsonl_path):
@@ -426,7 +295,9 @@ class TopicTagger:
         return existing_topics_dicts
 
     def _embed_and_get_embedding(self, template, topic):
-        return np.array(embed_text(query_llm_model(template, [topic])))
+        text = self.oracle.query_llm((template, [topic]))
+        embedding = self.oracle.embed_text(text)
+        return np.array(embedding)
 
     def _get_Sefaria_nearest_topic(self, inferred_topic):
         inferred_topic_embedding = self._embed_and_get_embedding(self.embed_topic_template, inferred_topic)
@@ -463,19 +334,16 @@ if __name__ == '__main__':
     print("Hi")
 
     data_handler = TopicsData("experiment.jsonl")
-    embedder = TopicsEmbedder(data_handler)
-    # embedder.generate_description("shabbat")
-    # embedder.generate_embedding("shabbat")
-    # embedder.generate_description("money")
-    # embedder.generate_embedding("money")
+    oracle = LLMOracle()
+    embedder = TopicsEmbedder(data_handler, oracle)
+    embedder.generate_description_and_embedding("maharsha")
 
-    # embedder.generate_description("happiness")
-    # embedder.generate_embedding("happiness")
+    toc = library.get_topic_toc_json_recursive()
 
-    verifier = TopicVerifier(data_handler)
-    topics_space = TopicsVectorSpace(data_handler)
-    tagger = TopicTagger(topics_space=topics_space, verifier=verifier)
-    tagger.tag_segment(Ref("Kohelet_Rabbah.1.7.1").text().text)
+    # verifier = TopicVerifier(data_handler, oracle)
+    # topics_space = TopicsVectorSpace(data_handler, oracle)
+    # tagger = TopicTagger(topics_space=topics_space, verifier=verifier, oracle=oracle)
+    # tagger.tag_segment(Ref("Kohelet_Rabbah.1.7.1").text().text)
 
 
 
