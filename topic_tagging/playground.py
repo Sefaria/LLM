@@ -118,7 +118,6 @@ def _get_first_k_categorically_distinct_refs(refs, k):
     return result
 def _concatenate_passages(passages, separetaor_token):
     result = ""
-
     for i, passage in enumerate(passages, 1):
         result += f"{separetaor_token} {i}:\n{passage}\n"
 

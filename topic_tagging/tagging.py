@@ -36,7 +36,11 @@ class LLMOracle:
 class TopicsData:
     def __init__(self, data_jsonl_filename):
         self.data_jsonl_filename = data_jsonl_filename
+        self._check_file_existence()
 
+    def _check_file_existence(self):
+        if not os.path.exists(self.data_jsonl_filename):
+            raise FileNotFoundError(f"The file {self.data_jsonl_filename} does not exist.")
     def _read_jsonl_into_list_of_dicts(self):
         with open(self.data_jsonl_filename, 'r') as file:
             data_list = [json.loads(line) for line in file]
@@ -169,24 +173,6 @@ class TopicsEmbedder:
     def _get_topic_object(self, slug):
         return TopicSet({"slug": slug})[0]
     def _try_to_get_description_based_on_sources(self, slug, query_template):
-        # source_passages = self._get_relevant_example_passages_from_slug(slug)
-        #
-        # topic_object = self._get_topic_object(slug)
-        # topic_title = topic_object.get_primary_title()
-        # try:
-        #     des = self.oracle.query_llm(query_template, [topic_title, source_passages])
-        # except:
-        #     try:
-        #         source_passages = self._get_relevant_example_passages_from_slug(slug, discard_longest=1)
-        #         des = self.oracle.query_llm(query_template, [topic_title, source_passages])
-        #     except:
-        #         try:
-        #             source_passages = self._get_relevant_example_passages_from_slug(slug, discard_longest=2)
-        #             des = self.oracle.query_llm(query_template, [topic_title, source_passages])
-        #         except:
-        #             des = self.oracle.query_llm(query_template, [topic_title, ''])
-        # return des
-        # source_passages = self._get_relevant_example_passages_from_slug(slug)
         topic_object = self._get_topic_object(slug)
         topic_title = topic_object.get_primary_title()
 
@@ -215,6 +201,14 @@ class TopicsEmbedder:
     def generate_description_and_embedding(self, slug):
         self.generate_description(slug)
         self.generate_embedding(slug)
+
+    def generate_description_and_embedding_idempotent(self, slug):
+        if self.data_handler.get_description(slug) and self.data_handler.get_description(slug):
+            return
+        if self.data_handler.get_description(slug):
+            self.generate_embedding(slug)
+        else:
+            self.generate_description_and_embedding(slug)
 
 
 class TopicsVectorSpace:
@@ -327,18 +321,57 @@ class TopicTagger:
 
         return model_topics, set(verified_slugs)
 
+def get_slug_values(data):
+    slug_values = []
 
+    if isinstance(data, list):
+        for item in data:
+            slug_values.extend(get_slug_values(item))
+    elif isinstance(data, dict):
+        if "slug" in data:
+            slug_values.append(data["slug"])
+        for key, value in data.items():
+            slug_values.extend(get_slug_values(value))
 
+    return slug_values
+def get_values_by_key(data, key):
+    if isinstance(data, list):
+        # If it's a list, iterate through its elements
+        return [value for sub_data in data for value in get_values_by_key(sub_data, key)]
+    elif isinstance(data, dict):
+        # If it's a dictionary, check if the key exists and collect its value
+        values = [data[key]] if key in data else []
+        # Recursively call the function on dictionary values
+        for sub_data in data.values():
+            values.extend(get_values_by_key(sub_data, key))
+        return values
+    else:
+        # If it's neither a list nor a dictionary, return an empty list
+        return []
+def embed_toc():
+    from tqdm import tqdm
+    data_handler = TopicsData("embedding_all_toc.jsonl")
+    oracle = LLMOracle()
+    embedder = TopicsEmbedder(data_handler, oracle)
+    toc = library.get_topic_toc_json_recursive()
+    all_slugs = get_values_by_key(toc, "slug")
+
+    for slug in tqdm(all_slugs, desc="Embedding Slugs", unit="slug"):
+        try:
+            embedder.generate_description_and_embedding_idempotent(slug)
+        except Exception as e:
+            print(f"Failed embedding slug {slug}, exception: {e}")
 
 if __name__ == '__main__':
     print("Hi")
+    embed_toc()
 
-    data_handler = TopicsData("experiment.jsonl")
-    oracle = LLMOracle()
-    embedder = TopicsEmbedder(data_handler, oracle)
-    embedder.generate_description_and_embedding("maharsha")
+    # data_handler = TopicsData("experiment.jsonl")
+    # oracle = LLMOracle()
+    # embedder = TopicsEmbedder(data_handler, oracle)
+    # embedder.generate_description_and_embedding_idempotent("trees")
 
-    toc = library.get_topic_toc_json_recursive()
+
 
     # verifier = TopicVerifier(data_handler, oracle)
     # topics_space = TopicsVectorSpace(data_handler, oracle)
