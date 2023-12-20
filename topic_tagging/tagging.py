@@ -289,12 +289,6 @@ class TopicTagger:
         answer = self.oracle.query_llm(template, [segment_text])
         return [topic.strip() for topic in answer.split("\n-")]
 
-    def _load_existing_topics(self, jsonl_path):
-        existing_topics_dicts = [json.loads(line) for line in
-                                 open(jsonl_path, 'r')]
-        for topic_dict in existing_topics_dicts:
-            topic_dict["embedding"] = np.array(topic_dict["embedding"])
-        return existing_topics_dicts
 
     def _embed_and_get_embedding(self, template, topic):
         text = self.oracle.query_llm((template, [topic]))
