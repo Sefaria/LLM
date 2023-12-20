@@ -230,13 +230,21 @@ class TopicsVectorSpace:
         return np.array(embedding)
     def _embedding_distance(self, embedding1, embedding2):
         return np.linalg.norm(embedding1 - embedding2)
-    def get_nearest_topic(self, slug):
-        inferred_topic_embedding = self._embed_and_get_embedding(self.embed_topic_template, slug)
+    def get_nearest_nearest_slug_from_arbitrary(self, topic_name):
+        inferred_topic_embedding = self._embed_and_get_embedding(self.embed_topic_template, topic_name)
         sefaria_topic_embeddings_list = [(key, value) for key, value in self.slug_embeddings_dict.items()]
         sorted_data = sorted(sefaria_topic_embeddings_list,
                              key=lambda x: self._embedding_distance(x[1], inferred_topic_embedding))
         sefaria_slug = sorted_data[0][0]
         return sefaria_slug
+    def get_nearest_k_slugs(self, slug, k: int):
+        # inferred_topic_embedding = self._embed_and_get_embedding(self.embed_topic_template, slug)
+        slugs_embedding = self.slug_embeddings_dict[slug]
+        sefaria_topic_embeddings_list = [(key, value) for key, value in self.slug_embeddings_dict.items()]
+        sorted_data = sorted(sefaria_topic_embeddings_list,
+                             key=lambda x: self._embedding_distance(x[1], slugs_embedding))
+        k_neighbours = [t[0] for t in sorted_data[:k]]
+        return k_neighbours
 
 class TopicVerifier:
     verifier_template = (
@@ -308,7 +316,7 @@ class TopicTagger:
         verified_slugs = set()
 
         for inferred_topic in model_topics:
-            sefaria_slug = self.topics_space.get_nearest_topic(inferred_topic)
+            sefaria_slug = self.topics_space.get_nearest_nearest_slug_from_arbitrary(inferred_topic)
             verified = self.verifier.verify_topic(sefaria_slug, segment_text)
             print(f"LLM Tag: {inferred_topic}")
             print(f"Sefaria Nearest Slug: {sefaria_slug}")
@@ -364,17 +372,18 @@ def embed_toc():
 
 if __name__ == '__main__':
     print("Hi")
-    embed_toc()
+    # embed_toc()
 
-    # data_handler = TopicsData("experiment.jsonl")
-    # oracle = LLMOracle()
+    data_handler = TopicsData("embedding_all_toc.jsonl")
+    oracle = LLMOracle()
     # embedder = TopicsEmbedder(data_handler, oracle)
     # embedder.generate_description_and_embedding_idempotent("trees")
 
 
 
     # verifier = TopicVerifier(data_handler, oracle)
-    # topics_space = TopicsVectorSpace(data_handler, oracle)
+    topics_space = TopicsVectorSpace(data_handler, oracle)
+    k = topics_space.get_nearest_k_slugs("light", 10)
     # tagger = TopicTagger(topics_space=topics_space, verifier=verifier, oracle=oracle)
     # tagger.tag_segment(Ref("Kohelet_Rabbah.1.7.1").text().text)
 
