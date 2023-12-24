@@ -366,59 +366,13 @@ def embed_toc():
         except Exception as e:
             print(f"Failed embedding slug {slug}, exception: {e}")
 
-def get_all_refs_from_category(topic_category):
-    source_refs = []
-    sub_topics = topic_category.topics_by_link_type_recursively(linkType='displays-under')
-    for sub_topic in sub_topics:
-        sources = [*sub_topic.link_set(_class="refTopic").array()]
-        sources = [source for source in sources if not source.ref.startswith("Sheet")]
-        source_refs += [source.ref for source in sources]
-    return source_refs
 
-def create_sample_of_texts_noahs_method(sample_size = 5000):
-    top_level_categories = TopicSet({"isTopLevelDisplay": True})
-    cat_sample_size = int(sample_size/len(top_level_categories))
-    sample = []
-    for topic_category in top_level_categories:
-        cat_refs = get_all_refs_from_category(topic_category)
-        sample += random.sample(cat_refs, cat_sample_size)
-    return sample
-
-import csv
-
-def dict_of_lists_to_csv(file_path, data):
-    import csv
-    # Extract the keys (header) and values (columns) from the dictionary
-    headers = list(data.keys())
-    columns = list(data.values())
-
-    # Transpose the columns to create rows
-    rows = zip(*columns)
-
-    # Write to CSV file
-    with open(file_path, 'w', newline='') as csvfile:
-        csv_writer = csv.writer(csvfile)
-
-        # Write the header
-        csv_writer.writerow(headers)
-
-        # Write the rows
-        csv_writer.writerows(rows)
-def create_sample_of_texts_noahs_method_csv(sample_size=5000):
-    top_level_categories = TopicSet({"isTopLevelDisplay": True})
-    cat_sample_size = int(sample_size / len(top_level_categories))
-    sample = {}
-    for topic_category in top_level_categories:
-        cat_refs = get_all_refs_from_category(topic_category)
-        sample[topic_category.slug] = random.sample(cat_refs, cat_sample_size)
-    dict_of_lists_to_csv("noahs_method_refs.csv", sample)
 
 
 if __name__ == '__main__':
     print("Hi")
-    create_sample_of_texts_noahs_method_csv()
-
-
-
-
-    print("bye")
+    oracle = LLMOracle()
+    embeddings_vector = oracle.embed_text("I love linear algebra")
+    euclidean_norm = np.linalg.norm(embeddings_vector)
+    print(euclidean_norm)
+    # print("bye")
