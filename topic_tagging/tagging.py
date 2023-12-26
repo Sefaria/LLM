@@ -1,11 +1,13 @@
 import django
 django.setup()
+import csv
 import json
 from sefaria.model import *
+from util.general import get_raw_ref_text, get_by_xml_tag
 import os
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.llms import OpenAI
-from langchain.chat_models import ChatOpenAI
+from langchain.chat_models import ChatOpenAI, ChatAnthropic
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage
@@ -306,7 +308,35 @@ class TopicTagger:
         # print(f"GPT tagged passage with the topic: {inferred_topic}, which is similar to Sefaria's topic: {sefaria_slug}")
         return sefaria_slug
 
+    def _translate_ref(self, tref: str, context: str = None):
+        oref = Ref(tref)
+        text = get_raw_ref_text(oref, 'he')
+        identity_message = HumanMessage(
+            content="You are a Jewish scholar knowledgeable in all Torah and Jewish texts. Your "
+                    "task is to translate the Hebrew text wrapped in <input> tags. Context may be "
+                    "provided in <context> tags. Use context to provide context to <input> "
+                    "text. Don't translate <context>. Only translate <input> text. Output "
+                    "translation wrapped in <translation> tags.")
+        task_prompt = f"<input>{text}</input>"
+        if context:
+            task_prompt = f"<context>{context}</context>{task_prompt}"
+        task_message = HumanMessage(content=task_prompt)
+        llm = ChatAnthropic(model="claude-2", temperature=0, max_tokens_to_sample=1000000)
+        response_message = llm([identity_message, task_message])
+        translation = get_by_xml_tag(response_message.content, 'translation')
+        if translation is None:
+            print("TRANSLATION FAILED")
+            print(tref)
+            print(response_message.content)
+            return response_message.content
+        return translation
 
+
+    def tag_ref(self, tref):
+        english_text = Ref(tref).text(lang="en").text
+        if english_text == '':
+            english_text = self._translate_ref(tref)
+        return self.tag_segment(english_text)
     def tag_segment(self, segment_text):
         model_topics = self._get_inferred_topics(self.infer_topics_template, segment_text)
         verified_slugs = set()
@@ -367,12 +397,21 @@ def embed_toc():
             print(f"Failed embedding slug {slug}, exception: {e}")
 
 
-
+def load_slugs_from_csv(file_name="refs_sample.csv"):
+    slugs = []
+    with open(file_name, mode='r', newline='') as file:
+        reader = csv.reader(file)
+        for row in reader:
+            slugs += row
+    return slugs
 
 if __name__ == '__main__':
     print("Hi")
+    data_handler = TopicsData("embedding_all_toc.jsonl")
     oracle = LLMOracle()
-    embeddings_vector = oracle.embed_text("I love linear algebra")
-    euclidean_norm = np.linalg.norm(embeddings_vector)
-    print(euclidean_norm)
-    # print("bye")
+    vector_space = TopicsVectorSpace(data_handler, oracle)
+    verifier = TopicVerifier(data_handler, oracle)
+    tagger = TopicTagger(vector_space, verifier, oracle)
+    tagger.tag_ref("Abarbanel on Guide for the Perplexed, Part 1 1:1")
+
+    print("bye")
