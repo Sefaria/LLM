@@ -117,7 +117,6 @@ class TopicsVectorSpace:
         return k_neighbours
 
 if __name__ == '__main__':
-    from pprint import pprint
     print("Hi")
     data_handler = TopicsData("embedding_all_toc.jsonl")
     vector_space = TopicsVectorSpace(data_handler)
