@@ -87,26 +87,11 @@ class TopicsVectorSpace:
             slug_embeddings_dict[slug] = np.array(slug_embeddings_dict[slug])
         self.slug_embeddings_dict = slug_embeddings_dict
 
-    def _embed_and_get_embedding(self, template, topic, context=''):
-        text = self.oracle.query_llm(template, [context, topic])
-        embedding = np.array(self.oracle.embed_text(text))
-        return np.array(embedding)
+
     def _embedding_distance(self, embedding1, embedding2):
         return np.linalg.norm(embedding1 - embedding2)
-    def get_nearest_nearest_slug_from_arbitrary(self, topic_name):
-        inferred_topic_embedding = self._embed_and_get_embedding(self.embed_topic_template, topic_name)
-        sefaria_topic_embeddings_list = [(key, value) for key, value in self.slug_embeddings_dict.items()]
-        sorted_data = sorted(sefaria_topic_embeddings_list,
-                             key=lambda x: self._embedding_distance(x[1], inferred_topic_embedding))
-        sefaria_slug = sorted_data[0][0]
-        return sefaria_slug
-    def get_all_slugs_sorted_by_distance_from_arbitrary(self, topic_name, context_segment):
-        inferred_topic_embedding = self._embed_and_get_embedding(self.embed_topic_template, topic_name, context_segment)
-        sefaria_topic_embeddings_list = [(key, value) for key, value in self.slug_embeddings_dict.items()]
-        sorted_data = sorted(sefaria_topic_embeddings_list,
-                             key=lambda x: self._embedding_distance(x[1], inferred_topic_embedding))
-        sefaria_slugs = [t[0] for t in sorted_data]
-        return sefaria_slugs
+
+
     def get_nearest_k_slugs(self, slug, k: int):
         # inferred_topic_embedding = self._embed_and_get_embedding(self.embed_topic_template, slug)
         slugs_embedding = self.slug_embeddings_dict[slug]
