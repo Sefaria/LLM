@@ -2,12 +2,14 @@ import django
 django.setup()
 import csv
 import json
+import re
 from sefaria.model import *
-from util.general import get_raw_ref_text, get_by_xml_tag
+from util.general import get_raw_ref_text, get_by_xml_tag, normalizer
 import os
 from langchain.embeddings import OpenAIEmbeddings
 from langchain.llms import OpenAI
 from langchain.chat_models import ChatOpenAI, ChatAnthropic
+
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage
@@ -217,8 +219,11 @@ class TopicsEmbedder:
 
 class TopicsVectorSpace:
     embed_topic_template = (
-        "You are a humanities scholar specializing in Judaism. Given a topic or a term, write a description for that topic from a Jewish perspective.\n"
-        "Topic: {0}\nDescription:"
+        "You are a humanities scholar specializing in Judaism."
+        "Given a topic or a term, write a description for that topic from a Jewish perspective."
+        "Context may be provided in a Context text which belongs to Topic. Use Context to understand the general Topic better.\n"
+        "Context: {0}"
+        "Topic: {1}\nDescription:"
     )
 
     def __init__(self, data_handler: TopicsData, oracle: LLMOracle):
@@ -228,8 +233,8 @@ class TopicsVectorSpace:
         self.slug_embeddings_dict = slug_embeddings_dict
         self.oracle = oracle
 
-    def _embed_and_get_embedding(self, template, topic):
-        text = self.oracle.query_llm(template, [topic])
+    def _embed_and_get_embedding(self, template, topic, context=''):
+        text = self.oracle.query_llm(template, [context, topic])
         embedding = np.array(self.oracle.embed_text(text))
         return np.array(embedding)
     def _embedding_distance(self, embedding1, embedding2):
@@ -241,6 +246,13 @@ class TopicsVectorSpace:
                              key=lambda x: self._embedding_distance(x[1], inferred_topic_embedding))
         sefaria_slug = sorted_data[0][0]
         return sefaria_slug
+    def get_all_slugs_sorted_by_distance_from_arbitrary(self, topic_name, context_segment):
+        inferred_topic_embedding = self._embed_and_get_embedding(self.embed_topic_template, topic_name, context_segment)
+        sefaria_topic_embeddings_list = [(key, value) for key, value in self.slug_embeddings_dict.items()]
+        sorted_data = sorted(sefaria_topic_embeddings_list,
+                             key=lambda x: self._embedding_distance(x[1], inferred_topic_embedding))
+        sefaria_slugs = [t[0] for t in sorted_data]
+        return sefaria_slugs
     def get_nearest_k_slugs(self, slug, k: int):
         # inferred_topic_embedding = self._embed_and_get_embedding(self.embed_topic_template, slug)
         slugs_embedding = self.slug_embeddings_dict[slug]
@@ -288,10 +300,29 @@ class TopicTagger:
         self.topics_space = topics_space
         self.oracle = oracle
 
+    def _extract_text_to_list(self, text):
+        # Split the text into lines
+        lines = text.split('\n')
+
+        # Remove any empty lines
+        lines = [line.strip() for line in lines if line.strip()]
+
+        # Check if lines are numbered or not
+        if re.match(r'^\d+\.', lines[0]):
+            # Extract numbered items
+            items = [re.sub(r'^\d+\.\s*', '', line) for line in lines]
+        else:
+            # Extract non-numbered items
+            items = [line.lstrip('- ').lstrip() for line in lines]
+
+        return items
 
     def _get_inferred_topics(self, template, segment_text):
         answer = self.oracle.query_llm(template, [segment_text])
-        return [topic.strip() for topic in answer.split("\n-")]
+        # answer = answer.lstrip('- ').lstrip()
+        # return [topic.strip() for topic in answer.split("\n-")]
+        answer = self._extract_text_to_list(answer)
+        return answer
 
 
     def _embed_and_get_embedding(self, template, topic):
@@ -331,27 +362,51 @@ class TopicTagger:
             return response_message.content
         return translation
 
+    def _concatenate_strings(self, input_data):
+        if isinstance(input_data, list):
+            concatenated_string = ' '.join(input_data)
+        elif isinstance(input_data, str):
+            concatenated_string = input_data
+        else:
+            # Handle other cases or raise an exception as needed
+            raise ValueError("Input must be a list of strings or a single string")
+
+        return concatenated_string
 
     def tag_ref(self, tref):
         english_text = Ref(tref).text(lang="en").text
+        english_text = self._concatenate_strings(english_text)
+        english_text = normalizer.normalize(english_text)
         if english_text == '':
             english_text = self._translate_ref(tref)
         return self.tag_segment(english_text)
-    def tag_segment(self, segment_text):
+    def tag_segment(self, segment_text, number_of_rejects_till_break=10):
         model_topics = self._get_inferred_topics(self.infer_topics_template, segment_text)
         verified_slugs = set()
+        rejected_slugs = set()
 
         for inferred_topic in model_topics:
-            sefaria_slug = self.topics_space.get_nearest_nearest_slug_from_arbitrary(inferred_topic)
-            verified = self.verifier.verify_topic(sefaria_slug, segment_text)
-            print(f"LLM Tag: {inferred_topic}")
-            print(f"Sefaria Nearest Slug: {sefaria_slug}")
-            if verified:
-                # print("https://www.sefaria.org/topics/" + sefaria_slug)
-                print("LLM Verification: Accept")
-                verified_slugs.add(sefaria_slug)
-            else:
-                print("LLM Verification: Reject")
+            sefaria_slugs = self.topics_space.get_all_slugs_sorted_by_distance_from_arbitrary(inferred_topic, segment_text)
+            num_of_rejects = 0
+            for sefaria_slug in sefaria_slugs:
+                if num_of_rejects >= number_of_rejects_till_break:
+                    break
+                if sefaria_slug in rejected_slugs:
+                    num_of_rejects += 1
+                    continue
+                if sefaria_slug in verified_slugs:
+                    continue
+                verified = self.verifier.verify_topic(sefaria_slug, segment_text)
+                # print(f"LLM Tag: {inferred_topic}")
+                # print(f"Sefaria Nearest Slug: {sefaria_slug}")
+                if verified:
+                    # print("https://www.sefaria.org/topics/" + sefaria_slug)
+                    # print("LLM Verification: Accept")
+                    verified_slugs.add(sefaria_slug)
+                else:
+                    num_of_rejects += 1
+                    rejected_slugs.add(sefaria_slug)
+                    # print("LLM Verification: Reject")
 
         return model_topics, set(verified_slugs)
 
@@ -397,21 +452,71 @@ def embed_toc():
             print(f"Failed embedding slug {slug}, exception: {e}")
 
 
-def load_slugs_from_csv(file_name="refs_sample.csv"):
+def load_refs_from_csv(file_name):
     slugs = []
     with open(file_name, mode='r', newline='') as file:
         reader = csv.reader(file)
         for row in reader:
+            row[0] = row[0].rstrip("<d>")
             slugs += row
     return slugs
 
-if __name__ == '__main__':
-    print("Hi")
+def tag_sample_refs(source_csv="refs_sample.csv", dest_csv="sample_refs_tagged.csv"):
+    from tqdm import tqdm
+
+    def ref_exists(file_path, ref):
+        # Check if the Ref already exists in the file
+        with open(file_path, 'r') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                if row['Ref'] == ref:
+                    return True
+        return False
+
+
+
+    trefs = load_refs_from_csv(source_csv)
     data_handler = TopicsData("embedding_all_toc.jsonl")
     oracle = LLMOracle()
     vector_space = TopicsVectorSpace(data_handler, oracle)
     verifier = TopicVerifier(data_handler, oracle)
     tagger = TopicTagger(vector_space, verifier, oracle)
-    tagger.tag_ref("Abarbanel on Guide for the Perplexed, Part 1 1:1")
+
+    fieldnames = ['Ref', 'LLM Original Topics', 'Nearest Sefaria Slugs']
+
+    # Check if destination file exists
+    if os.path.exists(dest_csv):
+        # If it exists, open in append mode
+        mode = 'a'
+    else:
+        # If it doesn't exist, create a new file
+        mode = 'w'
+
+    with open(dest_csv, mode, newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+        # If it's a new file, write the header
+        if mode == 'w':
+            writer.writeheader()
+
+        for tref in tqdm(trefs, desc="Tagging Refs", unit="Ref"):
+            # Check if the Ref already exists in the file
+            if not ref_exists(dest_csv, tref):
+                try:
+                    model_topics, verified_slugs = tagger.tag_ref(tref)
+                    writer.writerow({
+                        fieldnames[0]: tref,
+                        fieldnames[1]: ', '.join(model_topics),
+                        fieldnames[2]: ', '.join(verified_slugs)
+                    })
+                except Exception as e:
+                    print(f"Problem with ref: {tref}, Exception: {e}")
+
+
+
+if __name__ == '__main__':
+    print("Hi")
+
+    tag_sample_refs()
 
     print("bye")
