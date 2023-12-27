@@ -92,18 +92,22 @@ class TopicsVectorSpace:
         return np.linalg.norm(embedding1 - embedding2)
 
 
-    def get_nearest_k_slugs(self, slug, k: int):
+    def get_nearest_k_slugs(self, slug, k: int, such_that_predicate=lambda x: True):
         # inferred_topic_embedding = self._embed_and_get_embedding(self.embed_topic_template, slug)
         slugs_embedding = self.slug_embeddings_dict[slug]
         sefaria_topic_embeddings_list = [(key, value) for key, value in self.slug_embeddings_dict.items()]
         sorted_data = sorted(sefaria_topic_embeddings_list,
                              key=lambda x: self._embedding_distance(x[1], slugs_embedding))
+
+        sorted_data = [t for t in sorted_data if such_that_predicate(t[0])]
         k_neighbours = [t[0] for t in sorted_data[:k]]
+
         return k_neighbours
+
 
 if __name__ == '__main__':
     print("Hi")
     data_handler = TopicsData("embedding_all_toc.jsonl")
     vector_space = TopicsVectorSpace(data_handler)
-    neighbours = vector_space.get_nearest_k_slugs("parashat-vayechi", 10)
+    neighbours = vector_space.get_nearest_k_slugs("parashat-vayechi", 10, such_that_predicate=lambda x: not x.startswith("parashat-"))
     print(neighbours)
