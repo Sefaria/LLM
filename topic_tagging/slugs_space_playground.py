@@ -1,6 +1,11 @@
 import numpy as np
 import os
 import json
+# from sklearn.feature_extraction.text import TfidfVectorizer
+import math
+from tqdm import tqdm
+
+
 class TopicsData:
     def __init__(self, data_jsonl_filename):
         self.data_jsonl_filename = data_jsonl_filename
@@ -105,9 +110,90 @@ class TopicsVectorSpace:
         return k_neighbours
 
 
+    def _get_all_parshiot_slugs(self):
+        prefix = "parashat-"
+        filtered_keys = [key for key in self.slug_embeddings_dict.keys() if key.startswith(prefix)]
+        return filtered_keys
+    def create_simulated_documents_tf_idf(self, num_of_nearest_slug_to_consider=10):
+        parshiot_slugs = self._get_all_parshiot_slugs()
+        parasha_documents_dict = {}
+        # num_of_slugs = len(self.slug_embeddings_dict.keys())
+        num_of_slugs = num_of_nearest_slug_to_consider
+        for parasha in parshiot_slugs:
+            sorted_slugs_for_parasha = self.get_nearest_k_slugs(parasha, num_of_slugs, such_that_predicate=lambda x: not x.startswith("parashat-"))
+            document_simulation = []
+            for index, slug in enumerate(sorted_slugs_for_parasha):
+                document_simulation.append((slug,num_of_slugs-index))
+            parasha_documents_dict[parasha] = document_simulation
+        return parasha_documents_dict
+
+
+
+
+    def calculate_tf_idf_for_parshiot(self):
+        documents = self.create_simulated_documents_tf_idf()
+        # Step 1: Calculate Term Frequencies (TF)
+        term_frequencies = {}
+        document_frequencies = {}
+
+        for doc_name, word_count_list in documents.items():
+            total_words_in_doc = sum(count for _, count in word_count_list)
+
+            tf_values = {}
+            for word, count in word_count_list:
+                tf_values[word] = count / total_words_in_doc
+
+                # Document Frequencies (DF)
+                if word in document_frequencies:
+                    document_frequencies[word] += 1
+                else:
+                    document_frequencies[word] = 1
+
+            term_frequencies[doc_name] = tf_values
+
+        # Step 2: Calculate Inverse Document Frequencies (IDF)
+        num_documents = len(documents)
+        # idf_values = {word: math.log(num_documents / (df + 1)) + 1 for word, df in document_frequencies.items()}
+        idf_values = {word: math.log(num_documents / df) for word, df in document_frequencies.items()}
+
+        # Step 3: Calculate TF-IDF
+        tf_idf_scores = {}
+
+        for doc_name, tf_values in term_frequencies.items():
+            tf_idf_values = {word: tf * idf_values[word] for word, tf in tf_values.items()}
+            tf_idf_scores[doc_name] = tf_idf_values
+
+        return tf_idf_scores
+
+    def sort_parshiot_by_tf_idf(self):
+        tf_idf_scores = self.calculate_tf_idf_for_parshiot()
+        sorted_words_dict = {}
+        for doc_name, tf_idf_values in tf_idf_scores.items():
+            sorted_words = sorted(tf_idf_values, key=tf_idf_values.get, reverse=False)
+            sorted_words_dict[doc_name] = sorted_words
+
+        return sorted_words_dict
+
+    def get_k_nearest_tf_idf_slugs_for_parasha(self, parasha, k):
+        sorted_parashiot_dict = self.sort_parshiot_by_tf_idf()
+        return sorted_parashiot_dict[parasha][:k]
+
+
+
+
 if __name__ == '__main__':
+    from pprint import pprint
     print("Hi")
     data_handler = TopicsData("embedding_all_toc.jsonl")
     vector_space = TopicsVectorSpace(data_handler)
-    neighbours = vector_space.get_nearest_k_slugs("parashat-vayechi", 10, such_that_predicate=lambda x: not x.startswith("parashat-"))
-    print(neighbours)
+
+    parasha = "parashat-vayechi"
+
+
+    tf_idf_neighbors = vector_space.get_k_nearest_tf_idf_slugs_for_parasha(parasha, 10)
+    naive_neighbors = vector_space.get_nearest_k_slugs(parasha, 10,
+                                                        such_that_predicate=lambda x: not x.startswith("parashat-"))
+    pprint(naive_neighbors)
+    pprint(tf_idf_neighbors)
+
+
