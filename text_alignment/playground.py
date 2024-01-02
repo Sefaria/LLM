@@ -6,6 +6,9 @@ django.setup()
 from sefaria.model import *
 
 # from langchain.cache import SQLiteCache
+from langchain.chat_models import ChatOpenAI, ChatAnthropic
+from langchain.prompts import PromptTemplate
+from langchain.schema import HumanMessage
 # import langchain
 # langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 from sentence_transformers import SentenceTransformer
@@ -90,13 +93,38 @@ def find_best_semantic_prefix(source, to_align):
 
         splitter.make_next_prefix()
     return (best_aligned_text, max_similarity)
+def ask_claude(query):
+    llm = ChatAnthropic()
+    # user_prompt = PromptTemplate.from_template("# Input\n{text}")
+    user_prompt = PromptTemplate.from_template("{text}")
+    human_message = HumanMessage(content=user_prompt.format(text=query))
+    answer = llm([human_message])
+    return answer.content
+def ask_gpt(query, chat_model_name="gpt-3.5-turbo", temperature=.5):
+    llm = ChatOpenAI(model=chat_model_name, temperature=temperature, request_timeout=120)
+    user_prompt = PromptTemplate.from_template("# Input\n{text}")
+    human_message = HumanMessage(content=user_prompt.format(text=query))
+    answer = llm([human_message])
+    return answer.content
+def find_best_semantic_prefix_chat_model(source, to_align):
+    query = f"""
+    Given the following English sentence and a French translation of this sentence and the next sentences, print the french text corresponding to the Eglish senentece. print out the french sentence, nothing more.\n
+    English sentence: {source}\n
+    French text: {to_align}
+        """
+    # response = ask_claude(query)
+    # newline_index = response.find('\n')
+    # prefix = response[newline_index + 1:].strip()
+    respone = ask_gpt(query)
+
+    return (respone, 42)
 
 def align_target(source_list, to_align: str):
     to_align = to_align.split()
     to_align = ' '.join(to_align)
     aligned_pairs = []
     for segment in source_list:
-        best_aligned_text, _ = find_best_semantic_prefix(segment, to_align)
+        best_aligned_text, _ = find_best_semantic_prefix_chat_model(segment, to_align)
         aligned_pairs.append((segment, best_aligned_text))
         to_align = to_align.replace(best_aligned_text, "")
     return aligned_pairs
@@ -163,18 +191,18 @@ if __name__ == '__main__':
     to_align = """
     Pour Sherlock Holmes c’est toujours "la femme". Il ne parle jamais d’elle que sous cette dénomination ; à ses yeux elle éclipse le sexe faible tout entier. Ne croyez pourtant pas qu’il ait eu de l’amour, voire même de l’affection pour Irène Adler. 
     """
-    # aligned_pairs = align_target(source, to_align)
-    # for pair in aligned_pairs:
-    #     print("Source:")
-    #     print(pair[0])
-    #     print("Aligned:")
-    #     print(pair[1])
+    aligned_pairs = align_target(source, to_align)
+    for pair in aligned_pairs:
+        print("Source:")
+        print(pair[0])
+        print("Aligned:")
+        print(pair[1])
 
 
 
     # Example usage:
-    aligned = align_target_naive(source, to_align)
-    print(aligned)
+    # aligned = align_target_naive(source, to_align)
+    # print(aligned)
     # score = score_partition(source, ['Pour', 'Sherlock', 'Holmes c’est toujours "la femme". Il ne parle jamais d’elle que sous cette dénomination ; à ses yeux elle éclipse le sexe faible tout entier. Ne croyez pourtant', 'pas qu’il ait eu de l’amour, voire même de l’affection pour Irène Adler.'])
     # print(score)
     # score = score_partition(source, ['Pour Sherlock Holmes c’est toujours "la femme"', "Il ne parle jamais d’elle que sous cette dénomination ;", "à ses yeux elle éclipse le sexe faible tout entier.", "Ne croyez pourtant pas qu’il ait eu de l’amour, voire même de l’affection pour Irène Adler."])
