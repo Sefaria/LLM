@@ -514,9 +514,47 @@ def tag_sample_refs(source_csv="refs_sample.csv", dest_csv="sample_refs_tagged.c
 
 
 
+def make_stream_file_for_prodigy(source_csv_file="sample_refs_tagged.csv", target_jsonl_file="tagging_data_for_prodigy.jsonl"):
+    file_to_list_of_tuples = lambda path: [(row[0], row[2].
+                                            replace("slichot", "selichot").
+                                            replace("tablets","the-tablets").
+                                            replace("bezalel-ben-abraham-ashkenazi", "betzalel-ben-abraham-ashkenazi").
+                                            replace("judah-hehasid", "yehuda-hechasid").
+                                            replace("alshikh", "moses-alshikh").
+                                            replace("moses-and-the-the-tablets", "moses-and-the-tablets").
+                                            replace("chanukah","chanukkah").
+                                            replace("moshe-cordovero","moses-cordovero").
+                                            rstrip().split(", ")) for row in csv.reader(open(path, 'r')) if len(row) >= 3][1:]
+    def create_text_dict(ref, slugs_list):
+        titles_list = [TopicSet({"slug": slug}).array()[0].get_primary_title() for slug in slugs_list]
+        topic_dicts = []
+        for slug, title in zip(slugs_list, titles_list):
+            topic_dicts.append({"slug":slug, "title":title})
+        return {"ref": ref, "hebrew_text": Ref(ref).text(lang="he").as_string(), "english_text":Ref(ref).text(lang="en").as_string(), "topics": topic_dicts}
+
+    result = []
+    ref_X_slugs = file_to_list_of_tuples(source_csv_file)
+    for ref, slugs in ref_X_slugs:
+        result.append(create_text_dict(ref, slugs))
+    with open(target_jsonl_file, 'w') as jsonl_file:
+        for item in result:
+            json_line = json.dumps(item, ensure_ascii=False)
+            jsonl_file.write(json_line + '\n')
+
+
 if __name__ == '__main__':
     print("Hi")
 
-    tag_sample_refs()
+
+    # tree = generate_html_tree(toc)
+    # create_html_page(tree)
+    make_stream_file_for_prodigy()
+
+
+
+
+
+
+   # tag_sample_refs()
 
     print("bye")
