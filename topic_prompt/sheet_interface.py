@@ -43,15 +43,38 @@ def _get_topic_from_sheet(sheet: dict) -> Topic:
     return _get_topic_from_name(topic_name)
 
 
+def _combine_consecutive_outside_texts(sheet: dict) -> list:
+    new_sources = []
+    for s in sheet['sources']:
+        if 'outsideText' not in s:
+            new_sources += [s]
+        else:
+            if len(new_sources) > 0 and 'outsideText' in new_sources[-1]:
+                new_sources[-1]['outsideText'] += f'\n{s["outsideText"]}'
+            else:
+                new_sources += [s]
+    return new_sources
+
+
 def _get_context_sentences_and_orefs_from_sheet(sheet: dict) -> Tuple[List[Ref], List[str]]:
     orefs = []
     contexts = []
     i = 0
-    ss = sheet['sources']
+    ss = _combine_consecutive_outside_texts(sheet)
     while i < len(ss):
         s = ss[i]
+        # context after
+        # if i < (len(ss) - 1) and 'outsideText' in ss[i+1]:
+        #     contexts += [re.sub(r'<[^>]+>', '', ss[i+1]['outsideText']).strip()]
+        #     tref = s['ref']
+        #     i += 1
+        # context before
         if 'outsideText' in s:
-            contexts += [re.sub(r'<[^>]+>', '', s['outsideText']).strip()]
+            outside_text = re.sub(r'<[^>]+>', '', s['outsideText']).strip()
+            if len(outside_text) == 0:
+                i += 1
+                continue
+            contexts += [outside_text]
             tref = ss[i+1]['ref']
             i += 1
         else:
