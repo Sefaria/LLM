@@ -183,8 +183,7 @@ def init_logger():
 
 if __name__ == '__main__':
     init_logger()
-    sheet_ids = [516244, 528300, 526337, 510848, 518723]
-    # sheet_ids = [526652, 505331, 523939, 518625]
+    sheet_ids = [538093]
     lang = "en"
     output_toprompts_for_sheet_id_list(lang, sheet_ids)
     # output_toprompts_for_validation_set(lang)
