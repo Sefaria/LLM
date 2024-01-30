@@ -1,10 +1,8 @@
-import csv
+import json
+from dataclasses import dataclass
 import random
-from loguru import logger
 
 from util.openai import count_tokens_openai
-from util.sentencizer import sentencize
-from util.general import get_raw_ref_text, get_ref_text_with_fallback
 from uniqueness_of_source import get_uniqueness_of_source
 from contextualize import get_context
 from typing import List
@@ -145,48 +143,25 @@ class TopromptLLMPrompt:
         return prompt
 
 
+@dataclass
 class ToppromptExample:
-
-    _hard_coded_sents = {
-        'In biblical sources, the Temple is presented as God\'s home. This work of rabbinic interpretations on the Book of Exodus asks the question‚ "Where is God?" in light of the destruction of the Temple.': [
-            "In biblical sources, the Temple is presented as God's home.",
-            'This work of rabbinic interpretations on the Book of Exodus asks the question‚ "Where is God?" in light of the destruction of the Temple.',
-        ],
-        'Why is the shofar called a shofar? What does it mean? This ancient midrash from the land of Israel points out that the word “shofar” is spelled in the same order and the same letters as the Hebrew verb that means “to improve” and thereby suggests its meaning.': [
-           'Why is the shofar called a shofar? What does it mean?',
-           'This ancient midrash from the land of Israel points out that the word “shofar” is spelled in the same order and the same letters as the Hebrew verb that means “to improve” and thereby suggests its meaning.',
-        ],
-    }
-
-    def __init__(self, lang, ref_topic_link: RefTopicLink):
-        self.lang = lang
-        self.topic: Topic = Topic.init(ref_topic_link.toTopic)
-        self.oref = Ref(ref_topic_link.ref)
-        prompt_dict = ref_topic_link.descriptions[lang]
-        self.title = prompt_dict['title']
-        prompt = prompt_dict['prompt']
-        prompt_sents = self._hard_coded_sents.get(prompt, sentencize(prompt))
-        assert len(prompt_sents) == 2
-        self.why = prompt_sents[0]
-        self.what = prompt_sents[1]
-        self.unique_aspect = get_uniqueness_of_source(self.oref, self.topic, self.lang, context_hint=ref_topic_link.context)
-        self.context = get_context(self.oref, context_hint=ref_topic_link.context)
-        logger.trace(f"----EXAMPLE----")
-        logger.trace(f"Ref: {self.oref.normal()}")
-        logger.trace(f"Context hint:\n{ref_topic_link.context}")
-        logger.trace(f"Unique Aspect:\n{self.unique_aspect}")
-        logger.trace(f"Context:\n{self.context}")
+    lang: str
+    topic: str
+    title: str
+    why: str
+    what: str
+    unique_aspect: str
+    context: str
 
     def serialize(self):
-        out = {
-            "topic": self.topic.get_primary_title(self.lang),
+        return {
+            "topic": self.topic,
             "title": self.title,
             "why": self.why,
             "what": self.what,
             "unique_aspect": self.unique_aspect,
             "context": self.context,
         }
-        return out
 
 
 class TopromptExampleGenerator:
@@ -195,53 +170,13 @@ class TopromptExampleGenerator:
         self.lang: str = lang
 
     def get(self) -> List[dict]:
-        # toprompts = self._get_existing_toprompts()
-        toprompts = self._get_training_set()
-        examples = []
-        for itopic, ref_topic_link in enumerate(toprompts):
-            examples += [ToppromptExample(self.lang, ref_topic_link)]
+        examples = self._get_training_set()
         return [example.serialize() for example in examples]
 
-    def _get_training_set(self) -> List[RefTopicLink]:
-        ref_topic_links = []
-        with open("input/topic_prompt_training_set.csv", "r") as fin:
-            cin = csv.DictReader(fin)
-            for row in cin:
-                if len(row["Prompt"].strip()) == 0:
-                    continue
-                if not Topic.init(row["Slug"]):
-                    print(row["Slug"])
-                    continue
-
-                ref_topic_links += [RefTopicLink(
-                    attrs={
-                        "ref": row["Reference"],
-                        "toTopic": row["Slug"],
-                        "descriptions": {
-                            self.lang: {
-                                "prompt": row["Prompt"],
-                                "title": row["Title"],
-                            }
-                        },
-                        "context": row["Context sentence"],
-                    }
-                )]
-        random.shuffle(ref_topic_links)
-        return ref_topic_links
-
-    def _get_existing_toprompts(self):
-        link_set = RefTopicLinkSet(self._get_query_for_ref_topic_link_with_prompt())
-        # make unique by toTopic
-        slug_link_map = {}
-        for link in link_set:
-            slug_link_map[link.toTopic] = link
-        return list(slug_link_map.values())
-
-    def _get_query_for_ref_topic_link_with_prompt(self, slug=None):
-        query = {f"descriptions.{self.lang}": {"$exists": True}}
-        if slug is not None:
-            query['toTopic'] = slug
-        return query
+    def _get_training_set(self) -> List[ToppromptExample]:
+        with open("input/topic_prompt_training_set.json", "r") as fin:
+            raw_examples = json.load(fin)
+            return [ToppromptExample(lang=self.lang, **raw_example) for raw_example in raw_examples]
 
 
 def get_output_parser():
