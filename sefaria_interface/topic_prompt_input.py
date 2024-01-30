@@ -10,7 +10,12 @@ class TopicPromptInput:
     topic: Topic
     sources: List[TopicPromptSource]
 
+    @staticmethod
+    def deserialize(serial) -> 'TopicPromptInput':
+        return TopicPromptInput(**{
+            **serial,
+            "topic": Topic(**serial['topic']),
+            "sources": [TopicPromptSource(**raw_source) for raw_source in serial['sources']]
+        })
 
-if __name__ == '__main__':
-    t = Topic(**{"slug": "yo", "description": {"en": "sup", "he": "yo"}, })
-    print(t.slug)
+
