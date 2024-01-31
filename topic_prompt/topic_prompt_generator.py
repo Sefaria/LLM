@@ -4,7 +4,10 @@ from loguru import logger
 
 from tqdm import tqdm
 from typing import List
+from html_formatter import HTMLFormatter
+from csv_formatter import CSVFormatter
 from sheet_interface import get_topic_and_orefs
+from sheet_sefaria_interface import convert_sheet_to_topic_prompt_input
 from sefaria_interface.topic_prompt_input import TopicPromptInput
 from sefaria_interface.topic_prompt_source import TopicPromptSource
 from sefaria_interface.topic import Topic
@@ -141,6 +144,13 @@ if __name__ == '__main__':
     init_logger()
     sheet_ids = [538093]
     lang = "en"
-    output_toprompts_for_sheet_id_list(lang, sheet_ids)
+    topic, orefs, contexts = get_topic_and_orefs(sheet_ids[0])
+    yo = convert_sheet_to_topic_prompt_input(topic, orefs, contexts)
+    toprompt_options = get_toprompts(yo)
+    formatter = HTMLFormatter(toprompt_options)
+    formatter.save("output/sheet_topic_prompts.html")
+    csv_formatter = CSVFormatter(toprompt_options)
+    csv_formatter.save("output/sheet_topic_prompts.csv")
+
     # output_toprompts_for_validation_set(lang)
     # output_toprompts_for_topic_page(lang, 'peace')

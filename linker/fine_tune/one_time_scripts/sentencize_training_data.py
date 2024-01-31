@@ -1,5 +1,5 @@
 from db_manager import MongoProdigyDBManager
-from util.general import load_mongo_docs
+from util.sefaria_specific import load_mongo_docs
 from util.sentencizer import sentencize
 from tqdm import tqdm
 

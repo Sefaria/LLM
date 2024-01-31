@@ -1,7 +1,7 @@
 from typing import List
 from dataclasses import dataclass
-from topic import Topic
-from topic_prompt_source import TopicPromptSource
+from .topic import Topic
+from .topic_prompt_source import TopicPromptSource
 
 
 @dataclass
@@ -15,7 +15,7 @@ class TopicPromptInput:
         return TopicPromptInput(**{
             **serial,
             "topic": Topic(**serial['topic']),
-            "sources": [TopicPromptSource(**raw_source) for raw_source in serial['sources']]
+            "sources": [TopicPromptSource.deserialize(raw_source) for raw_source in serial['sources']]
         })
 
 

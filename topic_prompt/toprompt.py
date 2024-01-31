@@ -1,13 +1,13 @@
 import dataclasses
 from typing import List
-from sefaria.model.topic import Topic
-from sefaria.model.text import Ref
+from sefaria_interface.topic_prompt_source import TopicPromptSource
+from sefaria_interface.topic import Topic
 
 
 @dataclasses.dataclass
 class Toprompt:
     topic: Topic
-    oref: Ref
+    source: TopicPromptSource
     why: str
     what: str
     title: str
@@ -25,7 +25,7 @@ class TopromptOptions:
 
     def __init__(self, toprompts: List[Toprompt]):
         self.toprompts = toprompts
-        self.oref = toprompts[0].oref
+        self.source = toprompts[0].source
         self.topic = toprompts[0].topic
 
     def get_titles(self):

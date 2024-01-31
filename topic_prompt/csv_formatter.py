@@ -1,9 +1,8 @@
 from typing import Optional, Any, List, Tuple, Dict
 from abstract_formatter import AbstractFormatter
 from toprompt import TopromptOptions, Toprompt
-from util.general import get_raw_ref_text
-from sefaria.model.topic import Topic
 import csv
+from sefaria_interface.topic import Topic
 
 
 class CSVFormatter(AbstractFormatter):
@@ -11,7 +10,7 @@ class CSVFormatter(AbstractFormatter):
     def _get_csv_rows(self):
         rows = []
         for slug, toprompt_data in self._by_topic.items():
-            topic = Topic.init(slug)
+            topic = self._slug_topic_map[slug]
             rows += self._get_csv_rows_for_topic(topic, toprompt_data['toprompt_options'], toprompt_data['gold_standard_prompts'])
         return rows
 
@@ -26,8 +25,8 @@ class CSVFormatter(AbstractFormatter):
     def _get_csv_row(topic, toprompt_options: TopromptOptions, gold_standard_prompt: Toprompt) -> Dict:
         row = {
             "Slug": topic.slug,
-            "Topic": topic.get_primary_title("en"),
-            "Ref": toprompt_options.oref.normal(),
+            "Topic": topic.title['en'],
+            "Ref": toprompt_options.source.ref,
         }
         if gold_standard_prompt:
             row["Gold Standard"] = gold_standard_prompt.prompt_string,

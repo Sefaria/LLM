@@ -6,7 +6,8 @@ from util.openai import count_tokens_openai
 from uniqueness_of_source import get_uniqueness_of_source
 from contextualize import get_context
 from typing import List
-from sefaria.model import *
+from sefaria_interface.topic import Topic
+from sefaria_interface.topic_prompt_source import TopicPromptSource
 from pydantic import BaseModel, Field
 
 from langchain.output_parsers import PydanticOutputParser
@@ -28,12 +29,11 @@ class TopromptLLMOutput(BaseModel):
 
 class TopromptLLMPrompt:
 
-    def __init__(self, lang: str, topic: Topic, oref: Ref, other_orefs: List[Ref], context_hint: str):
+    def __init__(self, lang: str, topic: Topic, source: TopicPromptSource, other_sources: List[TopicPromptSource]):
         self.lang: str = lang
         self.topic: Topic = topic
-        self.oref: Ref = oref
-        self.other_orefs: List[Ref] = other_orefs
-        self.context_hint: str = context_hint
+        self.source: TopicPromptSource = source
+        self.other_sources: List[TopicPromptSource] = other_sources
 
     def get(self) -> BasePromptTemplate:
         example_generator = TopromptExampleGenerator(self.lang)
@@ -103,42 +103,35 @@ class TopromptLLMPrompt:
                 "<input>\n" + self._get_input_prompt_details() + "</input>"
         )
 
-    def _get_book_description(self, index: Index):
-        desc_attr = f"{self.lang}Desc"
-        book_desc = getattr(index, desc_attr, "N/A")
-        if "Yerushalmi" in index.categories:
-            book_desc = book_desc.replace(index.title.replace("Jerusalem Talmud ", ""), index.title)
-        if index.get_primary_category() == "Mishnah":
-            book_desc = book_desc.replace(index.title.replace("Mishnah ", ""), index.title)
-        return book_desc
+    def _get_book_description(self, source: TopicPromptSource):
+        """
+        Modify book description so its more specific for Yerushalmi and Mishnah. This helps the LLM better describe the source
+        :param source:
+        :return:
+        """
+        title = source.book_title[self.lang]
+        book_description = source.book_description.get(self.lang, "N/A")
+        if "Yerushalmi" in source.categories:
+            book_description = book_description.replace(title.replace("Jerusalem Talmud ", ""), title)
+        if source.categories[0] == "Mishnah":
+            book_description = book_description.replace(title.replace("Mishnah ", ""), title)
+        return book_description
 
     def _get_input_prompt_details(self) -> str:
-        index = self.oref.index
-        book_desc = self._get_book_description(index)
-        composition_time_period = index.composition_time_period()
-        pub_year = composition_time_period.period_string(self.lang) if composition_time_period else "N/A"
-        try:
-            author_name = Topic.init(index.authors[0]).get_primary_title(self.lang) if len(index.authors) > 0 else "N/A"
-        except AttributeError:
-            author_name = "N/A"
-        category = index.get_primary_category()
-        context = get_context(self.oref, context_hint=self.context_hint)
-        unique_aspect = get_uniqueness_of_source(self.oref, self.topic, self.lang, other_orefs=self.other_orefs,
-                                                 context_hint=self.context_hint)
-        # print(f"Unique aspect for {self.oref.normal()}\n"
-        #      f"{unique_aspect}")
-        prompt = f"<topic>{self.topic.get_primary_title('en')}</topic>\n" \
-                 f"<author>{author_name}</author>\n" \
-                 f"<publication_year>{pub_year}</publication_year>\n" \
+        book_desc = self._get_book_description(self.source)
+        context = get_context(self.source)
+        unique_aspect = get_uniqueness_of_source(self.source, self.topic, self.other_sources)
+        prompt = f"<topic>{self.topic.title['en']}</topic>\n" \
+                 f"<author>{self.source.author_name}</author>\n" \
+                 f"<publication_year>{self.source.comp_date}</publication_year>\n" \
                  f"<unique_aspect>{unique_aspect}</unique_aspect>\n" \
                  f"<context>{context}</context>"
 
         if True:  # category not in {"Talmud", "Midrash", "Tanakh"}:
             prompt += f"\n<book_description>{book_desc}</book_description>"
-        if category in {"Tanakh"}:
+        if self.source.commentary:
             from summarize_commentary.summarize_commentary import summarize_commentary
-            commentary_summary = summarize_commentary(self.oref.normal(), self.topic.slug, company='anthropic')
-            # print("commentary\n\n", commentary_summary)
+            commentary_summary = summarize_commentary(self.source, self.topic, company='anthropic')
             prompt += f"\n<commentary>{commentary_summary}</commentary>"
         return prompt
 

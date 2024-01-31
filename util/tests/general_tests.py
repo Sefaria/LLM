@@ -1,5 +1,5 @@
 import pytest
-import util.general as g
+import util.sefaria_specific as g
 
 
 @pytest.mark.parametrize(('orig', 'new', 'expected_removal_list'), [
