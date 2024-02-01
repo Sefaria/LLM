@@ -3,8 +3,8 @@ from dataclasses import dataclass
 import random
 
 from util.openai import count_tokens_openai
-from uniqueness_of_source import get_uniqueness_of_source
-from contextualize import get_context
+from topic_prompt.uniqueness_of_source import get_uniqueness_of_source
+from topic_prompt.contextualize import get_context
 from typing import List
 from sefaria_interface.topic import Topic
 from sefaria_interface.topic_prompt_source import TopicPromptSource

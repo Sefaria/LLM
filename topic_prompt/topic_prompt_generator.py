@@ -3,13 +3,12 @@ from loguru import logger
 
 from tqdm import tqdm
 from typing import List
-from sheet_interface import get_topic_and_orefs
 from sefaria_interface.topic_prompt_input import TopicPromptInput
 from sefaria_interface.topic_prompt_source import TopicPromptSource
 from sefaria_interface.topic import Topic
-from toprompt_llm_prompt import TopromptLLMPrompt, get_output_parser
-from toprompt import Toprompt, TopromptOptions
-from differentiate_writing import repeated_phrase
+from topic_prompt.toprompt_llm_prompt import TopromptLLMPrompt, get_output_parser
+from topic_prompt.toprompt import Toprompt, TopromptOptions
+from topic_prompt.differentiate_writing import repeated_phrase
 
 import langchain
 from langchain.cache import SQLiteCache
