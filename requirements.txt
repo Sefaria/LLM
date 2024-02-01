@@ -5,3 +5,4 @@ typer
 pydantic
 loguru
 tqdm
+celery[redis]

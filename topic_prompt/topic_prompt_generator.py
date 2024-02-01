@@ -1,23 +1,19 @@
-import csv
 import re
 from loguru import logger
 
 from tqdm import tqdm
 from typing import List
-from html_formatter import HTMLFormatter
-from csv_formatter import CSVFormatter
 from sheet_interface import get_topic_and_orefs
-from sheet_sefaria_interface import convert_sheet_to_topic_prompt_input
 from sefaria_interface.topic_prompt_input import TopicPromptInput
 from sefaria_interface.topic_prompt_source import TopicPromptSource
 from sefaria_interface.topic import Topic
 from toprompt_llm_prompt import TopromptLLMPrompt, get_output_parser
 from toprompt import Toprompt, TopromptOptions
-from differentiate_writing import repeated_phrase, remove_dependent_clause
+from differentiate_writing import repeated_phrase
 
 import langchain
 from langchain.cache import SQLiteCache
-from langchain.chat_models import ChatOpenAI, ChatAnthropic
+from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
@@ -88,20 +84,11 @@ def _improve_title(curr_responses, curr_title):
     return new_title
 
 
-def _get_topprompts_for_sheet_id(lang, sheet_id: int) -> List[TopromptOptions]:
-    topic, orefs, context_hints = get_topic_and_orefs(sheet_id)
-    toprompt_options = []
-    for oref, context_hint in tqdm(zip(orefs, context_hints), total=len(orefs), desc=f"get toprompts for sheet {topic.get_primary_title('en')}"):
-        other_orefs = [r for r in orefs if r.normal() != oref.normal()]
-        toprompt_options += [_get_toprompt_options(lang, topic, oref, other_orefs, context_hint=context_hint, num_tries=1)]
-    toprompt_options = differentiate_prompts(toprompt_options, orefs, lang, topic)
-    return toprompt_options
-
-
 def differentiate_prompts(toprompt_options: List[TopromptOptions], tp_input: TopicPromptInput):
     """
     Going to assume we're just focusing on the first option of each toprompt_option
     :param toprompt_options:
+    :param tp_input:
     :return:
     """
     differentiated = []
@@ -116,14 +103,13 @@ def differentiate_prompts(toprompt_options: List[TopromptOptions], tp_input: Top
         elif phrase not in seen_phrases:
             seen_phrases.add(phrase)
         else:
-            diff_prompt_option = _get_toprompt_options(lang, tp_input.topic, source, other_sources, num_tries=1, phrase_to_avoid=phrase)
+            diff_prompt_option = _get_toprompt_options(tp_input.lang, tp_input.topic, source, other_sources, num_tries=1, phrase_to_avoid=phrase)
             toprompt_option = diff_prompt_option
         differentiated += [toprompt_option]
     return differentiated
 
 
-def get_toprompts(serial_input: dict):
-    tp_input = TopicPromptInput.deserialize(serial_input)
+def get_toprompts(tp_input: TopicPromptInput):
     toprompt_options = []
     for source in tqdm(tp_input.sources, desc=f"get toprompts for serial input"):
         other_sources = [other_source for other_source in tp_input.sources if other_source.ref != source.ref]
@@ -132,25 +118,8 @@ def get_toprompts(serial_input: dict):
     return toprompt_options
 
 
-
 def init_logger():
-    with open("yo.log", "w") as fin:
+    with open("out.log", "w") as fin:
         pass
     logger.remove(0)
-    logger.add("yo.log", level="TRACE", format="{message}")
-
-
-if __name__ == '__main__':
-    init_logger()
-    sheet_ids = [538093]
-    lang = "en"
-    topic, orefs, contexts = get_topic_and_orefs(sheet_ids[0])
-    yo = convert_sheet_to_topic_prompt_input(topic, orefs, contexts)
-    toprompt_options = get_toprompts(yo)
-    formatter = HTMLFormatter(toprompt_options)
-    formatter.save("output/sheet_topic_prompts.html")
-    csv_formatter = CSVFormatter(toprompt_options)
-    csv_formatter.save("output/sheet_topic_prompts.csv")
-
-    # output_toprompts_for_validation_set(lang)
-    # output_toprompts_for_topic_page(lang, 'peace')
+    logger.add("out.log", level="TRACE", format="{message}")
