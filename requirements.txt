@@ -7,3 +7,4 @@ loguru
 tqdm
 celery[redis]
 diff-match-patch
+dnspython
