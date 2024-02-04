@@ -3,7 +3,7 @@ from topic_prompt.topic_prompt_generator import get_toprompts
 from sefaria_interface.topic_prompt_input import TopicPromptInput
 
 app = Celery('llm')
-app.config_from_object('celery_config')
+app.config_from_object('celery.config')
 
 
 @app.task()
