@@ -20,6 +20,14 @@ class Toprompt:
     def prompt(self):
         return f"{self.why} {self.what}"
 
+    def serialize(self):
+        return {
+            "title": self.title,
+            "prompt": self.prompt,
+            "slug": self.topic.slug,
+            "ref": self.source.ref,
+        }
+
 
 class TopromptOptions:
 
