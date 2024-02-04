@@ -29,4 +29,4 @@ if sentinel_url:
     broker_transport_options = {}
 else:
     broker_url = add_db_num_to_url(f"{redis_url}:{redis_port}", broker_db_num)
-    result_backend = add_db_num_to_url(f"{redis_url}:{redis_port}", broker_db_num)
+    result_backend = add_db_num_to_url(f"{redis_url}:{redis_port}", result_backend_db_num)
