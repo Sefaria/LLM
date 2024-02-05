@@ -1,7 +1,7 @@
 import django
 django.setup()
 import typer
-import json
+import json, csv
 from sefaria.model import *
 from sefaria.utils.hebrew import strip_cantillation, sanitize
 import random
@@ -21,9 +21,24 @@ masechtot_ordered = ["Berakhot", "Shabbat", "Eruvin", "Pesachim", "Rosh Hashanah
                           "Zevachim", "Menachot", "Chullin", "Bekhorot", "Arakhin", "Temurah", "Keritot", "Meilah",
                           "Tamid", "Niddah"]
 
-task_desciption = 'Punctuate this Talmudic passage based on the commentary I provide. Extract the relevant punctuation marks (, : . ? ! "") from the commentary and put them in the original. Output only the original Aramaic passage with punctuation without "cantilation" or "nikud".\n'
-last_masechet = "Sotah"
+task_desciption = 'Punctuate this Talmudic passage based on the commentary I provide. Extract the relevant punctuation marks (, : . ? ! "" ; —) from the commentary and put them in the original. Output only the original Aramaic passage with punctuation without "cantilation" or "nikud".\n'
+last_masechet = "Chagigah"
 
+def read_csv(file_path):
+    csv_list = []
+    with open(file_path, 'r', newline='') as csvfile:
+        csv_reader = csv.reader(csvfile)
+        csv_list = list(csv_reader)
+
+
+    data = []
+    keys = csv_list[0]
+    for row in csv_list[1:]:
+        new_dict = {}
+        for key, row_value in zip(keys, row):
+            new_dict[key] = row_value
+        data.append(new_dict)
+    return data
 
 def create_new_context(task_desciption, non_punctuated, steinsaltz, punctuated):
     return (
@@ -32,7 +47,33 @@ def create_new_context(task_desciption, non_punctuated, steinsaltz, punctuated):
                   {"role": "assistant", "content": punctuated}]}
     )
 
-def create_data(output_training_filename: str, output_validation_filename: str):
+def parse_manual_data(csv_filename="horayot_inferences_vocalized_for_train.csv"):
+    rows = read_csv(csv_filename)
+    samples = []
+    for row in rows:
+        if row["Inference Vocalized Corrected"] != row["Inference Vocalized"]:
+            segment_ref = Ref(row['Ref'])
+            non_punctuated = segment_ref.text('he', "William Davidson Edition - Aramaic").text
+            punctuated = strip_cantillation(row["Inference Vocalized Corrected"], strip_vowels=True)
+            steinsaltz = Ref("Steinsaltz on " + segment_ref.normal()).text('he').text
+            samples.append(create_new_context(task_desciption, non_punctuated, steinsaltz, punctuated))
+    return samples
+
+
+def merge_and_delete(list1, list2):
+    # Calculate the number of elements to delete from list1
+    delete_count = len(list2)
+
+    # Randomly choose elements to delete from list1
+    elements_to_delete = random.sample(range(len(list1)), delete_count)
+    elements_to_delete.sort(reverse=True)
+
+    # Merge list2 into list1
+    for index in elements_to_delete:
+        del list1[index]
+    list1.extend(list2)
+
+def create_data(output_training_filename: str, output_validation_filename: str, manual_data_csv_filename: str):
     all_samples = []
     punctuationre = re.compile(
         r'[\.\!\?\:\,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))|—\s')
@@ -50,6 +91,10 @@ def create_data(output_training_filename: str, output_validation_filename: str):
     #get only limited num of samples
     samples_trimmed = []
     samples_trimmed = random.sample(all_samples, sample_size)
+
+    if (manual_data_csv_filename):
+        manual_samples = parse_manual_data(manual_data_csv_filename)
+        merge_and_delete(samples_trimmed, manual_samples)
 
     # Calculate the number of items for training
     num_train = int(len(samples_trimmed) * train_proportion)
@@ -74,4 +119,6 @@ def create_data(output_training_filename: str, output_validation_filename: str):
     print("VALIDATION SAMPLES: " + str(len(validation_samples)))
 
 if __name__ == '__main__':
-    typer.run(create_data)
+    # typer.run(create_data)
+    # create_data("output/gpt_punctuation_training.jsonl", "output/gpt_punctuation_validation.jsonl")
+    parse_manual_data()
