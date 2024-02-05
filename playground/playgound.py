@@ -1,74 +1,55 @@
-import django
-django.setup()
-import os
-import openai
-import math
+import optuna
 
 
-# from langchain.chat_models import ChatOpenAI
-# import openai
-# import re
-# from sefaria.helper.normalization import NormalizerComposer, RegexNormalizer, AbstractNormalizer
-# from util.general import get_removal_list
+my_array = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5]
 
-# api_key = os.getenv("OPENAI_API_KEY")
-from langchain.embeddings import OllamaEmbeddings
-from langchain.evaluation import load_evaluator
+def objective(trial):
+    # Suggest a permutation of indices as the trial
+    permutation = [trial.suggest_int(f'index_{i}', 0, len(my_array)-1) for i in range(len(my_array))]
+    # n = len(my_array)  # You can adjust this value as needed
+    # lower_bound = 0
+    # upper_bound = len(my_array)-1
 
+    # Suggest n unique integers using suggest_int in a loop
+    # unique_integers = []
 
-def dot_product(vector1, vector2):
-    return sum(a * b for a, b in zip(vector1, vector2))
-
-def magnitude(vector):
-    return math.sqrt(sum(val**2 for val in vector))
-
-def cosine_similarity(vector1, vector2):
-    dot_prod = dot_product(vector1, vector2)
-    mag1 = magnitude(vector1)
-    mag2 = magnitude(vector2)
-
-    if mag1 == 0 or mag2 == 0:
-        return 0  # Avoid division by zero
-
-    return dot_prod / (mag1 * mag2)
-def euclidean_distance(vector1, vector2):
-    if len(vector1) != len(vector2):
-        raise ValueError("Vectors must have the same length")
-
-    squared_distance = sum((x - y) ** 2 for x, y in zip(vector1, vector2))
-    distance = math.sqrt(squared_distance)
-    return distance
+    # while len(unique_integers) < n:
+    #     unique_int = trial.suggest_int(f'index_{len(unique_integers)}', lower_bound, upper_bound)
+    #     if unique_int not in unique_integers:
+    #         unique_integers.append(unique_int)
 
 
-# Example usage:
-vector1 = [1, 2, 3]
-vector2 = [4, 5, 6]
-distance = euclidean_distance(vector1, vector2)
-print(f"Euclidean Distance: {distance}")
+    # # Suggest one of the unique integers using suggest_categorical
+    # selected_integers = []
+    # for i in range(0, upper_bound+1):
+    #     selected_integers += [trial.suggest_categorical(f'index_{i}', indexes_to_choose-set(selected_integers))]
+    #
+    # permutation = selected_integers
+    # Use the suggested permutation to sort the array
+    sorted_array = [my_array[i] for i in permutation]
 
-# Example usage:
+    if len(permutation) != len(set(permutation)):
+        score = 99999999
+    else:
+        # Evaluate the quality of the sorting (lower is better, as we want ascending order)
+        score = sum(sorted_array[i] > sorted_array[i + 1] for i in range(len(sorted_array) - 1))
 
+    return score
 
-if __name__ == '__main__':
-    print("Hi")
-    evaluator = load_evaluator("pairwise_embedding_distance")
+if __name__ == "__main__":
+    # Create a study object and optimize the objective function
+    study = optuna.create_study(direction='minimize')
+    study.optimize(objective, n_trials=1000)
 
-    ollama_emb = OllamaEmbeddings(
-        model="neural-chat",
-    )
-    a = ollama_emb.embed_query(
-        "hi"
-    )
-    b = ollama_emb.embed_query(
-        "We all live on planet:"
-    )
-    d = euclidean_distance(a, b)
-    # a = "the company that created the iphone is:"
-    # b = "a crisp and juicy fruit with a smooth, thin skin that can range in color from shades of red and green to yellow is:"
-    # d = evaluator.evaluate_string_pairs(
-    #     prediction=a, prediction_b=b
-    # )
-    print(d)
+    # Get the best trial
+    best_trial = study.best_trial.params
 
+    # Use the best trial to get the permutation indices
+    permutation = [best_trial[f'index_{i}'] for i in range(len(my_array))]
 
-    print("bye")
+    # Use the best trial to sort the array
+    sorted_array = [my_array[i] for i in permutation]
+
+    # Print the results
+    print("Original array:", my_array)
+    print("Sorted array:", sorted_array)
