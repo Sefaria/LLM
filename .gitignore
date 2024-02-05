@@ -163,3 +163,4 @@ project.lock
 output
 
 .langchain.db
+.DS_Store
