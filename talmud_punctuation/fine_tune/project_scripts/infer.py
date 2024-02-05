@@ -18,8 +18,9 @@ api_key = os.getenv("OPENAI_API_KEY")
 
 seed_value = 245
 random.seed(seed_value)
-model_name = "ft:gpt-3.5-turbo-0613:sefaria:he-punct:8ClpgehI"
-system_message = "Punctuate this Talmudic passage based on the commentary I provide. Extract the relevant punctuation marks (, : . ? ! \\\"\\\" -) from the commentary and put them in the original. Output only the original Aramaic passage with punctuation without \\\"cantilation\\\" or \\\"nikud\\\".\\n"
+# model_name = "ft:gpt-3.5-turbo-0613:sefaria:he-punct:8ClpgehI"
+model_name = "ft:gpt-3.5-turbo-0613:sefaria:he-punct:8ottZMB1"
+system_message = 'Punctuate this Talmudic passage based on the commentary I provide. Extract the relevant punctuation marks (, : . ? ! \"\" ; —) from the commentary and put them in the original. Output only the original Aramaic passage with punctuation without \"cantilation\" or \"nikud\".\n"'
 def get_response_openai(original_passage, commentary):
     user_message = "Original Talmudic Passage:\n" + original_passage + '\n' + "Commentary:\n" + commentary
     response = openai.ChatCompletion.create(
@@ -240,19 +241,19 @@ if __name__ == '__main__':
     punctuationre = re.compile(
         r'[\.\!\?\:\,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))|—\s')
 
-    # ref_text_pairs = [(seg.tref, seg.text('he', "William Davidson Edition - Aramaic").text,  Ref("Steinsaltz on " + seg.tref).text('he').text) for seg in Ref("Horayot").all_segment_refs()]
-    #
-    # for pair in ref_text_pairs:
-    #     # print(pair[2])
-    #     inference = get_response_openai(pair[1], pair[2])
-    #     inferences.append((pair[0], pair[1], inference))
-    #     # print(inference)
-    #     no_punct = punctuationre.sub('', inference)
-    #     if len(punctuationre.sub('', inference).split()) < len(pair[1].split()):
-    #         print("omission!")
-    #         print(pair[0])
-    #         # print(get_response_openai_try_again(pair[1], pair[2], inference))
-    # write_tuples_to_csv(inferences, "horayot_inferences.csv")
+    ref_text_pairs = [(seg.tref, seg.text('he', "William Davidson Edition - Aramaic").text,  Ref("Steinsaltz on " + seg.tref).text('he').text) for seg in Ref("Horayot").all_segment_refs()]
+
+    for pair in ref_text_pairs:
+        # print(pair[2])
+        inference = get_response_openai(pair[1], pair[2])
+        inferences.append((pair[0], pair[1], inference))
+        # print(inference)
+        no_punct = punctuationre.sub('', inference)
+        if len(punctuationre.sub('', inference).split()) < len(pair[1].split()):
+            print("omission!")
+            print(pair[0])
+            # print(get_response_openai_try_again(pair[1], pair[2], inference))
+    write_tuples_to_csv(inferences, "horayot_inferences.csv")
 
     tuples = read_csv("horayot_inferences.csv")[1:]
     ref_original_punctuated_vocalised = []
