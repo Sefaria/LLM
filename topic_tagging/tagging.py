@@ -39,9 +39,34 @@ class LLMOracle:
         embeddings = OpenAIEmbeddings(openai_api_key=api_key, request_timeout=120)
         query_result = embeddings.embed_query(text)
         return query_result
+class JSONLReader:
+        def __init__(self, file_path):
+            self.file_path = file_path
+            self.last_modification_time = 0
+            self.data = []
+
+        def load_data(self):
+            try:
+                current_modification_time = os.path.getmtime(self.file_path)
+                if current_modification_time > self.last_modification_time:
+                    # File has been modified since last read, reload data
+                    with open(self.file_path, 'r') as file:
+                        self.data = [json.loads(line) for line in file]
+                    self.last_modification_time = current_modification_time
+                    print("Data reloaded from file.")
+                else:
+                    print("Using cached data.")
+            except FileNotFoundError:
+                print(f"File {self.file_path} not found.")
+                self.data = []
+
+        def get_data(self):
+            self.load_data()
+            return self.data
 class TopicsData:
     def __init__(self, data_jsonl_filename):
         self.data_jsonl_filename = data_jsonl_filename
+        self.reader = JSONLReader('your_file.jsonl')
         self._check_file_existence()
 
     def _check_file_existence(self):
@@ -116,6 +141,22 @@ class TopicsData:
             if embedding:
                 result_dict[slug] = embedding
         return result_dict
+
+    def get_all_slugs(self):
+        data_list_of_dicts = self._read_jsonl_into_list_of_dicts()
+        slugs = [topic["slug"] for topic in data_list_of_dicts]
+        return slugs
+    def rename_slug(self, old, new):
+        data_list_of_dicts = self._read_jsonl_into_list_of_dicts()
+        topic_dict = self._get_dict_by_key_value(data_list_of_dicts, "slug", old)
+        topic_dict["slug"] = new
+        self._write_list_of_dicts_to_jsonl(data_list_of_dicts)
+    def delete_slugs(self, slugs_collection):
+        data_list_of_dicts = self._read_jsonl_into_list_of_dicts()
+        filtered_data = [topic for topic in data_list_of_dicts if topic["slug"] not in slugs_collection]
+        self._write_list_of_dicts_to_jsonl(filtered_data)
+
+
 
 
 class TopicsEmbedder:
@@ -214,6 +255,7 @@ class TopicsEmbedder:
         if self.data_handler.get_description(slug):
             self.generate_embedding(slug)
         else:
+            print(f"embedding new slug: {slug}")
             self.generate_description_and_embedding(slug)
 
 
@@ -374,13 +416,13 @@ class TopicTagger:
         return concatenated_string
 
     def tag_ref(self, tref):
-        english_text = Ref(tref).text(lang="en").text
-        english_text = self._concatenate_strings(english_text)
+        english_text = Ref(tref).text(lang="en").as_string()
+        # english_text = self._concatenate_strings(english_text)
         english_text = normalizer.normalize(english_text)
         if english_text == '':
             english_text = self._translate_ref(tref)
         return self.tag_segment(english_text)
-    def tag_segment(self, segment_text, number_of_rejects_till_break=10):
+    def tag_segment(self, segment_text, number_of_rejects_till_break=3):
         model_topics = self._get_inferred_topics(self.infer_topics_template, segment_text)
         verified_slugs = set()
         rejected_slugs = set()
@@ -443,9 +485,14 @@ def embed_toc():
     oracle = LLMOracle()
     embedder = TopicsEmbedder(data_handler, oracle)
     toc = library.get_topic_toc_json_recursive()
-    all_slugs = get_values_by_key(toc, "slug")
+    all_toc_slugs = get_values_by_key(toc, "slug")
+    all_existing_slugs = data_handler.get_all_slugs()
+    slugs_to_embed = list(set(all_toc_slugs) - set(all_existing_slugs))
+    obsolete_slugs = list(set(all_existing_slugs) - set(all_toc_slugs))
+    data_handler.delete_slugs(obsolete_slugs)
 
-    for slug in tqdm(all_slugs, desc="Embedding Slugs", unit="slug"):
+
+    for slug in tqdm(slugs_to_embed, desc="Embedding Slugs", unit="slug"):
         try:
             embedder.generate_description_and_embedding_idempotent(slug)
         except Exception as e:
@@ -517,20 +564,20 @@ def tag_sample_refs(source_csv="refs_sample.csv", dest_csv="sample_refs_tagged.c
 def make_stream_file_for_prodigy(source_csv_file="sample_refs_tagged.csv", target_jsonl_file="tagging_data_for_prodigy.jsonl"):
     file_to_list_of_tuples = lambda path: [(row[0], row[2].
                                             replace("slichot", "selichot").
-                                            replace("tablets","the-tablets").
+                                            replace("the-the-tablets","the-tablets").
                                             replace("bezalel-ben-abraham-ashkenazi", "betzalel-ben-abraham-ashkenazi").
                                             replace("judah-hehasid", "yehuda-hechasid").
-                                            replace("alshikh", "moses-alshikh").
+                                            replace("moses-moses-alshikh", "moses-alshikh").
                                             replace("moses-and-the-the-tablets", "moses-and-the-tablets").
                                             replace("chanukah","chanukkah").
                                             replace("moshe-cordovero","moses-cordovero").
                                             rstrip().split(", ")) for row in csv.reader(open(path, 'r')) if len(row) >= 3][1:]
     def create_text_dict(ref, slugs_list):
-        titles_list = [TopicSet({"slug": slug}).array()[0].get_primary_title() for slug in slugs_list]
+        titles_list = [print(slug) or TopicSet({"slug": slug}).array()[0].get_primary_title() for slug in slugs_list]
         topic_dicts = []
         for slug, title in zip(slugs_list, titles_list):
             topic_dicts.append({"slug":slug, "title":title})
-        return {"ref": ref, "hebrew_text": Ref(ref).text(lang="he").as_string(), "english_text":Ref(ref).text(lang="en").as_string(), "topics": topic_dicts}
+        return {"ref": ref, "hebrew_text": normalizer.normalize(Ref(ref).text(lang="he").as_string()), "english_text":normalizer.normalize(Ref(ref).text(lang="en").as_string()), "topics": topic_dicts}
 
     result = []
     ref_X_slugs = file_to_list_of_tuples(source_csv_file)
@@ -541,20 +588,48 @@ def make_stream_file_for_prodigy(source_csv_file="sample_refs_tagged.csv", targe
             json_line = json.dumps(item, ensure_ascii=False)
             jsonl_file.write(json_line + '\n')
 
+def make_labels_files_for_prodigy(target_files_prefix="prodigy_labels/"):
+
+    toc = library.get_topic_toc_json_recursive()
+    for super_category in toc:
+        category_slugs = get_values_by_key(super_category, "slug")
+
+        with open(target_files_prefix + super_category["slug"] + ".csv", mode="w") as file:
+            writer = csv.writer(file)
+            for slug in category_slugs:
+                title = TopicSet({"slug":slug}).array()[0].get_primary_title()
+                # print(title)
+                writer.writerow([slug, title])
+
+
 
 if __name__ == '__main__':
     print("Hi")
 
 
-    # tree = generate_html_tree(toc)
-    # create_html_page(tree)
-    make_stream_file_for_prodigy()
+
+    # make_stream_file_for_prodigy()
+    make_labels_files_for_prodigy()
+    # data_handler = TopicsData("embedding_all_toc.jsonl")
+    # all_slugs = data_handler.get_all_slugs()
+    # for slug in all_slugs:
+    #     try:
+    #         t = TopicSet({"slug":slug})
+    #     except Exception as e:
+    #         print(f"problem with slug: {slug}, Exception: {e}")
+
+
+    # embed_toc()
+    # tag_sample_refs()
+
+
+    # data_handler = TopicsData("embedding_all_toc.jsonl")
+    # data_handler.rename_slug("moses-moses-alshikh", "moses-alshikh")
+    # oracle = LLMOracle()
+    # embedder = TopicsEmbedder(data_handler, oracle)
+    # embedder.generate_description_and_embedding("body2")
 
 
 
-
-
-
-   # tag_sample_refs()
 
     print("bye")

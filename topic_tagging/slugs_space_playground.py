@@ -179,21 +179,189 @@ class TopicsVectorSpace:
         return sorted_parashiot_dict[parasha][:k]
 
 
-
+slugs = [
+'elul',
+'teshuvah',
+'selichot',
+'shofar',
+'high-holidays',
+'rosh-hashanah',
+'yom-kippur',
+'sukkot',
+'simchat-torah',
+'the-four-species',
+'rain',
+'pomegranates',
+'bar-mitzvah',
+'bat-mitzvah',
+'circumcision',
+'marriage',
+'sheva-brachot',
+'mikvah',
+'honoring-parents',
+'health',
+'mother',
+'friendship',
+'nature',
+'prayer',
+'tzitzit',
+'tefillin',
+'challah',
+'rosh-chodesh',
+'ketubah',
+'kashrut',
+'torah',
+'shema',
+'strength',
+'13-principles-of-faith',
+'creation',
+'the-tree-of-knowledge',
+'gan-eden',
+'honi-hamagel',
+'sigd',
+'noah',
+'tower-of-babel',
+'rainbows',
+'abraham',
+'covenants',
+'sarah',
+'binding-of-isaac',
+'dreams',
+'joseph',
+'judah',
+'chanukkah',
+'light',
+'menorah',
+'hasmoneans',
+'Maccabees',
+'moses',
+'the-song-of-the-sea',
+'the-ten-commandments',
+'the-tablets',
+'the-ten-plagues',
+'yitro',
+'justice',
+'mishkan',
+'tenth-of-tevet',
+'tu-bshvat',
+'amalek',
+'leap-year',
+'joy',
+'purim',
+'the-scroll-of-esther',
+'mishloach-manot',
+'esther',
+'elijah',
+'pirkei-avot',
+'seven-species',
+'converts',
+'rabbi-meir',
+'bar-kochba',
+'shimon-bar-yochai',
+'the-17th-of-tammuz',
+'ushpizin',
+'hoshana raba',
+'shemini-atzeret',
+'song-of-songs',
+'ecclesiastes',
+'tzom-gedaliah',
+'taanit esther',
+'mordechai',
+'lashon-hara',
+'isaac',
+'jacob',
+'rachel',
+'leah',
+'noah and the ark',
+'hallel',
+'maarat-hamachpelah',
+'tishrei',
+'chesvan',
+'kislev',
+'tevet',
+'shevat',
+'adar',
+'nissan',
+'iyar',
+'sivan',
+'tamuz',
+'av',
+'birkat-hamazon',
+'tashlich',
+'hatarat-nedarim',
+'shabbat-candles',
+'king-david',
+'king-solomon',
+'conversion',
+'yahrzeit',
+'mourning',
+'sacrifices',
+'kiddush',
+'havdalah',
+'blessings',
+'birkat-kohanim',
+'high-priests',
+'acacia-trees',
+'lecha-dodi',
+'haftarah',
+'motzi המוציא',
+'mishnah',
+'talmud',
+'midrash',
+'tosafot',
+'violence',
+'peace',
+'priestly-garments',
+'prophecy',
+'shemoneh-esrei',
+'leadership',
+'visiting-the-sick',
+'adam-and-eve',
+'dinah',
+'shacharit',
+'plague-of-blood',
+'plague-of-the-firstborn',
+'splitting-of-the-red-sea',
+'tallit',
+'beit-hillel',
+'beit shamai',
+'al-chet',
+'aaron',
+'mezuzah',
+'forgiveness-(מחילה)',
+'kol-nidre',
+'the-four-parshiot',
+'bezalel',
+'divine-names',
+'ishmael',
+'oils1',
+'pidyon-haben',
+]
 
 if __name__ == '__main__':
     from pprint import pprint
+    import csv
     print("Hi")
     data_handler = TopicsData("embedding_all_toc.jsonl")
     vector_space = TopicsVectorSpace(data_handler)
+    vector_space.get_nearest_k_slugs("rosh-hashanah", 10)
+    slugXneighbours = []
+    for slug in slugs:
+        try:
+            neighbours = vector_space.get_nearest_k_slugs(slug, 10)
+            neighbours = ', '.join(neighbours)
+            slugXneighbours += [(slug, neighbours)]
+            # pprint(vector_space.get_nearest_k_slugs(slugs, 10))
+        except Exception as e:
+            print(slug)
+    with open("slugs_and_neighbours.csv", 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
 
-    parasha = "parashat-vayechi"
+        # Write the header if needed
+        # csv_writer.writerow(['ID', 'Name', 'Age'])
+        csv_writer.writerows(slugXneighbours)
 
 
-    tf_idf_neighbors = vector_space.get_k_nearest_tf_idf_slugs_for_parasha(parasha, 10)
-    naive_neighbors = vector_space.get_nearest_k_slugs(parasha, 10,
-                                                        such_that_predicate=lambda x: not x.startswith("parashat-"))
-    pprint(naive_neighbors)
-    pprint(tf_idf_neighbors)
+
 
 
