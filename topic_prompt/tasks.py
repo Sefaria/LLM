@@ -1,13 +1,9 @@
-from typing import List
-from celery import Celery
+from celery import shared_task
 from topic_prompt.topic_prompt_generator import get_toprompts
 from sefaria_interface.topic_prompt_input import TopicPromptInput
 
-app = Celery('llm')
-app.config_from_object('celery.config')
 
-
-@app.task()
+@shared_task(name='llm.generate_topic_prompts')
 def generate_topic_prompts(raw_topic_prompt_input: dict) -> dict:
     tp_input = TopicPromptInput.create(raw_topic_prompt_input)
     toprompt_options_list = get_toprompts(tp_input)
