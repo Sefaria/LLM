@@ -12,11 +12,13 @@ class AbstractMessage:
     ROLE_MAP = {
         LLMCompany.ANTHROPIC: {
             "human": "user",
-            "system": "assistant",
+            "system": "system",
+            "ai": "assistant",
         },
         LLMCompany.OPENAI: {
             "human": "user",
             "system": "system",
+            "ai": "assistant",
         }
     }
 
@@ -41,15 +43,13 @@ class HumanMessage(AbstractMessage):
         super().__init__("human", content)
 
 
+class AIMessage(AbstractMessage):
+
+    def __init__(self, content: str):
+        super().__init__("ai", content)
+
+
 class SystemMessage(AbstractMessage):
 
     def __init__(self, content):
         super().__init__("system", content)
-
-
-class ModelResponse:
-
-    def __init__(self, content):
-        self.content = content
-
-

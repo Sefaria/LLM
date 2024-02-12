@@ -2,7 +2,7 @@ from typing import List
 from abc import ABC, abstractmethod
 from anthropic import Anthropic
 from openai import OpenAI
-from basic_langchain.schema import ModelResponse, AbstractMessage, LLMCompany
+from basic_langchain.schema import AIMessage, AbstractMessage, LLMCompany
 
 
 class AbstractChatModel(ABC):
@@ -17,7 +17,7 @@ class AbstractChatModel(ABC):
         return [m.serialize(self.COMPANY) for m in messages]
 
     @abstractmethod
-    def __call__(self, messages: List[AbstractMessage]) -> ModelResponse:
+    def __call__(self, messages: List[AbstractMessage]) -> AIMessage:
         raise NotImplementedError
 
 
@@ -29,14 +29,14 @@ class ChatOpenAI(AbstractChatModel):
         super().__init__(model, temperature)
         self.client = OpenAI()
 
-    def __call__(self, messages: List[AbstractMessage]) -> ModelResponse:
+    def __call__(self, messages: List[AbstractMessage]) -> AIMessage:
         response = self.client.chat.completions.create(
             model=self.model,
             temperature=self.temperature,
             messages=self._serialize_messages(messages)
         )
         text = response.choices[0].message.content
-        return ModelResponse(text)
+        return AIMessage(text)
 
 
 class ChatAnthropic(AbstractChatModel):
@@ -48,7 +48,7 @@ class ChatAnthropic(AbstractChatModel):
         self.client = Anthropic()
         self.max_tokens = max_tokens
 
-    def __call__(self, messages: List[AbstractMessage]) -> ModelResponse:
+    def __call__(self, messages: List[AbstractMessage]) -> AIMessage:
         system = "You are a helpful AI."
         if len(messages) > 0 and messages[0].role == "system":
             # claude wants system messages as a kwarg
@@ -62,4 +62,4 @@ class ChatAnthropic(AbstractChatModel):
             messages=self._serialize_messages(messages)
         )
         text = response.content[0].text
-        return ModelResponse(text)
+        return AIMessage(text)
