@@ -25,5 +25,9 @@ spec:
         - configMapRef:
             name: {{ .Release.Name }}
         - secretRef:
-            name: {{ .Values.deployment.secretRef }}
+            name: {{ .Values.deployment.anthropicSecretRef }}
+        - secretRef:
+            name: {{ .Values.deployment.openaiSecretRef }}
+        - secretRef:
+            name: {{ .Values.deployment.redisSecretRef }}
         resources: {{ .Values.deployment.resources | toYaml | nindent 10 }}`

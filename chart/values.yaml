@@ -3,7 +3,6 @@ deployment:
     registry: ""
     name: sefaria-llm
     imagePullPolicy: IfNotPresent
-  # Noah, please provide sane values here
   resources:
     requests:
       cpu: 100m
@@ -11,7 +10,9 @@ deployment:
     limits:
       cpu: 200m
       memory: 1Gi
-  secretRef: ""
+  anthropicSecretRef: anthropic-api-key
+  openaiSecretRef: openai-api-key
+  redisSecretRef: redis-password
 redis:
   url: "redis://127.0.0.1"
   port: 6397
