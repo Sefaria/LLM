@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: llm
-        image: "{{ .Values.deployment.image.registry }}/{{ .Values.deploment.image.name }}:{{ .Values.deployment.image.tag | default .Chart.AppVersion }}"
+        image: "{{ .Values.deployment.image.registry }}/{{ .Values.deployment.image.name }}:{{ .Values.deployment.image.tag | default .Chart.AppVersion }}"
         imagePullPolicy: {{ .Values.deployment.image.pullPolicy }}
         envFrom:
         - configMapRef:
