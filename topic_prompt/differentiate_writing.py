@@ -8,8 +8,8 @@ Currently unused because I couldn't find a way to differentiate the writing with
 
 
 from util.general import get_by_xml_tag
-from langchain.schema import HumanMessage, SystemMessage
-from langchain.chat_models import ChatOpenAI
+from basic_langchain.schema import HumanMessage, SystemMessage
+from basic_langchain.chat_models import ChatOpenAI
 
 
 def differentiate_writing(sentence, phrase_to_avoid):

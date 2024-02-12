@@ -6,8 +6,8 @@ from util.general import get_source_text_with_fallback, get_by_xml_tag
 import re
 
 from langchain.prompts import PromptTemplate
-from langchain.schema import HumanMessage, SystemMessage
-from langchain.chat_models import ChatOpenAI, ChatAnthropic
+from basic_langchain.schema import HumanMessage, SystemMessage
+from basic_langchain.chat_models import ChatAnthropic, ChatOpenAI
 
 
 def context_from_surrounding_text(source: TopicPromptSource) -> str:
@@ -33,10 +33,8 @@ def context_from_surrounding_text(source: TopicPromptSource) -> str:
     human_message = HumanMessage(content=f"<segment>{segment_text}</segment>\n"
                                          f"<context>{section_text}</context>\n"
                                          f"<hint>{source.context_hint}</hint>")
-    llm = ChatAnthropic(model="claude-2", temperature=0, max_tokens_to_sample=100000)
-    print("before", system_message.content, "after", human_message.content)
+    llm = ChatAnthropic(model="claude-2.1", temperature=0)
     response = llm([system_message, human_message])
-    print("after")
     context = get_by_xml_tag(response.content, "relevant_context").strip()
     if context is None:
         return response.content

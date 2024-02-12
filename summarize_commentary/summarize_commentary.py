@@ -2,8 +2,8 @@ from typing import List
 from sefaria_interface.topic import Topic
 from sefaria_interface.topic_prompt_source import TopicPromptSource, TopicPromptCommentary
 from util.openai import get_completion_openai, count_tokens_openai
-from langchain.chat_models import ChatAnthropic
-from langchain.schema import HumanMessage
+from basic_langchain.chat_models import ChatAnthropic
+from basic_langchain.schema import HumanMessage
 
 
 def get_prompt(source: TopicPromptSource, topic: Topic, commentary: str):
@@ -44,7 +44,7 @@ def summarize_commentary(source: TopicPromptSource, topic: Topic, company='opena
         print(f"Number of commentary tokens: {num_tokens}")
         completion = get_completion_openai(prompt)
     elif company == 'anthropic':
-        llm = ChatAnthropic(model="claude-instant-1")
+        llm = ChatAnthropic(model="claude-instant-1.2", temperature=0)
         completion = llm([HumanMessage(content=prompt)]).content
     else:
         raise Exception("No valid company passed. Options are 'openai' or 'anthropic'.")

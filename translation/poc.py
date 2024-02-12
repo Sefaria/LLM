@@ -1,8 +1,8 @@
 import random
 from util.general import get_by_xml_tag
 
-from langchain.chat_models import ChatAnthropic
-from langchain.schema import HumanMessage, SystemMessage
+from basic_langchain.chat_models import ChatAnthropic
+from basic_langchain.schema import HumanMessage, SystemMessage
 
 random.seed(26)
 
@@ -23,7 +23,7 @@ def translate_text(text: str, context: str = None):
     if context:
         task_prompt = f"<context>{context}</context>{task_prompt}"
     task_message = HumanMessage(content=task_prompt)
-    llm = ChatAnthropic(model="claude-2", temperature=0, max_tokens_to_sample=1000000)
+    llm = ChatAnthropic(model="claude-2", temperature=0)
     response_message = llm([identity_message, task_message])
     translation = get_by_xml_tag(response_message.content, 'translation')
     if translation is None:
@@ -46,7 +46,7 @@ def validate_translation(he, en):
                                              "if it is not accurate. Translation is inaccurate if the meaning of any "
                                              "Hebrew word is mistranslated. Output should be wrapped in <answer> tags.")
     task_message = HumanMessage(content=f"<hebrew>{he}</hebrew>\n<english>{en}</english>")
-    llm = ChatAnthropic(model="claude-2", temperature=0, max_tokens_to_sample=1000000)
+    llm = ChatAnthropic(model="claude-2", temperature=0)
     response_message = llm([identity_message, task_message])
     answer = get_by_xml_tag(response_message.content, 'answer')
     if answer is None:
