@@ -5,12 +5,9 @@ from sefaria_interface.topic_prompt_source import TopicPromptSource
 from util.general import get_source_text_with_fallback, get_by_xml_tag
 import re
 
-import langchain
 from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage, SystemMessage
 from langchain.chat_models import ChatOpenAI, ChatAnthropic
-from langchain.cache import SQLiteCache
-langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 
 def context_from_surrounding_text(source: TopicPromptSource) -> str:
@@ -37,7 +34,9 @@ def context_from_surrounding_text(source: TopicPromptSource) -> str:
                                          f"<context>{section_text}</context>\n"
                                          f"<hint>{source.context_hint}</hint>")
     llm = ChatAnthropic(model="claude-2", temperature=0, max_tokens_to_sample=100000)
+    print("before", system_message.content, "after", human_message.content)
     response = llm([system_message, human_message])
+    print("after")
     context = get_by_xml_tag(response.content, "relevant_context").strip()
     if context is None:
         return response.content

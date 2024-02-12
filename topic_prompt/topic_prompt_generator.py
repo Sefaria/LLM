@@ -10,12 +10,9 @@ from topic_prompt.toprompt_llm_prompt import TopromptLLMPrompt, get_output_parse
 from topic_prompt.toprompt import Toprompt, TopromptOptions
 from topic_prompt.differentiate_writing import repeated_phrase
 
-import langchain
-from langchain.cache import SQLiteCache
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage
-langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 
 def _get_toprompt_options(lang: str, topic: Topic, source: TopicPromptSource, other_sources: List[TopicPromptSource],

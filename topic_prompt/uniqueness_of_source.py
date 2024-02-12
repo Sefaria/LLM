@@ -10,12 +10,9 @@ from util.general import get_source_text_with_fallback
 from sefaria_interface.topic_prompt_source import TopicPromptSource
 from sefaria_interface.topic import Topic
 
-import langchain
 from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage, SystemMessage
 from langchain.chat_models import ChatOpenAI
-from langchain.cache import SQLiteCache
-langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 
 def _get_prompt_inputs(source, other_sources: List[TopicPromptSource], topic: Topic):

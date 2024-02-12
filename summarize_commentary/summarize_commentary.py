@@ -1,13 +1,9 @@
-import re
 from typing import List
 from sefaria_interface.topic import Topic
 from sefaria_interface.topic_prompt_source import TopicPromptSource, TopicPromptCommentary
 from util.openai import get_completion_openai, count_tokens_openai
 from langchain.chat_models import ChatAnthropic
 from langchain.schema import HumanMessage
-from langchain.cache import SQLiteCache
-import langchain
-langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 
 def get_prompt(source: TopicPromptSource, topic: Topic, commentary: str):

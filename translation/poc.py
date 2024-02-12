@@ -1,11 +1,8 @@
 import random
 from util.general import get_by_xml_tag
 
-import langchain
-from langchain.cache import SQLiteCache
 from langchain.chat_models import ChatAnthropic
 from langchain.schema import HumanMessage, SystemMessage
-langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 random.seed(26)
 
