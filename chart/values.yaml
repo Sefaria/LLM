@@ -1,0 +1,23 @@
+deployment:
+  replicaCount: 1
+  image:
+    registry: ""
+    name: sefaria-llm
+    imagePullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 500Mi
+    limits:
+      cpu: 200m
+      memory: 1Gi
+  anthropicSecretRef: anthropic-api-key
+  openaiSecretRef: openai-api-key
+  redisSecretRef: redis-password
+redis:
+  url: "redis://127.0.0.1"
+  port: 6397
+  DBNumber: 0
+  backendDBNUmber: 1
+  sentinelURL: ""
+  transportOptions: {}
