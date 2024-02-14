@@ -10,7 +10,7 @@ from sefaria.helper.normalization import NormalizerComposer, RegexNormalizer, Ab
 from linker.fine_tune.project_scripts.create_citation_input_for_fine_tuning import GptEntityClassificationTrainingGenerator, SPAN_LABEL_TO_CLASSICATION_TAG, GptNerTrainingGenerator
 import re
 import random
-from util.general import load_mongo_docs, get_removal_list
+from util.sefaria_specific import load_mongo_docs, get_removal_list
 from util.sentencizer import sentencize
 from db_manager import MongoProdigyDBManager
 

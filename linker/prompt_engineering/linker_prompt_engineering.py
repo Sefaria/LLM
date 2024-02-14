@@ -1,4 +1,4 @@
-from util.general import load_mongo_docs
+from util.sefaria_specific import load_mongo_docs
 from util.openai import count_tokens_openai, get_completion_openai
 from sefaria.utils.util import wrap_chars_with_overlaps
 

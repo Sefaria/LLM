@@ -1,9 +1,8 @@
-from typing import List, Dict, Tuple, Union
-from collections import defaultdict
+from typing import List
 from toprompt import TopromptOptions, Toprompt
-from util.general import get_raw_ref_text
-from sefaria.model.topic import Topic
+from util.sefaria_specific import get_raw_ref_text
 from abstract_formatter import AbstractFormatter
+from sefaria_interface.topic import Topic
 import math
 
 
@@ -37,14 +36,14 @@ class HTMLFormatter(AbstractFormatter):
     def _get_full_html(self) -> str:
         html = f"<html><style>{self._get_css_rules()}</style><body>"
         for slug, toprompt_data in self._by_topic.items():
-            topic = Topic.init(slug)
+            topic = self._slug_topic_map[slug]
             html += self._get_html_for_topic(topic, toprompt_data['toprompt_options'], toprompt_data['gold_standard_prompts'])
         html += "</body></html>"
         return html
 
     def _get_html_for_topic(self, topic: Topic, toprompt_options_list: List[TopromptOptions], gold_standard_prompts: List[Toprompt]) -> str:
         return f"""
-        <h1>{topic.get_primary_title("en")}</h1>
+        <h1>{topic.title['en']}</h1>
         <div>
             {''.join(
             self._get_html_for_toprompt_options(toprompt_options, gold_standard_prompt) for toprompt_options, gold_standard_prompt in zip(toprompt_options_list, gold_standard_prompts)
@@ -53,7 +52,7 @@ class HTMLFormatter(AbstractFormatter):
         """
 
     def _get_html_for_toprompt_options(self, toprompt_options: TopromptOptions, gold_standard_prompt: Toprompt) -> str:
-        oref = toprompt_options.oref
+        source = toprompt_options.source
         all_toprompts = toprompt_options.toprompts
         has_gold_standard = gold_standard_prompt is not None
         if has_gold_standard:
@@ -67,14 +66,14 @@ class HTMLFormatter(AbstractFormatter):
         """ for i, toprompt in enumerate(all_toprompts)]
         return f"""
         <div class="topic-prompt">
-            <h2>{oref.normal()}</h2>
+            <h2>{source.ref}</h2>
             {HTMLFormatter._get_n_column_table(2, all_toprompts_html)}
             <details>
             <summary>
             <h3>Text</h3>
             </summary>
-            <p class="he">{get_raw_ref_text(oref, "he")}</p>
-            <p>{get_raw_ref_text(oref, "en")}</p>
+            <p class="he">{source.text.get('he', 'N/A')}</p>
+            <p>{source.text.get('en', 'N/A')}</p>
             </details>
         </div>
         """

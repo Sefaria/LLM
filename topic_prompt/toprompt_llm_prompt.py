@@ -1,14 +1,13 @@
-import csv
+import json
+from dataclasses import dataclass
 import random
-from loguru import logger
 
 from util.openai import count_tokens_openai
-from util.sentencizer import sentencize
-from util.general import get_raw_ref_text, get_ref_text_with_fallback
-from uniqueness_of_source import get_uniqueness_of_source
-from contextualize import get_context
+from topic_prompt.uniqueness_of_source import get_uniqueness_of_source
+from topic_prompt.contextualize import get_context
 from typing import List
-from sefaria.model import *
+from sefaria_interface.topic import Topic
+from sefaria_interface.topic_prompt_source import TopicPromptSource
 from pydantic import BaseModel, Field
 
 from langchain.output_parsers import PydanticOutputParser
@@ -30,12 +29,11 @@ class TopromptLLMOutput(BaseModel):
 
 class TopromptLLMPrompt:
 
-    def __init__(self, lang: str, topic: Topic, oref: Ref, other_orefs: List[Ref], context_hint: str):
+    def __init__(self, lang: str, topic: Topic, source: TopicPromptSource, other_sources: List[TopicPromptSource]):
         self.lang: str = lang
         self.topic: Topic = topic
-        self.oref: Ref = oref
-        self.other_orefs: List[Ref] = other_orefs
-        self.context_hint: str = context_hint
+        self.source: TopicPromptSource = source
+        self.other_sources: List[TopicPromptSource] = other_sources
 
     def get(self) -> BasePromptTemplate:
         example_generator = TopromptExampleGenerator(self.lang)
@@ -105,88 +103,58 @@ class TopromptLLMPrompt:
                 "<input>\n" + self._get_input_prompt_details() + "</input>"
         )
 
-    def _get_book_description(self, index: Index):
-        desc_attr = f"{self.lang}Desc"
-        book_desc = getattr(index, desc_attr, "N/A")
-        if "Yerushalmi" in index.categories:
-            book_desc = book_desc.replace(index.title.replace("Jerusalem Talmud ", ""), index.title)
-        if index.get_primary_category() == "Mishnah":
-            book_desc = book_desc.replace(index.title.replace("Mishnah ", ""), index.title)
-        return book_desc
+    def _get_book_description(self, source: TopicPromptSource):
+        """
+        Modify book description so its more specific for Yerushalmi and Mishnah. This helps the LLM better describe the source
+        :param source:
+        :return:
+        """
+        title = source.book_title[self.lang]
+        book_description = source.book_description.get(self.lang, "N/A")
+        if "Yerushalmi" in source.categories:
+            book_description = book_description.replace(title.replace("Jerusalem Talmud ", ""), title)
+        if source.categories[0] == "Mishnah":
+            book_description = book_description.replace(title.replace("Mishnah ", ""), title)
+        return book_description
 
     def _get_input_prompt_details(self) -> str:
-        index = self.oref.index
-        book_desc = self._get_book_description(index)
-        composition_time_period = index.composition_time_period()
-        pub_year = composition_time_period.period_string(self.lang) if composition_time_period else "N/A"
-        try:
-            author_name = Topic.init(index.authors[0]).get_primary_title(self.lang) if len(index.authors) > 0 else "N/A"
-        except AttributeError:
-            author_name = "N/A"
-        category = index.get_primary_category()
-        context = get_context(self.oref, context_hint=self.context_hint)
-        unique_aspect = get_uniqueness_of_source(self.oref, self.topic, self.lang, other_orefs=self.other_orefs,
-                                                 context_hint=self.context_hint)
-        # print(f"Unique aspect for {self.oref.normal()}\n"
-        #      f"{unique_aspect}")
-        prompt = f"<topic>{self.topic.get_primary_title('en')}</topic>\n" \
-                 f"<author>{author_name}</author>\n" \
-                 f"<publication_year>{pub_year}</publication_year>\n" \
+        book_desc = self._get_book_description(self.source)
+        context = get_context(self.source)
+        unique_aspect = get_uniqueness_of_source(self.source, self.topic, self.other_sources)
+        prompt = f"<topic>{self.topic.title['en']}</topic>\n" \
+                 f"<author>{self.source.author_name}</author>\n" \
+                 f"<publication_year>{self.source.comp_date}</publication_year>\n" \
                  f"<unique_aspect>{unique_aspect}</unique_aspect>\n" \
                  f"<context>{context}</context>"
 
         if True:  # category not in {"Talmud", "Midrash", "Tanakh"}:
             prompt += f"\n<book_description>{book_desc}</book_description>"
-        if category in {"Tanakh"}:
+        if self.source.commentary:
             from summarize_commentary.summarize_commentary import summarize_commentary
-            commentary_summary = summarize_commentary(self.oref.normal(), self.topic.slug, company='anthropic')
-            # print("commentary\n\n", commentary_summary)
+            commentary_summary = summarize_commentary(self.source, self.topic, company='anthropic')
             prompt += f"\n<commentary>{commentary_summary}</commentary>"
         return prompt
 
 
+@dataclass
 class ToppromptExample:
-
-    _hard_coded_sents = {
-        'In biblical sources, the Temple is presented as God\'s home. This work of rabbinic interpretations on the Book of Exodus asks the question‚ "Where is God?" in light of the destruction of the Temple.': [
-            "In biblical sources, the Temple is presented as God's home.",
-            'This work of rabbinic interpretations on the Book of Exodus asks the question‚ "Where is God?" in light of the destruction of the Temple.',
-        ],
-        'Why is the shofar called a shofar? What does it mean? This ancient midrash from the land of Israel points out that the word “shofar” is spelled in the same order and the same letters as the Hebrew verb that means “to improve” and thereby suggests its meaning.': [
-           'Why is the shofar called a shofar? What does it mean?',
-           'This ancient midrash from the land of Israel points out that the word “shofar” is spelled in the same order and the same letters as the Hebrew verb that means “to improve” and thereby suggests its meaning.',
-        ],
-    }
-
-    def __init__(self, lang, ref_topic_link: RefTopicLink):
-        self.lang = lang
-        self.topic: Topic = Topic.init(ref_topic_link.toTopic)
-        self.oref = Ref(ref_topic_link.ref)
-        prompt_dict = ref_topic_link.descriptions[lang]
-        self.title = prompt_dict['title']
-        prompt = prompt_dict['prompt']
-        prompt_sents = self._hard_coded_sents.get(prompt, sentencize(prompt))
-        assert len(prompt_sents) == 2
-        self.why = prompt_sents[0]
-        self.what = prompt_sents[1]
-        self.unique_aspect = get_uniqueness_of_source(self.oref, self.topic, self.lang, context_hint=ref_topic_link.context)
-        self.context = get_context(self.oref, context_hint=ref_topic_link.context)
-        logger.trace(f"----EXAMPLE----")
-        logger.trace(f"Ref: {self.oref.normal()}")
-        logger.trace(f"Context hint:\n{ref_topic_link.context}")
-        logger.trace(f"Unique Aspect:\n{self.unique_aspect}")
-        logger.trace(f"Context:\n{self.context}")
+    lang: str
+    topic: str
+    title: str
+    why: str
+    what: str
+    unique_aspect: str
+    context: str
 
     def serialize(self):
-        out = {
-            "topic": self.topic.get_primary_title(self.lang),
+        return {
+            "topic": self.topic,
             "title": self.title,
             "why": self.why,
             "what": self.what,
             "unique_aspect": self.unique_aspect,
             "context": self.context,
         }
-        return out
 
 
 class TopromptExampleGenerator:
@@ -195,53 +163,13 @@ class TopromptExampleGenerator:
         self.lang: str = lang
 
     def get(self) -> List[dict]:
-        # toprompts = self._get_existing_toprompts()
-        toprompts = self._get_training_set()
-        examples = []
-        for itopic, ref_topic_link in enumerate(toprompts):
-            examples += [ToppromptExample(self.lang, ref_topic_link)]
+        examples = self._get_training_set()
         return [example.serialize() for example in examples]
 
-    def _get_training_set(self) -> List[RefTopicLink]:
-        ref_topic_links = []
-        with open("input/topic_prompt_training_set.csv", "r") as fin:
-            cin = csv.DictReader(fin)
-            for row in cin:
-                if len(row["Prompt"].strip()) == 0:
-                    continue
-                if not Topic.init(row["Slug"]):
-                    print(row["Slug"])
-                    continue
-
-                ref_topic_links += [RefTopicLink(
-                    attrs={
-                        "ref": row["Reference"],
-                        "toTopic": row["Slug"],
-                        "descriptions": {
-                            self.lang: {
-                                "prompt": row["Prompt"],
-                                "title": row["Title"],
-                            }
-                        },
-                        "context": row["Context sentence"],
-                    }
-                )]
-        random.shuffle(ref_topic_links)
-        return ref_topic_links
-
-    def _get_existing_toprompts(self):
-        link_set = RefTopicLinkSet(self._get_query_for_ref_topic_link_with_prompt())
-        # make unique by toTopic
-        slug_link_map = {}
-        for link in link_set:
-            slug_link_map[link.toTopic] = link
-        return list(slug_link_map.values())
-
-    def _get_query_for_ref_topic_link_with_prompt(self, slug=None):
-        query = {f"descriptions.{self.lang}": {"$exists": True}}
-        if slug is not None:
-            query['toTopic'] = slug
-        return query
+    def _get_training_set(self) -> List[ToppromptExample]:
+        with open("topic_prompt/input/topic_prompt_training_set.json", "r") as fin:
+            raw_examples = json.load(fin)
+            return [ToppromptExample(lang=self.lang, **raw_example) for raw_example in raw_examples]
 
 
 def get_output_parser():

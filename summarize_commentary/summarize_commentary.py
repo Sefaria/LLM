@@ -1,23 +1,16 @@
-import re
-import django
-import anthropic
-django.setup()
-from sefaria.model import *
-from sefaria.client.wrapper import get_links
-from sefaria.datatype.jagged_array import JaggedTextArray
+from typing import List
+from sefaria_interface.topic import Topic
+from sefaria_interface.topic_prompt_source import TopicPromptSource, TopicPromptCommentary
 from util.openai import get_completion_openai, count_tokens_openai
-from langchain.chat_models import ChatAnthropic
-from langchain.schema import HumanMessage
-from langchain.cache import SQLiteCache
-import langchain
-langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
+from basic_langchain.chat_models import ChatAnthropic
+from basic_langchain.schema import HumanMessage
 
 
-def get_prompt(tref, topic_slug, commentary):
-    topic_name, topic_description = get_topic_prompt(topic_slug)
+def get_prompt(source: TopicPromptSource, topic: Topic, commentary: str):
+    topic_name, topic_description = get_topic_prompt(topic)
     prompt = (
         f"# Input:\n"
-        f"1) Commentary: commentary on the verse {tref}.\n"
+        f"1) Commentary: commentary on the verse {source.ref}.\n"
         f"2) Topic: topic which relates to this verse\n"
         f"3) Topic Description: description of topic\n"
         f"# Task: Summarize the main points discussed by the commentators. Only include points that relate to the"
@@ -29,38 +22,29 @@ def get_prompt(tref, topic_slug, commentary):
     return prompt
 
 
-def get_topic_prompt(slug):
-    topic = Topic.init(slug)
-    return topic.get_primary_title('en'), getattr(topic, 'description', {}).get('en', '')
+def get_topic_prompt(topic: Topic):
+    return topic.title['en'], topic.description.get('en', '')
 
 
-def get_commentary_for_tref(tref, max_tokens=7000):
-    library.rebuild_toc()
+def truncate_commentary(commentary: List[TopicPromptCommentary], max_tokens=7000):
     commentary_text = ""
-
-    for link_dict in get_links(tref, with_text=True):
-        if link_dict['category'] not in {'Commentary'}:
-            continue
-        if not link_dict['sourceHasEn']:
-            continue
-        link_text = JaggedTextArray(link_dict['text']).flatten_to_string()
-        link_text = re.sub(r"<[^>]+>", " ", TextChunk.strip_itags(link_text))
-        commentary_text += f"Source: {link_dict['sourceRef']}\n{link_text}\n"
+    for comment in commentary:
+        commentary_text += f"Source: {comment.ref}\n{comment.text.get('en', 'N/A')}\n"
         if count_tokens_openai(commentary_text) > max_tokens:
             break
     return commentary_text
 
 
-def summarize_commentary(tref, topic_slug, company='openai'):
-    commentary_text = get_commentary_for_tref(tref)
-    prompt = get_prompt(tref, topic_slug, commentary_text)
+def summarize_commentary(source: TopicPromptSource, topic: Topic, company='openai'):
+    commentary_text = truncate_commentary(source.commentary)
+    prompt = get_prompt(source, topic, commentary_text)
 
     if company == 'openai':
         num_tokens = count_tokens_openai(prompt)
         print(f"Number of commentary tokens: {num_tokens}")
         completion = get_completion_openai(prompt)
     elif company == 'anthropic':
-        llm = ChatAnthropic(model="claude-instant-1")
+        llm = ChatAnthropic(model="claude-instant-1.2", temperature=0)
         completion = llm([HumanMessage(content=prompt)]).content
     else:
         raise Exception("No valid company passed. Options are 'openai' or 'anthropic'.")

@@ -12,7 +12,7 @@ from langchain.schema import HumanMessage, SystemMessage
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 from functools import reduce
-from util.general import get_raw_ref_text
+from util.sefaria_specific import get_raw_ref_text
 import typer
 from tqdm import tqdm
 import csv
