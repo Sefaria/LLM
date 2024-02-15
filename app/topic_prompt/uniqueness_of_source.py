@@ -5,14 +5,14 @@ import json
 import re
 from functools import reduce
 from typing import List
-from util.general import get_source_text_with_fallback
+from app.util.general import get_source_text_with_fallback
 
-from sefaria_interface.topic_prompt_source import TopicPromptSource
-from sefaria_interface.topic import Topic
+from app.sefaria_interface.topic_prompt_source import TopicPromptSource
+from app.sefaria_interface.topic import Topic
 
 from langchain.prompts import PromptTemplate
-from basic_langchain.schema import HumanMessage, SystemMessage
-from basic_langchain.chat_models import ChatOpenAI
+from app.basic_langchain.schema import HumanMessage, SystemMessage
+from app.basic_langchain.chat_models import ChatOpenAI
 
 
 def _get_prompt_inputs(source, other_sources: List[TopicPromptSource], topic: Topic):

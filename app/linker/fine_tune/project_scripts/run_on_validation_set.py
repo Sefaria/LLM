@@ -3,15 +3,15 @@ from functools import reduce
 from typing import List, Any
 from langchain.chat_models import ChatOpenAI
 from langchain.llms import OpenAI
-from linker.fine_tune.project_scripts import constants
+from app.linker.fine_tune.project_scripts import constants
 from langchain.schema import BaseOutputParser
 from dataclasses import dataclass
 from sefaria.helper.normalization import NormalizerComposer, RegexNormalizer, AbstractNormalizer
-from linker.fine_tune.project_scripts.create_citation_input_for_fine_tuning import GptEntityClassificationTrainingGenerator, SPAN_LABEL_TO_CLASSICATION_TAG, GptNerTrainingGenerator
+from app.linker.fine_tune.project_scripts.create_citation_input_for_fine_tuning import GptEntityClassificationTrainingGenerator, SPAN_LABEL_TO_CLASSICATION_TAG, GptNerTrainingGenerator
 import re
 import random
-from util.sefaria_specific import load_mongo_docs, get_removal_list
-from util.sentencizer import sentencize
+from app.util.sefaria_specific import load_mongo_docs, get_removal_list
+from app.util.sentencizer import sentencize
 from db_manager import MongoProdigyDBManager
 
 import langchain

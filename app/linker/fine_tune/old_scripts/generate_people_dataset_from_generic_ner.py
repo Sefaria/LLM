@@ -1,6 +1,6 @@
 import argparse
 import os
-from util.sefaria_specific import load_mongo_docs
+from app.util.sefaria_specific import load_mongo_docs
 
 
 def init_argparse() -> argparse.ArgumentParser:

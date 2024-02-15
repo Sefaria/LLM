@@ -7,9 +7,9 @@ Currently unused because I couldn't find a way to differentiate the writing with
 """
 
 
-from util.general import get_by_xml_tag
-from basic_langchain.schema import HumanMessage, SystemMessage
-from basic_langchain.chat_models import ChatOpenAI
+from app.util.general import get_by_xml_tag
+from app.basic_langchain.schema import HumanMessage, SystemMessage
+from app.basic_langchain.chat_models import ChatOpenAI
 
 
 def differentiate_writing(sentence, phrase_to_avoid):

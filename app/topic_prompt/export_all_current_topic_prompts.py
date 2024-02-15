@@ -2,7 +2,7 @@ import django
 django.setup()
 from sefaria.model import *
 import csv
-from util.sefaria_specific import get_normalizer
+from app.util.sefaria_specific import get_normalizer
 
 
 if __name__ == '__main__':
