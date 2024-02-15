@@ -2,12 +2,12 @@ import json
 from dataclasses import dataclass
 import random
 
-from util.openai import count_tokens_openai
-from topic_prompt.uniqueness_of_source import get_uniqueness_of_source
-from topic_prompt.contextualize import get_context
+from app.util.openai import count_tokens_openai
+from app.topic_prompt.uniqueness_of_source import get_uniqueness_of_source
+from app.topic_prompt.contextualize import get_context
 from typing import List
-from sefaria_interface.topic import Topic
-from sefaria_interface.topic_prompt_source import TopicPromptSource
+from app.sefaria_interface.topic import Topic
+from app.sefaria_interface.topic_prompt_source import TopicPromptSource
 from pydantic import BaseModel, Field
 
 from langchain.output_parsers import PydanticOutputParser
@@ -167,7 +167,7 @@ class TopromptExampleGenerator:
         return [example.serialize() for example in examples]
 
     def _get_training_set(self) -> List[ToppromptExample]:
-        with open("topic_prompt/input/topic_prompt_training_set.json", "r") as fin:
+        with open("app/topic_prompt/input/topic_prompt_training_set.json", "r") as fin:
             raw_examples = json.load(fin)
             return [ToppromptExample(lang=self.lang, **raw_example) for raw_example in raw_examples]
 

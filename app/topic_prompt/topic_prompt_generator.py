@@ -3,16 +3,16 @@ from loguru import logger
 
 from tqdm import tqdm
 from typing import List
-from sefaria_interface.topic_prompt_input import TopicPromptInput
-from sefaria_interface.topic_prompt_source import TopicPromptSource
-from sefaria_interface.topic import Topic
-from topic_prompt.toprompt_llm_prompt import TopromptLLMPrompt, get_output_parser
-from topic_prompt.toprompt import Toprompt, TopromptOptions
-from topic_prompt.differentiate_writing import repeated_phrase
+from app.sefaria_interface.topic_prompt_input import TopicPromptInput
+from app.sefaria_interface.topic_prompt_source import TopicPromptSource
+from app.sefaria_interface.topic import Topic
+from app.topic_prompt.toprompt_llm_prompt import TopromptLLMPrompt, get_output_parser
+from app.topic_prompt.toprompt import Toprompt, TopromptOptions
+from app.topic_prompt.differentiate_writing import repeated_phrase
 
 from langchain.prompts import PromptTemplate
-from basic_langchain.chat_models import ChatOpenAI
-from basic_langchain.schema import HumanMessage
+from app.basic_langchain.chat_models import ChatOpenAI
+from app.basic_langchain.schema import HumanMessage
 
 def _get_toprompt_options(lang: str, topic: Topic, source: TopicPromptSource, other_sources: List[TopicPromptSource],
                           num_tries=1, phrase_to_avoid=None) -> TopromptOptions:

@@ -1,8 +1,8 @@
 from typing import List
 from toprompt import TopromptOptions, Toprompt
-from util.sefaria_specific import get_raw_ref_text
+from app.util.sefaria_specific import get_raw_ref_text
 from abstract_formatter import AbstractFormatter
-from sefaria_interface.topic import Topic
+from app.sefaria_interface.topic import Topic
 import math
 
 
