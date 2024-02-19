@@ -1,6 +1,7 @@
 deployment:
   replicaCount: 1
   image:
+    # tag: ""
     registry: ""
     name: sefaria-llm
     imagePullPolicy: IfNotPresent
