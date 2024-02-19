@@ -50,7 +50,7 @@ jobs:
           wget -nv -nc -O yq https://github.com/mikefarah/yq/releases/download/v4.20.2/yq_linux_amd64
           chmod +x yq
       - name: create release rules
-        run: build/release-rules.sh
+        run: build/chart-release-rules.sh
       - uses: cycjimmy/semantic-release-action@v4
         id: semantic
         with:
