@@ -130,7 +130,7 @@ class TopromptLLMPrompt:
         if True:  # category not in {"Talmud", "Midrash", "Tanakh"}:
             prompt += f"\n<book_description>{book_desc}</book_description>"
         if self.source.commentary:
-            from summarize_commentary.summarize_commentary import summarize_commentary
+            from app.summarize_commentary.summarize_commentary import summarize_commentary
             commentary_summary = summarize_commentary(self.source, self.topic, company='anthropic')
             prompt += f"\n<commentary>{commentary_summary}</commentary>"
         return prompt
