@@ -1,6 +1,6 @@
 from celery import shared_task
 from app.topic_prompt.topic_prompt_generator import get_toprompts
-from app.sefaria_interface.topic_prompt_input import TopicPromptInput
+from app.queue_interface.topic_prompt_input import TopicPromptInput
 
 
 @shared_task(name='llm.generate_topic_prompts')

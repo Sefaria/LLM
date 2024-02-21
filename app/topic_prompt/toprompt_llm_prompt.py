@@ -6,8 +6,8 @@ from app.util.openai import count_tokens_openai
 from app.topic_prompt.uniqueness_of_source import get_uniqueness_of_source
 from app.topic_prompt.contextualize import get_context
 from typing import List
-from app.sefaria_interface.topic import Topic
-from app.sefaria_interface.topic_prompt_source import TopicPromptSource
+from app.queue_interface.topic import Topic
+from app.queue_interface.topic_prompt_source import TopicPromptSource
 from pydantic import BaseModel, Field
 
 from langchain.output_parsers import PydanticOutputParser

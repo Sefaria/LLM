@@ -1,7 +1,7 @@
 import dataclasses
 from typing import List
-from app.sefaria_interface.topic_prompt_source import TopicPromptSource
-from app.sefaria_interface.topic import Topic
+from app.queue_interface.topic_prompt_source import TopicPromptSource
+from app.queue_interface.topic import Topic
 
 
 @dataclasses.dataclass
