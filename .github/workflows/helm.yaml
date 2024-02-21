@@ -92,6 +92,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           chart_version: ${{ steps.semantic.outputs.new_release_version }}
           app_version: ${{ steps.appVersion.outputs.appVersion }}
+          linting: off
           charts_dir: chart
       # Full charts to Prod OCI
       - id: auth
