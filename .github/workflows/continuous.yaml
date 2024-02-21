@@ -1,6 +1,11 @@
 name: Continuous
 on:
   push:
+    paths:
+      - "app/**"
+      - ".github/workflows/continuous.yaml"
+      - "build/Dockerfile"
+      - "build/app*"
 
 concurrency:
   group: ${{ github.ref }}

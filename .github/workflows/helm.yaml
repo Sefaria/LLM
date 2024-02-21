@@ -5,6 +5,7 @@ on:
     paths:
       - "chart/**"
       - ".github/workflows/helm.yaml"
+      - "build/chart*"
 
 jobs:
   lint:

@@ -52,7 +52,6 @@ jobs:
       - name: "Version Info:"
         run: echo "${{ steps.appVersion.outputs.appVersion }}"
   build:
-    needs: workflow-check
     runs-on: ubuntu-latest
     needs: release
     permissions:
