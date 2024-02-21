@@ -10,3 +10,4 @@ data:
   REDIS_RESULT_BACKEND_DB_NUM: {{ .Values.redis.backendDBNumber }}
   SENTINEL_HEADLESS_URL: {{ .Values.redis.sentinelURL }}
   SENTINEL_TRANSPORT_OPTS: {{ .Values.redis.transportOptions | toJson | quote }}
+  QUEUE_NAME: llm-{{ .Release.Name }}
