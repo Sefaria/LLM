@@ -10,7 +10,7 @@ class TopicPromptInput:
     topic: Topic
     sources: List[TopicPromptSource]
 
-    def __init__(self, lang: str, topic: dict, sources: List[Union[dict, TopicPromptSource]]):
+    def __init__(self, lang: str, topic: Union[dict, Topic], sources: List[Union[dict, TopicPromptSource]]):
         self.lang = lang
         self.topic = Topic(**topic)
         self.sources = [s if isinstance(s, TopicPromptSource) else TopicPromptSource(**s) for s in sources]
