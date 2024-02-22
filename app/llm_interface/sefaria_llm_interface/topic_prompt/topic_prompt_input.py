@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 from dataclasses import dataclass
 from sefaria_llm_interface import Topic
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
@@ -10,7 +10,7 @@ class TopicPromptInput:
     topic: Topic
     sources: List[TopicPromptSource]
 
-    def __init__(self, lang: str, topic: dict, sources: List[dict]):
+    def __init__(self, lang: str, topic: dict, sources: List[Union[dict, TopicPromptSource]]):
         self.lang = lang
         self.topic = Topic(**topic)
-        self.sources = [TopicPromptSource(**raw_source) for raw_source in sources]
+        self.sources = [s if isinstance(s, TopicPromptSource) else TopicPromptSource(**s) for s in sources]

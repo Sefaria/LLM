@@ -9,6 +9,6 @@ def generate_topic_prompts(raw_topic_prompt_input: dict) -> dict:
     tp_input = TopicPromptInput(**raw_topic_prompt_input)
     toprompt_options_list = get_toprompts(tp_input)
     # only return the first option for now
-    toprompts = [options.toprompts[0].serialize() for options in toprompt_options_list]
+    toprompts = [TopicPrompt(**options.toprompts[0].serialize()) for options in toprompt_options_list]
     output = TopicPromptGenerationOutput(lang=tp_input.lang, prompts=toprompts)
     return asdict(output)

@@ -1,7 +1,7 @@
 """
 Classes for instantiating objects received from the topic prompt generator
 """
-from typing import List
+from typing import List, Union
 from dataclasses import dataclass
 
 
@@ -18,6 +18,6 @@ class TopicPromptGenerationOutput:
     lang: str
     prompts: List[TopicPrompt]
 
-    def __init__(self, lang: str, prompts: List[dict]):
+    def __init__(self, lang: str, prompts: List[Union[dict, TopicPrompt]]):
         self.lang = lang
-        self.prompts = [TopicPrompt(**raw_prompt) for raw_prompt in prompts]
+        self.prompts = [p if isinstance(p, TopicPrompt) else TopicPrompt(**p) for p in prompts]

@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Union
 from dataclasses import dataclass
 
 
@@ -23,7 +23,7 @@ class TopicPromptSource:
 
     def __init__(self, ref: str, categories: List[str], book_description: Dict[str, str], book_title: Dict[str, str],
                  comp_date: str, author_name: str, context_hint: str, text: Dict[str, str],
-                 commentary: List[dict] = None, surrounding_text: Dict[str, str]=None):
+                 commentary: List[Union[dict, TopicPromptCommentary]] = None, surrounding_text: Dict[str, str]=None):
         self.ref = ref
         self.categories = categories
         self.book_description = book_description
@@ -33,7 +33,7 @@ class TopicPromptSource:
         self.context_hint = context_hint
         self.text = text
         self.commentary = [
-            TopicPromptCommentary(**comment)
-            for comment in (commentary or [])
+            c if isinstance(c, TopicPromptCommentary) else TopicPromptCommentary(**c)
+            for c in (commentary or [])
         ]
         self.surrounding_text = surrounding_text
