@@ -1,6 +1,6 @@
 from typing import List
 from dataclasses import dataclass
-from sefaria_llm_interface.common.topic import Topic
+from sefaria_llm_interface import Topic
 from .topic_prompt_source import TopicPromptSource
 
 

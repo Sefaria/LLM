@@ -1,7 +1,7 @@
 import dataclasses
 from typing import List
-from sefaria_llm_interface.topic_prompt.topic_prompt_source import TopicPromptSource
-from sefaria_llm_interface.common.topic import Topic
+from sefaria_llm_interface.topic_prompt import TopicPromptSource
+from sefaria_llm_interface import Topic
 
 
 @dataclasses.dataclass
