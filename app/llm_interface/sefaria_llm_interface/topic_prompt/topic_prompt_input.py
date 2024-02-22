@@ -1,7 +1,7 @@
 from typing import List
 from dataclasses import dataclass
-from app.llm_interface.sefaria_llm_interface import Topic
-from app.llm_interface.sefaria_llm_interface.topic_prompt import TopicPromptSource
+from sefaria_llm_interface import Topic
+from sefaria_llm_interface.topic_prompt import TopicPromptSource
 
 
 @dataclass
