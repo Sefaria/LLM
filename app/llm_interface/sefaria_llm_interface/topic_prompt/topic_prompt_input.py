@@ -10,10 +10,7 @@ class TopicPromptInput:
     topic: Topic
     sources: List[TopicPromptSource]
 
-    @staticmethod
-    def create(serial) -> 'TopicPromptInput':
-        return TopicPromptInput(**{
-            **serial,
-            "topic": Topic(**serial['topic']),
-            "sources": [TopicPromptSource.deserialize(raw_source) for raw_source in serial['sources']]
-        })
+    def __init__(self, lang: str, topic: dict, sources: List[dict]):
+        self.lang = lang
+        self.topic = Topic(**topic)
+        self.sources = [TopicPromptSource(**raw_source) for raw_source in sources]

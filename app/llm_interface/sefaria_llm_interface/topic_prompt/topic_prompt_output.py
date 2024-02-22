@@ -18,8 +18,6 @@ class TopicPromptGenerationOutput:
     lang: str
     prompts: List[TopicPrompt]
 
-    @staticmethod
-    def create(raw_output):
-        return TopicPromptGenerationOutput(
-            **{**raw_output, "prompts": [TopicPrompt(**raw_prompt) for raw_prompt in raw_output['prompts']]}
-        )
+    def __init__(self, lang: str, prompts: List[dict]):
+        self.lang = lang
+        self.prompts = [TopicPrompt(**raw_prompt) for raw_prompt in prompts]

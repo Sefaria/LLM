@@ -21,16 +21,19 @@ class TopicPromptSource:
     commentary: Optional[List[TopicPromptCommentary]] = None  # list of commentary in a given language
     surrounding_text: Optional[Dict[str, str]] = None  # section for Tanakh and sugya for Talmud
 
-    @staticmethod
-    def deserialize(serial):
-        if serial.get('commentary', []):
-            commentary = [
-                    TopicPromptCommentary(**comment)
-                    for comment in serial.get('commentary', [])
-                ]
-        else:
-            commentary = []
-        return TopicPromptSource(**{
-            **serial,
-            "commentary": commentary
-        })
+    def __init__(self, ref: str, categories: List[str], book_description: Dict[str, str], book_title: Dict[str, str],
+                 comp_date: str, author_name: str, context_hint: str, text: Dict[str, str],
+                 commentary: List[dict] = None, surrounding_text: Dict[str, str]=None):
+        self.ref = ref
+        self.categories = categories
+        self.book_description = book_description
+        self.book_title = book_title
+        self.comp_date = comp_date
+        self.author_name = author_name
+        self.context_hint = context_hint
+        self.text = text
+        self.commentary = [
+            TopicPromptCommentary(**comment)
+            for comment in (commentary or [])
+        ]
+        self.surrounding_text = surrounding_text
