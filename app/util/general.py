@@ -1,4 +1,4 @@
-from app.queue_interface.topic_prompt_source import TopicPromptSource
+from sefaria_llm_interface.topic_prompt.topic_prompt_source import TopicPromptSource
 import diff_match_patch
 import re
 

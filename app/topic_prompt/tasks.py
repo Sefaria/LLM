@@ -1,7 +1,7 @@
 from celery import shared_task
 from app.topic_prompt.topic_prompt_generator import get_toprompts
-from app.queue_interface.topic_prompt_input import TopicPromptInput
-from app.queue_interface.topic_prompt_output import TopicPrompt, TopicPromptGenerationOutput
+from sefaria_llm_interface.topic_prompt.topic_prompt_input import TopicPromptInput
+from sefaria_llm_interface.topic_prompt.topic_prompt_output import TopicPrompt, TopicPromptGenerationOutput
 from dataclasses import asdict
 
 
