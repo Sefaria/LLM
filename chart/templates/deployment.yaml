@@ -1,7 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  labels: {{ include "llm.labels" . | nindent 4 }}
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
 spec:
