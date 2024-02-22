@@ -23,7 +23,7 @@ def translate_text(text: str, context: str = None):
     if context:
         task_prompt = f"<context>{context}</context>{task_prompt}"
     task_message = HumanMessage(content=task_prompt)
-    llm = ChatAnthropic(model="claude-2", temperature=0)
+    llm = ChatAnthropic(model="claude-2.1", temperature=0)
     response_message = llm([identity_message, task_message])
     translation = get_by_xml_tag(response_message.content, 'translation')
     if translation is None:

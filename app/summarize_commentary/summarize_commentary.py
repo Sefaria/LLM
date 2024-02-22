@@ -1,6 +1,6 @@
 from typing import List
-from app.sefaria_interface.topic import Topic
-from app.sefaria_interface.topic_prompt_source import TopicPromptSource, TopicPromptCommentary
+from sefaria_llm_interface.common.topic import Topic
+from sefaria_llm_interface.topic_prompt.topic_prompt_source import TopicPromptSource, TopicPromptCommentary
 from app.util.openai import get_completion_openai, count_tokens_openai
 from app.basic_langchain.chat_models import ChatAnthropic
 from app.basic_langchain.schema import HumanMessage
