@@ -2,7 +2,7 @@ from typing import Optional, Any, List, Tuple, Dict
 from abstract_formatter import AbstractFormatter
 from toprompt import TopromptOptions, Toprompt
 import csv
-from sefaria_llm_interface import Topic
+from app.llm_interface.sefaria_llm_interface import Topic
 
 
 class CSVFormatter(AbstractFormatter):
