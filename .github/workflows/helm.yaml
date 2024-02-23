@@ -93,7 +93,7 @@ jobs:
           chart_version: ${{ steps.semantic.outputs.new_release_version }}
           app_version: ${{ steps.appVersion.outputs.appVersion }}
           linting: off
-          charts_dir: chart
+          charts_dir: "."
       # Full charts to Prod OCI
       - id: auth
         name: Authenticate to Google Cloud
