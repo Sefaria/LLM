@@ -7,7 +7,7 @@ from functools import reduce
 from typing import List
 from app.util.general import get_source_text_with_fallback
 
-from app.llm_interface.sefaria_llm_interface.topic_prompt import import TopicPromptSource
+from app.llm_interface.sefaria_llm_interface.topic_prompt import TopicPromptSource
 from app.llm_interface.sefaria_llm_interface import Topic
 
 from langchain.prompts import PromptTemplate

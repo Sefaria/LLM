@@ -1,6 +1,6 @@
 import dataclasses
 from typing import List
-from app.llm_interface.sefaria_llm_interface.topic_prompt import import TopicPromptSource
+from app.llm_interface.sefaria_llm_interface.topic_prompt import TopicPromptSource
 from app.llm_interface.sefaria_llm_interface import Topic
 
 

@@ -1,7 +1,7 @@
 """
 Provide context for a source
 """
-from app.llm_interface.sefaria_llm_interface.topic_prompt import import TopicPromptSource
+from app.llm_interface.sefaria_llm_interface.topic_prompt import TopicPromptSource
 from app.util.general import get_source_text_with_fallback, get_by_xml_tag
 import re
 

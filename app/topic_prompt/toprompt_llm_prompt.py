@@ -7,7 +7,7 @@ from app.topic_prompt.uniqueness_of_source import get_uniqueness_of_source
 from app.topic_prompt.contextualize import get_context
 from typing import List
 from app.llm_interface.sefaria_llm_interface import Topic
-from app.llm_interface.sefaria_llm_interface.topic_prompt import import TopicPromptSource
+from app.llm_interface.sefaria_llm_interface.topic_prompt import TopicPromptSource
 from pydantic import BaseModel, Field
 
 from langchain.output_parsers import PydanticOutputParser

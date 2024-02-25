@@ -3,7 +3,7 @@ from loguru import logger
 
 from tqdm import tqdm
 from typing import List
-from app.llm_interface.sefaria_llm_interface.topic_prompt import import TopicPromptInput, TopicPromptSource
+from app.llm_interface.sefaria_llm_interface.topic_prompt import TopicPromptInput, TopicPromptSource
 from app.llm_interface.sefaria_llm_interface import Topic
 from app.topic_prompt.toprompt_llm_prompt import TopromptLLMPrompt, get_output_parser
 from app.topic_prompt.toprompt import Toprompt, TopromptOptions
