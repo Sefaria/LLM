@@ -13,13 +13,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Set up Helm
-        uses: azure/setup-helm@v1
+        uses: azure/setup-helm@v3
         with:
-          version: v3.5.0
+          version: v3.8.0
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: 3.7
       - name: Set up chart-testing
@@ -40,7 +40,7 @@ jobs:
       (github.repository == 'sefaria/LLM')
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           # Fetch entire history. Required for chart-releaser; see https://github.com/helm/chart-releaser-action/issues/13#issuecomment-602063896
           fetch-depth: 0
@@ -76,11 +76,11 @@ jobs:
         id: chartVersion
         run: |
           if [[ -z "${{ steps.semantic.outputs.new_release_version }}" ]]; then
-            if [[ -z "$(git tag --points-at HEAD -l 'helm*')" ]]; then
+            if [[ -z "$(git tag --points-at HEAD -l 'chart*')" ]]; then
               echo "No chart version available"
               exit 1
             else
-              echo "chartVersion=$(git tag --points-at HEAD -l 'helm*' | sed 's/chart-//' )" >> $GITHUB_OUTPUT
+              echo "chartVersion=$(git tag --points-at HEAD -l 'chart*' | sed 's/chart-//' )" >> $GITHUB_OUTPUT
             fi
           else
             echo "chartVersion=${{ steps.semantic.outputs.new_release_version }}" >> $GITHUB_OUTPUT
@@ -92,7 +92,8 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           chart_version: ${{ steps.semantic.outputs.new_release_version }}
           app_version: ${{ steps.appVersion.outputs.appVersion }}
-          charts_dir: chart
+          linting: off
+          charts_dir: "."
       # Full charts to Prod OCI
       - id: auth
         name: Authenticate to Google Cloud

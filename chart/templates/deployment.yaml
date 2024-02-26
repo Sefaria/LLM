@@ -1,8 +1,6 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  labels:
-    # Helper labels
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
 spec:
@@ -10,12 +8,10 @@ spec:
   replicas: {{ .Values.deployment.replicaCount }}
   revisionHistoryLimit: 2
   selector:
-    matchLabels:
-      # Helper labels
+    matchLabels:  {{ include "llm.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      labels:
-        # Helper labels
+      labels: {{ include "llm.selectorLabels" . | nindent 8 }}
     spec:
       containers:
       - name: llm
