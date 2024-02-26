@@ -50,6 +50,7 @@ jobs:
         run: |
           wget -nv -nc -O yq https://github.com/mikefarah/yq/releases/download/v4.20.2/yq_linux_amd64
           chmod +x yq
+          echo "$PWD" >> $GITHUB_PATH
       - name: create release rules
         run: build/chart-release-rules.sh
       - uses: cycjimmy/semantic-release-action@v4
