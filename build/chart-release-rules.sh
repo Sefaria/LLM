@@ -50,8 +50,8 @@ cat << EOF >> chart/.releaserc
     - "prepareCmd": "../build/chart-prerelease.sh \${nextRelease.gitTag}"
   - - "@semantic-release/git"
     - assets:
-        - chart/Chart.yaml
-        - .github/workflows/deploy.yaml
+        - Chart.yaml
+        - ../.github/workflows/deploy.yaml
 branches: [
     {"name": "main"}
   ]
