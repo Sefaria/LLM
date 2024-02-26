@@ -61,10 +61,11 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: |
-            us-east1-docker.pkg.dev/${{ secrets.DEV_GKE_PROJECT }}/containers/sefaria-llm-${{ steps.branch-name.outputs.current_branch }}
+            us-east1-docker.pkg.dev/${{ secrets.DEV_GKE_PROJECT }}/containers/sefaria-llm
           # generate container tags based on the following events/attributes
           tags: |
-            type=sha,enable=true,priority=100,prefix=sha-,suffix=-${{ steps.date.outputs.date }},format=short
+            type=sha,enable=true,priority=100,prefix=${{ steps.branch-name.outputs.current_branch}}-,suffix=-${{ steps.date.outputs.date }},format=short
+            type=ref,event=branch
             type=sha
           flavor: |
             latest=true
