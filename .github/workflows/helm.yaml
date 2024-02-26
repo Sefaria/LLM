@@ -116,4 +116,4 @@ jobs:
         if: ${{  github.ref == 'refs/heads/main' }}
         run: |
           helm package chart
-          helm push Sefaria-LLM-${{ steps.chartVersion.outputs.chartVersion }}.tgz oci://us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT}}/Sefaria-LLM/chart/
+          helm push sefaria-llm-${{ steps.chartVersion.outputs.chartVersion }}.tgz oci://us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT}}/containers/sefaria-llm/chart/
