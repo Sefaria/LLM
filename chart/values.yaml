@@ -17,8 +17,8 @@ deployment:
   redisSecretRef: redis-password
 redis:
   url: "redis://127.0.0.1"
-  port: 6397
-  DBNumber: 0
-  backendDBNUmber: 1
+  port: "6397"
+  DBNumber: "0"
+  backendDBNumber: "1"
   sentinelURL: ""
   transportOptions: {}

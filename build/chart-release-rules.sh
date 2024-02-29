@@ -6,8 +6,6 @@ plugins:
   - - "@semantic-release/commit-analyzer"
     - preset: "conventionalcommits"
       releaseRules:
-        - {"type": "helm", "release": "minor" }
-        - {"type": "helm", "scope": "fix", "release": "patch" }
         - {"type": "feat", "release": "minor"}
         - {"type": "fix", "release": "patch"}
         - {"type": "chore", "release": "patch"}
@@ -24,7 +22,6 @@ plugins:
     - preset: "conventionalcommits"
       presetConfig:
         "types":
-          - {"type": "helm", "section": "Helm Chart Changes"}
           - {"type": "feat", "hidden": true}
           - {"type": "fix", "hidden": true}
           - {"type": "chore", "hidden": true}
@@ -53,8 +50,8 @@ cat << EOF >> chart/.releaserc
     - "prepareCmd": "../build/chart-prerelease.sh \${nextRelease.gitTag}"
   - - "@semantic-release/git"
     - assets:
-        - chart/Chart.yaml
-        - .github/workflows/deploy.yaml
+        - Chart.yaml
+        - ../.github/workflows/deploy.yaml
 branches: [
     {"name": "main"}
   ]

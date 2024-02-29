@@ -1,13 +1,14 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: env-configmap
+  name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  labels: {{ include "llm.labels" . | nindent 4 }}
 data:
   REDIS_URL: {{ .Values.redis.url }}
-  REDIS_PORT: {{ .Values.redis.port }}
-  REDIS_BROKER_DB_NUM: {{ .Values.redis.DBNumber }}
-  REDIS_RESULT_BACKEND_DB_NUM: {{ .Values.redis.backendDBNumber }}
+  REDIS_PORT: {{ .Values.redis.port | quote }}
+  REDIS_BROKER_DB_NUM: {{ .Values.redis.DBNumber | quote }}
+  REDIS_RESULT_BACKEND_DB_NUM: {{ .Values.redis.backendDBNumber | quote }}
   SENTINEL_HEADLESS_URL: {{ .Values.redis.sentinelURL }}
   SENTINEL_TRANSPORT_OPTS: {{ .Values.redis.transportOptions | toJson | quote }}
   QUEUE_NAME: llm-{{ .Release.Name }}
