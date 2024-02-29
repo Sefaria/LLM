@@ -26,4 +26,4 @@ spec:
             name: {{ .Values.deployment.openaiSecretRef }}
         - secretRef:
             name: {{ .Values.deployment.redisSecretRef }}
-        resources: {{ .Values.deployment.resources | toYaml | nindent 10 }}`
+        resources: {{ .Values.deployment.resources | toYaml | nindent 10 }}
