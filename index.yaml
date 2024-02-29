@@ -123,6 +123,23 @@ entries:
   sefaria-llm:
   - apiVersion: v2
     appVersion: 1.0.0
+    created: "2024-02-29T11:47:40.502094122Z"
+    description: A Helm chart for deploying Sefaria LLM service
+    digest: 4165f9ad4c56448d941467a83bf52a50edc8b1a9fadf9baa8ffe810a48450729
+    home: https://sefaria.org
+    icon: https://raw.githubusercontent.com/Sefaria/Sefaria-Project/e757b59968adbc0d6845eaa1b420f934ad864d32/static/img/logo/icon.svg
+    maintainers:
+    - email: dev@sefaria.org
+      name: Sefaria
+    name: sefaria-llm
+    sources:
+    - https://github.com/Sefaria/Sefaria-LLM
+    type: application
+    urls:
+    - https://Sefaria.github.io/LLM/sefaria-llm-1.0.3.tgz
+    version: 1.0.3
+  - apiVersion: v2
+    appVersion: 1.0.0
     created: "2024-02-26T14:50:35.414701874Z"
     description: A Helm chart for deploying Sefaria LLM service
     digest: b49169654696582293009d8a40000bea56ef11fa29689a9aef98bbbc7ec02569
@@ -155,4 +172,4 @@ entries:
     urls:
     - https://Sefaria.github.io/LLM/sefaria-llm-1.0.2-fix-release.1.tgz
     version: 1.0.2-fix-release.1
-generated: "2024-02-26T14:50:35.414278576Z"
+generated: "2024-02-29T11:47:40.501693655Z"
