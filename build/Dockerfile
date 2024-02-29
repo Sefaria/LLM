@@ -5,6 +5,7 @@ ENV REDIS_URL "redis://127.0.0.1"
 ENV REDIS_PORT 6379
 ENV REDIS_BROKER_DB_NUM 0
 ENV REDIS_RESULT_BACKEND_DB_NUM 1
+ENV QUEUE_NAME "llm"
 
 WORKDIR /app/
 
@@ -14,5 +15,4 @@ RUN pip3 install --no-cache-dir -r /app/requirements.txt
 
 COPY . /app/
 ENTRYPOINT ["celery"]
-CMD ["-A", "app.celery_setup.app", "worker", "-Q", "llm"]
-
+CMD -A app.celery_setup.app worker -Q $QUEUE_NAME
