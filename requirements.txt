@@ -1,4 +1,5 @@
 langchain[llms]==0.1.2
+anthropic
 stanza
 openai
 typer
@@ -8,3 +9,5 @@ tqdm
 celery[redis]
 diff-match-patch
 dnspython
+tiktoken
+-e file:./app/llm_interface
