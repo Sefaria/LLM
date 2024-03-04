@@ -11,7 +11,7 @@ from langchain.chat_models import ChatOpenAI
 import openai
 import re
 from sefaria.helper.normalization import NormalizerComposer, RegexNormalizer, AbstractNormalizer
-from app.util.sefaria_specific import get_removal_list
+from util.sefaria_specific import get_removal_list
 
 api_key = os.getenv("OPENAI_API_KEY")
 

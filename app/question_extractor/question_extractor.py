@@ -1,6 +1,6 @@
 import django
 django.setup()
-from app.util.openai import get_completion_openai, count_tokens_openai
+from util.openai import get_completion_openai, count_tokens_openai
 from sefaria.model import *
 
 

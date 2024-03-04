@@ -2,7 +2,7 @@ from typing import List
 from abc import ABC, abstractmethod
 from anthropic import Anthropic
 from openai import OpenAI
-from app.basic_langchain.schema import AIMessage, AbstractMessage, LLMCompany
+from basic_langchain.schema import AIMessage, AbstractMessage, LLMCompany
 
 
 class AbstractChatModel(ABC):

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import List, Dict, Tuple, Union
 from toprompt import TopromptOptions, Toprompt
-from app.llm_interface.sefaria_llm_interface import Topic
+from sefaria_llm_interface import Topic
 
 
 class AbstractFormatter(ABC):

@@ -1,13 +1,13 @@
 """
 Provide context for a source
 """
-from app.llm_interface.sefaria_llm_interface.topic_prompt import TopicPromptSource
-from app.util.general import get_source_text_with_fallback, get_by_xml_tag
+from sefaria_llm_interface.topic_prompt import TopicPromptSource
+from util.general import get_source_text_with_fallback, get_by_xml_tag
 import re
 
 from langchain.prompts import PromptTemplate
-from app.basic_langchain.schema import HumanMessage, SystemMessage
-from app.basic_langchain.chat_models import ChatAnthropic, ChatOpenAI
+from basic_langchain.schema import HumanMessage, SystemMessage
+from basic_langchain.chat_models import ChatAnthropic, ChatOpenAI
 
 
 def context_from_surrounding_text(source: TopicPromptSource) -> str:

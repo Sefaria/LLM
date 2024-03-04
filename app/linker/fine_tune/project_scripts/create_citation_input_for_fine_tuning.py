@@ -4,8 +4,8 @@ import argparse
 from sefaria.utils.util import wrap_chars_with_overlaps
 from sklearn.model_selection import train_test_split
 import srsly
-from app.util.sefaria_specific import load_mongo_docs
-from app.linker.fine_tune.project_scripts import constants
+from util.sefaria_specific import load_mongo_docs
+from linker.fine_tune.project_scripts import constants
 from langchain.chat_models.openai import convert_message_to_dict
 from langchain.schema import HumanMessage, SystemMessage, AIMessage
 

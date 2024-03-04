@@ -1,8 +1,8 @@
 import random
-from app.util.general import get_by_xml_tag
+from util.general import get_by_xml_tag
 
-from app.basic_langchain.chat_models import ChatAnthropic
-from app.basic_langchain.schema import HumanMessage, SystemMessage
+from basic_langchain.chat_models import ChatAnthropic
+from basic_langchain.schema import HumanMessage, SystemMessage
 
 random.seed(26)
 
