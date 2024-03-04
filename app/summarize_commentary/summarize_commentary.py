@@ -1,9 +1,9 @@
 from typing import List
-from app.llm_interface.sefaria_llm_interface import Topic
-from app.llm_interface.sefaria_llm_interface.topic_prompt import TopicPromptSource, TopicPromptCommentary
-from app.util.openai import get_completion_openai, count_tokens_openai
-from app.basic_langchain.chat_models import ChatAnthropic
-from app.basic_langchain.schema import HumanMessage
+from sefaria_llm_interface import Topic
+from sefaria_llm_interface.topic_prompt import TopicPromptSource, TopicPromptCommentary
+from util.openai import get_completion_openai, count_tokens_openai
+from basic_langchain.chat_models import ChatAnthropic
+from basic_langchain.schema import HumanMessage
 
 
 def get_prompt(source: TopicPromptSource, topic: Topic, commentary: str):

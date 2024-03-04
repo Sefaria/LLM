@@ -3,7 +3,7 @@ Takes two prodigy collections as input and outputs only the documents that are d
 """
 import argparse
 from functools import reduce
-from app.util.sefaria_specific import load_mongo_docs
+from util.sefaria_specific import load_mongo_docs
 from db_manager import MongoProdigyDBManager
 from pymongo import InsertOne
 

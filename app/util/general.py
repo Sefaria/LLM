@@ -1,4 +1,4 @@
-from app.llm_interface.sefaria_llm_interface.topic_prompt import TopicPromptSource
+from sefaria_llm_interface.topic_prompt import TopicPromptSource
 import diff_match_patch
 import re
 
@@ -7,7 +7,7 @@ def get_source_text_with_fallback(source: TopicPromptSource, lang: str, auto_tra
     text = source.text.get(lang, "")
     if len(text) == 0:
         if auto_translate and lang == "en":
-            from app.translation.poc import translate_text
+            from translation.poc import translate_text
             text = translate_text(text)
         else:
             other_lang = "en" if lang == "he" else "he"

@@ -1,5 +1,5 @@
 import pytest
-from app.util.sentencizer import _combine_small_sentences
+from util.sentencizer import _combine_small_sentences
 
 
 @pytest.mark.parametrize(('sentences', 'expected_output'), [

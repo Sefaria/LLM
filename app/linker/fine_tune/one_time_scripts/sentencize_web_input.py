@@ -1,5 +1,5 @@
-from app.util.sefaria_specific import load_mongo_docs
-from app.util.sentencizer import sentencize
+from util.sefaria_specific import load_mongo_docs
+from util.sentencizer import sentencize
 collection = "ner_en_web_input"
 from db_manager import MongoProdigyDBManager
 from pymongo import InsertOne

@@ -2,12 +2,12 @@ import json
 from dataclasses import dataclass
 import random
 
-from app.util.openai import count_tokens_openai
-from app.topic_prompt.uniqueness_of_source import get_uniqueness_of_source
-from app.topic_prompt.contextualize import get_context
+from util.openai import count_tokens_openai
+from topic_prompt.uniqueness_of_source import get_uniqueness_of_source
+from topic_prompt.contextualize import get_context
 from typing import List
-from app.llm_interface.sefaria_llm_interface import Topic
-from app.llm_interface.sefaria_llm_interface.topic_prompt import TopicPromptSource
+from sefaria_llm_interface import Topic
+from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from pydantic import BaseModel, Field
 
 from langchain.output_parsers import PydanticOutputParser
@@ -130,7 +130,7 @@ class TopromptLLMPrompt:
         if True:  # category not in {"Talmud", "Midrash", "Tanakh"}:
             prompt += f"\n<book_description>{book_desc}</book_description>"
         if self.source.commentary:
-            from app.summarize_commentary.summarize_commentary import summarize_commentary
+            from summarize_commentary.summarize_commentary import summarize_commentary
             commentary_summary = summarize_commentary(self.source, self.topic, company='anthropic')
             prompt += f"\n<commentary>{commentary_summary}</commentary>"
         return prompt
