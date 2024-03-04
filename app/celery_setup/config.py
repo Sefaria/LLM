@@ -8,10 +8,17 @@ result_backend_db_num = os.getenv('REDIS_RESULT_BACKEND_DB_NUM')
 # Either define SENTINEL_HEADLESS_URL if using sentinel or REDIS_URL for a simple redis instance
 sentinel_url = os.getenv('SENTINEL_HEADLESS_URL')
 redis_url = os.getenv('REDIS_URL')
+redis_password = os.getenv('REDIS_PASSWORD')
 
 
 def add_db_num_to_url(url, db_num):
     return url.replace(f':{redis_port}', f':{redis_port}/{db_num}')
+
+
+def add_password_to_url(url, password):
+    if len(password) == 0:
+        return url
+    return url.replace('redis://', f'redis://:{password}@')
 
 
 if sentinel_url:
@@ -28,5 +35,6 @@ if sentinel_url:
     result_backend_transport_options = {}
     broker_transport_options = {}
 else:
-    broker_url = add_db_num_to_url(f"{redis_url}:{redis_port}", broker_db_num)
-    result_backend = add_db_num_to_url(f"{redis_url}:{redis_port}", result_backend_db_num)
+    redis_url = add_password_to_url(f"{redis_url}:{redis_port}", redis_password)
+    broker_url = add_db_num_to_url(redis_url, broker_db_num)
+    result_backend = add_db_num_to_url(redis_url, result_backend_db_num)
