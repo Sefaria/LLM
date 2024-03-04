@@ -15,4 +15,4 @@ RUN pip3 install --no-cache-dir -r /app/requirements.txt
 
 COPY . /app/
 ENTRYPOINT celery
-CMD -A app.celery_setup.app worker -Q $QUEUE_NAME
+CMD -A celery_setup.app worker -Q $QUEUE_NAME
