@@ -15,6 +15,7 @@ deployment:
   anthropicSecretRef: anthropic-api-key
   openaiSecretRef: openai-api-key
   redisSecretRef: redis-password
+  sentinelSecretRef: sentinel-password
 redis:
   url: "redis://127.0.0.1"
   port: "6397"
