@@ -1,6 +1,7 @@
 import os
 import dns.resolver
 import json
+import re
 
 redis_port = os.getenv('REDIS_PORT')
 broker_db_num = os.getenv('REDIS_BROKER_DB_NUM')
@@ -20,7 +21,7 @@ def add_db_num_to_url(url, db_num):
 def add_password_to_url(url, password):
     if len(password) == 0:
         return url
-    return url.replace('redis://', f'redis://:{password}@')
+    return re.sub(r'((?:redis|sentinel)://)', fr'\1:{password}@', url)
 
 
 if sentinel_url:
@@ -28,7 +29,7 @@ if sentinel_url:
     addressstring = []
     for res in redisdns.response.answer:
         for item in res.items:
-            addressstring.append(f"sentinel://{item.to_text()}:{redis_port}")
+            addressstring.append(add_password_to_url(f"sentinel://{item.to_text()}:{redis_port}", redis_password))
     joined_address = ";".join(addressstring)
 
     # celery config vars
