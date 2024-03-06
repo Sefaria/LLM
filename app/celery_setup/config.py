@@ -3,8 +3,8 @@ import json
 from celery_setup.generate_config import generate_config, SentinelConfig, RedisConfig
 
 redis_port = os.getenv('REDIS_PORT')
-broker_db_num = os.getenv('REDIS_BROKER_DB_NUM')
-result_backend_db_num = os.getenv('REDIS_RESULT_BACKEND_DB_NUM')
+broker_db_num = os.getenv('CELERY_REDIS_BROKER_DB_NUM')
+result_backend_db_num = os.getenv('CELERY_REDIS_RESULT_BACKEND_DB_NUM')
 
 # Either define SENTINEL_HEADLESS_URL if using sentinel or REDIS_URL for a simple redis instance
 sentinel_url = os.getenv('SENTINEL_HEADLESS_URL')

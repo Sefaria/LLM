@@ -7,8 +7,8 @@ metadata:
 data:
   REDIS_URL: {{ .Values.redis.url }}
   REDIS_PORT: {{ .Values.redis.port | quote }}
-  REDIS_BROKER_DB_NUM: {{ .Values.redis.brokerDBNumber | quote }}
-  REDIS_RESULT_BACKEND_DB_NUM: {{ .Values.redis.resultBackendDBNumber | quote }}
+  CELERY_REDIS_BROKER_DB_NUM: {{ .Values.redis.brokerDBNumber | quote }}
+  CELERY_REDIS_RESULT_BACKEND_DB_NUM: {{ .Values.redis.resultBackendDBNumber | quote }}
   SENTINEL_HEADLESS_URL: {{ .Values.redis.sentinelURL }}
   SENTINEL_TRANSPORT_OPTS: {{ .Values.redis.transportOptions | toJson | quote }}
   QUEUE_NAME: llm-{{ .Release.Name }}
