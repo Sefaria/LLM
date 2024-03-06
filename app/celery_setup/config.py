@@ -1,7 +1,6 @@
 import os
-import dns.resolver
 import json
-import re
+from celery_setup.generate_config import generate_config, SentinelConfig, RedisConfig
 
 redis_port = os.getenv('REDIS_PORT')
 broker_db_num = os.getenv('REDIS_BROKER_DB_NUM')
@@ -14,31 +13,8 @@ sentinel_password = os.getenv('SENTINEL_PASSWORD')
 redis_url = os.getenv('REDIS_URL')
 redis_password = os.getenv('REDIS_PASSWORD')
 
-
-def add_db_num_to_url(url, db_num):
-    return url.replace(f':{redis_port}', f':{redis_port}/{db_num}')
-
-
-def add_password_to_url(url, password):
-    if len(password) == 0:
-        return url
-    return re.sub(r'((?:redis|sentinel)://)', fr'\1:{password}@', url)
-
-
-if sentinel_url:
-    redisdns = dns.resolver.resolve(sentinel_url, 'A')
-    addressstring = []
-    for res in redisdns.response.answer:
-        for item in res.items:
-            addressstring.append(add_password_to_url(f"sentinel://{item.to_text()}:{redis_port}", redis_password))
-    joined_address = ";".join(addressstring)
-
-    # celery config vars
-    broker_url = add_db_num_to_url(joined_address, broker_db_num)
-    result_backend = add_db_num_to_url(joined_address, result_backend_db_num)
-    result_backend_transport_options = sentinel_transport_opts
-    broker_transport_options = {**sentinel_transport_opts, "sentinel_kwargs": {"password": sentinel_password}}
-else:
-    redis_url = add_password_to_url(f"{redis_url}:{redis_port}", redis_password)
-    broker_url = add_db_num_to_url(redis_url, broker_db_num)
-    result_backend = add_db_num_to_url(redis_url, result_backend_db_num)
+def generate_config_from_env():
+    return generate_config(
+        RedisConfig(redis_url, redis_password, redis_port, broker_db_num, result_backend_db_num),
+        SentinelConfig(sentinel_url, sentinel_password, redis_port, sentinel_transport_opts)
+    )
