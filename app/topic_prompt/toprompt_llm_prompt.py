@@ -167,7 +167,7 @@ class TopromptExampleGenerator:
         return [example.serialize() for example in examples]
 
     def _get_training_set(self) -> List[ToppromptExample]:
-        with open("app/topic_prompt/input/topic_prompt_training_set.json", "r") as fin:
+        with open("topic_prompt/input/topic_prompt_training_set.json", "r") as fin:
             raw_examples = json.load(fin)
             return [ToppromptExample(lang=self.lang, **raw_example) for raw_example in raw_examples]
 
