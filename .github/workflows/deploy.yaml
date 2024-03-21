@@ -50,6 +50,6 @@ jobs:
       - name: Deploy Production
         run: |
           helm install llm "oci://us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT}}/Sefaria-LLM/chart/Sefaria-LLM" \
-            --version ${{ input.chart_version }} \
-            --set deployment.image.tag="${{ input.version }}" \
+            --version ${{ inputs.chart_version }} \
+            --set deployment.image.tag="${{ inputs.version }}" \
             --set deployment.image.registry="oci://us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT}}/Sefaria-LLM"
