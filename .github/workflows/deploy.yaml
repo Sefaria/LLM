@@ -1,5 +1,4 @@
 name: Deploy Production
-
 on:
   workflow_dispatch:
     inputs:
@@ -11,7 +10,6 @@ on:
         type: string
         required: true
         default: ""
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -49,7 +47,7 @@ jobs:
         uses: frenck/action-setup-yq@v1
       - name: Deploy Production
         run: |
-          helm install llm "oci://us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT}}/containers/sefaria-llm/chart/Sefaria-LLM" \
+          helm install llm "oci://us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT}}/containers/sefaria-llm/chart/sefaria-llm" \
             --version ${{ inputs.chart_version }} \
             --set deployment.image.tag="${{ inputs.version }}" \
             --set deployment.image.registry="us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers"
