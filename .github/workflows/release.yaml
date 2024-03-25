@@ -21,6 +21,11 @@ jobs:
           fetch-depth: 0
       - name: fetch head of branch to ensure semantic can run
         run: git pull origin $GITHUB_REF
+      - name: Download yq
+        run: |
+          wget -nv -nc -O yq https://github.com/mikefarah/yq/releases/download/v4.20.2/yq_linux_amd64
+          chmod +x yq
+          echo "$PWD" >> $GITHUB_PATH
       - uses: cycjimmy/semantic-release-action@v4
         id: semantic
         with:

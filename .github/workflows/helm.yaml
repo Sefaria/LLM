@@ -87,6 +87,10 @@ jobs:
           else
             echo "chartVersion=${{ steps.semantic.outputs.new_release_version }}" >> $GITHUB_OUTPUT
           fi
+      - name: Get appVersion
+        id: appVersion
+        run: |
+          echo "appVersion=$(git describe --match 'v*' --abbrev=0 HEAD --tags)" >> $GITHUB_OUTPUT
       # All charts to gh pages
       - name: Publish Helm charts
         uses: stefanprodan/helm-gh-pages@master
