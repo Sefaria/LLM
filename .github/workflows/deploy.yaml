@@ -40,7 +40,7 @@ jobs:
           username: oauth2accesstoken
           password: '${{ steps.auth.outputs.access_token }}'
       - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v0
+        uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{secrets.PROD_GKE_CLUSTER}}
           location: ${{secrets.PROD_GKE_REGION}}
