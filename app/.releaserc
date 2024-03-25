@@ -26,6 +26,6 @@ plugins:
     - "prepareCmd": "../build/app-prerelease.sh ${nextRelease.gitTag}"
   - - "@semantic-release/git"
     - assets:
-        - .github/workflows/deploy.yaml
+        - ../.github/workflows/deploy.yaml
 branches:
   name: "main"
