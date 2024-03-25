@@ -52,4 +52,4 @@ jobs:
           helm install llm "oci://us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT}}/Sefaria-LLM/chart/Sefaria-LLM" \
             --version ${{ inputs.chart_version }} \
             --set deployment.image.tag="${{ inputs.version }}" \
-            --set deployment.image.registry="oci://us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT}}/Sefaria-LLM"
+            --set deployment.image.registry="oci://us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT}}/containers/sefaria-llm/chart/Sefaria-LLM"
