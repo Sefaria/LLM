@@ -40,7 +40,7 @@ jobs:
           username: oauth2accesstoken
           password: '${{ steps.auth.outputs.access_token }}'
       - name: Authenticate GHA Runner To Target Cluster
-        uses: google-github-actions/get-gke-credentials@v0
+        uses: google-github-actions/get-gke-credentials@v2
         with:
           cluster_name: ${{secrets.PROD_GKE_CLUSTER}}
           location: ${{secrets.PROD_GKE_REGION}}
@@ -49,7 +49,7 @@ jobs:
         uses: frenck/action-setup-yq@v1
       - name: Deploy Production
         run: |
-          helm install llm "oci://us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT}}/Sefaria-LLM/chart/Sefaria-LLM" \
+          helm install llm "oci://us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT}}/containers/sefaria-llm/chart/Sefaria-LLM" \
             --version ${{ inputs.chart_version }} \
             --set deployment.image.tag="${{ inputs.version }}" \
-            --set deployment.image.registry="oci://us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT}}/containers/sefaria-llm/chart/Sefaria-LLM"
+            --set deployment.image.registry="us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers/sefaria-llm"
