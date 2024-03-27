@@ -11,4 +11,4 @@ redis:
       name: redis-password
   sentinelPassword:
     secretRef:
-      name: sentinelPassword
+      name: sentinel-password
