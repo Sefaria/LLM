@@ -50,5 +50,5 @@ jobs:
           helm upgrade -i llm "oci://us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT}}/containers/sefaria-llm/chart/sefaria-llm" \
             --version ${{ inputs.chart_version }} \
             --set deployment.image.tag="${{ inputs.version }}" \
-            --set deployment.image.registry="us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers"
+            --set deployment.image.registry="us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers" \
             -f deploy/env/prod/values.yaml
