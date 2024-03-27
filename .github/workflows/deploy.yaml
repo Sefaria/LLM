@@ -51,3 +51,4 @@ jobs:
             --version ${{ inputs.chart_version }} \
             --set deployment.image.tag="${{ inputs.version }}" \
             --set deployment.image.registry="us-east1-docker.pkg.dev/${{ secrets.PROD_GKE_PROJECT }}/containers"
+            -f build/env/prod/values.yaml
