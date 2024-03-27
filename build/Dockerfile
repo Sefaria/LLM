@@ -24,4 +24,10 @@ COPY ./app /app/
 
 COPY build/entrypoint.sh /app/
 RUN chmod +x /app/entrypoint.sh
+
+# Use celery user
+RUN useradd celery
+RUN chown -R celery /app/
+USER celery
+
 ENTRYPOINT ["./entrypoint.sh"]
