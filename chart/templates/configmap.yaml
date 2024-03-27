@@ -6,8 +6,7 @@ metadata:
   labels: {{ include "llm.labels" . | nindent 4 }}
 data:
   REDIS_URL: {{ .Values.redis.url }}
-  REDIS_PORT: {{ .Values.redis.redisPort | quote }}
-  SENTINEL_PORT: {{ .Values.redis.sentinelPort | quote }}
+  REDIS_PORT: {{ .Values.redis.port | quote }}
   CELERY_REDIS_BROKER_DB_NUM: {{ .Values.redis.brokerDBNumber | quote }}
   CELERY_REDIS_RESULT_BACKEND_DB_NUM: {{ .Values.redis.resultBackendDBNumber | quote }}
   SENTINEL_HEADLESS_URL: {{ .Values.redis.sentinelURL }}
