@@ -25,8 +25,8 @@ spec:
         - secretRef:
             name: {{ .Values.deployment.openaiSecretRef }}
         - secretRef:
-            name: {{ .Values.deployment.redisSecretRef }}
+            name: {{ .Values.redis.redisPassword.secretRef.name }}
         - secretRef:
-            name: {{ .Values.deployment.sentinelSecretRef }}
+            name: {{ .Values.redis.sentinelPassword.secretRef.name }}
             optional: true
         resources: {{ .Values.deployment.resources | toYaml | nindent 10 }}
