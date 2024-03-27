@@ -16,7 +16,8 @@ deployment:
   openaiSecretRef: openai-api-key
 redis:
   url: "redis://127.0.0.1"
-  port: "6397"
+  redisPort: "6397"
+  sentinelPort: "26397"
   brokerDBNumber: "0"
   resultBackendDBNumber: "1"
   sentinelURL: ""
