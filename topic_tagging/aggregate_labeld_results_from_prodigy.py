@@ -29,8 +29,14 @@ def aggregate_accepted_values(elements):
     accepted_values = []
     for element in elements:
         if 'answer' in element and element['answer'] == 'reject':
-            continue
+            return ['rejected']
         elif 'accept' in element:
+            accepted_values.extend(element['accept'])
+    return sorted(accepted_values)
+def aggregate_accepted_values_ignore_reject(elements):
+    accepted_values = []
+    for element in elements:
+        if 'accept' in element:
             accepted_values.extend(element['accept'])
     return sorted(accepted_values)
 
@@ -47,5 +53,7 @@ if __name__ == '__main__':
     for ref in all_refs:
         elements_for_ref = find_elements_with_ref(file_path, ref)
         labels_for_ref = aggregate_accepted_values(elements_for_ref)
+        if labels_for_ref == ['rejected']:
+            print("Rejected Text: ", ref)
         aggregated_results.append({'ref': ref, 'slugs': labels_for_ref})
     write_list_of_dicts_to_jsonl('golden_standard_labels.jsonl', aggregated_results)
