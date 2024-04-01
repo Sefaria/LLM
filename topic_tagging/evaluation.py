@@ -18,9 +18,10 @@ class Evaluator:
         self.considered_labels = considered_labels
 
         self.golden_standard_projection = self.get_projection_of_labelled_refs(self.golden_standard)
-        self.golden_standard_projection = self.filter_out_refs_not_in_evaluated(self.golden_standard_projection)
+        self.golden_standard_projection = self.filter_out_refs_not_in_predicted(self.golden_standard_projection)
 
         self.predicted_projection = self.get_projection_of_labelled_refs(self.predicted)
+        self.golden_standard_projection = self.filter_out_refs_not_in_gold(self.predicted_projection)
 
     def get_projection_of_labelled_refs(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
         # Remove irrelevant slugs from the slugs list
@@ -29,9 +30,14 @@ class Evaluator:
             projected.append(LabelledRef(ref.ref, [slug for slug in ref.slugs if slug in self.considered_labels]))
         return projected
 
-    def filter_out_refs_not_in_evaluated(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
-        evaluated_refs = [laballed_ref.ref for laballed_ref in self.predicted]
-        projected = [labelled_ref for labelled_ref in lrs if labelled_ref.ref in evaluated_refs]
+    def filter_out_refs_not_in_predicted(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
+        predicted_refs = [labelled_ref.ref for labelled_ref in self.predicted]
+        projected = [labelled_ref for labelled_ref in lrs if labelled_ref.ref in predicted_refs]
+        return projected
+
+    def filter_out_refs_not_in_gold(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
+        gold_refs = [labelled_ref.ref for labelled_ref in self.golden_standard]
+        projected = [labelled_ref for labelled_ref in lrs if labelled_ref.ref in gold_refs]
         return projected
 
     def compute_accuracy(self) -> float:
@@ -68,6 +74,35 @@ class Evaluator:
                 false_negatives += 1
 
         return true_positives, false_positives, false_negatives
+
+    def compute_total_precision(self):
+        total_true_positives = 0
+        total_false_positives = 0
+        total_false_negatives = 0
+
+        for golden_standard_ref, predicted_ref in zip(self.golden_standard, self.predicted_projection):
+            true_positives, false_positives, false_negatives = self.compute_metrics_for_refs_pair(golden_standard_ref, predicted_ref)
+            total_true_positives += true_positives
+            total_false_positives += false_positives
+            total_false_negatives += false_negatives
+
+        total_precision = total_true_positives / (total_true_positives + total_false_positives) if (total_true_positives + total_false_positives) > 0 else 0
+        return total_precision
+
+    def compute_total_recall(self):
+        total_true_positives = 0
+        total_false_negatives = 0
+
+        for golden_standard_ref, predicted_ref in zip(self.golden_standard_projection, self.predicted_projection):
+            true_positives, _, false_negatives = self.compute_metrics_for_refs_pair(golden_standard_ref, predicted_ref)
+            if false_negatives != 0:
+                print("oh!")
+            total_true_positives += true_positives
+            total_false_negatives += false_negatives
+
+        total_recall = total_true_positives / (total_true_positives + total_false_negatives) if (total_true_positives + total_false_negatives) > 0 else 0
+        return total_recall
+
 
 class DataHandler:
     def __init__(self, golden_standard_filename, predicted_filename, considered_slugs_filename):
@@ -131,6 +166,8 @@ class DataHandler:
 
 
 
+
+
 if __name__ == "__main__":
     # Create some sample data
     golden_standard = [
@@ -159,7 +196,6 @@ if __name__ == "__main__":
     for ref in evaluator.predicted_projection:
         print(ref)
 
-    handler = DataHandler("evaluation_data/gold.jsonl", "evaluation_data/predicted.jsonl", 'evaluation_data/all_slugs_and_titles_for_prodigy.csv')
+    handler = DataHandler("evaluation_data/gold.jsonl", "evaluation_data/gold.jsonl", 'evaluation_data/all_slugs_and_titles_for_prodigy.csv')
     evaluator = Evaluator(handler.get_golden_standard(), handler.get_predicted(), handler.get_considered_slugs())
-    for g, e in zip(evaluator.golden_standard_projection, evaluator.predicted_projection):
-        print(evaluator.compute_metrics_for_refs_pair(g, e))
+    print(evaluator.compute_total_recall())
