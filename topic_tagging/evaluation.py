@@ -12,15 +12,15 @@ class LabelledRef:
         return f"LabelledRef(ref='{self.ref}', slugs={self.slugs})"
 
 class Evaluator:
-    def __init__(self, golden_standard: List[LabelledRef], evaluated: List[LabelledRef], considered_labels: List[str]):
+    def __init__(self, golden_standard: List[LabelledRef], predicted: List[LabelledRef], considered_labels: List[str]):
         self.golden_standard = golden_standard
-        self.evaluated = evaluated
+        self.predicted = predicted
         self.considered_labels = considered_labels
 
         self.golden_standard_projection = self.get_projection_of_labelled_refs(self.golden_standard)
         self.golden_standard_projection = self.filter_out_refs_not_in_evaluated(self.golden_standard_projection)
 
-        self.evaluated_projection = self.get_projection_of_labelled_refs(self.evaluated)
+        self.predicted_projection = self.get_projection_of_labelled_refs(self.predicted)
 
     def get_projection_of_labelled_refs(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
         # Remove irrelevant slugs from the slugs list
@@ -30,7 +30,7 @@ class Evaluator:
         return projected
 
     def filter_out_refs_not_in_evaluated(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
-        evaluated_refs = [laballed_ref.ref for laballed_ref in self.evaluated]
+        evaluated_refs = [laballed_ref.ref for laballed_ref in self.predicted]
         projected = [labelled_ref for labelled_ref in lrs if labelled_ref.ref in evaluated_refs]
         return projected
 
@@ -38,7 +38,7 @@ class Evaluator:
         correct_predictions = 0
         total_predictions = 0
 
-        for golden_ref, evaluated_ref in zip(self.golden_standard_projection, self.evaluated_projection):
+        for golden_ref, evaluated_ref in zip(self.golden_standard_projection, self.predicted_projection):
             total_predictions += 1
             if set(golden_ref.slugs) == set(evaluated_ref.slugs):
                 correct_predictions += 1
@@ -49,30 +49,30 @@ class Evaluator:
         accuracy = correct_predictions / total_predictions
         return accuracy
 
-    def compute_metrics_for_single_ref(self, golden_standard_ref: LabelledRef, evaluated_ref: LabelledRef):
+    def compute_metrics_for_refs_pair(self, golden_standard_ref: LabelledRef, predicted_ref: LabelledRef):
         golden_standard = golden_standard_ref.slugs
-        evaluated = evaluated_ref.slugs
+        predicted = predicted_ref.slugs
 
         true_positives = 0
         false_positives = 0
         false_negatives = 0
 
-        for item in evaluated:
+        for item in predicted:
             if item in golden_standard:
                 true_positives += 1
             else:
                 false_positives += 1
 
         for item in golden_standard:
-            if item not in evaluated:
+            if item not in predicted:
                 false_negatives += 1
 
         return true_positives, false_positives, false_negatives
 
 class DataHandler:
-    def __init__(self, golden_standard_filename, evaluated_filename, considered_slugs_filename):
+    def __init__(self, golden_standard_filename, predicted_filename, considered_slugs_filename):
         self.golden_standard_filename = golden_standard_filename
-        self.evaluated_filename = evaluated_filename
+        self.predicted_filename = predicted_filename
         self.considered_slugs_filename = considered_slugs_filename
 
     def _jsonl_to_labelled_refs(self, jsonl_filename) -> List[LabelledRef]:
@@ -121,8 +121,8 @@ class DataHandler:
     def get_golden_standard(self) -> List[LabelledRef]:
         return self._jsonl_to_labelled_refs(self.golden_standard_filename)
 
-    def get_evaluated(self) -> List[LabelledRef]:
-        return self._jsonl_to_labelled_refs(self.evaluated_filename)
+    def get_predicted(self) -> List[LabelledRef]:
+        return self._jsonl_to_labelled_refs(self.predicted_filename)
 
     def get_considered_slugs(self) -> List[LabelledRef]:
         return self._read_first_column_or_array(self.considered_slugs_filename)
@@ -156,10 +156,10 @@ if __name__ == "__main__":
         print(ref)
 
     print("\nEvaluated Projection:")
-    for ref in evaluator.evaluated_projection:
+    for ref in evaluator.predicted_projection:
         print(ref)
 
-    handler = DataHandler("golden_standard_labels_march_2024.jsonl", 'golden_standard_labels_march_2024.jsonl', 'all_slugs_and_titles_for_prodigy.csv')
-    evaluator = Evaluator(handler.get_golden_standard(), handler.get_evaluated(), handler.get_considered_slugs())
-    for g, e in zip(evaluator.golden_standard_projection, evaluator.evaluated_projection):
-        print(evaluator.compute_metrics_for_single_ref(g, e))
+    handler = DataHandler("evaluation_data/gold.jsonl", "evaluation_data/predicted.jsonl", 'evaluation_data/all_slugs_and_titles_for_prodigy.csv')
+    evaluator = Evaluator(handler.get_golden_standard(), handler.get_predicted(), handler.get_considered_slugs())
+    for g, e in zip(evaluator.golden_standard_projection, evaluator.predicted_projection):
+        print(evaluator.compute_metrics_for_refs_pair(g, e))
