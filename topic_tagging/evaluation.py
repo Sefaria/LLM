@@ -49,6 +49,26 @@ class Evaluator:
         accuracy = correct_predictions / total_predictions
         return accuracy
 
+    def compute_metrics_for_single_ref(self, golden_standard_ref: LabelledRef, evaluated_ref: LabelledRef):
+        golden_standard = golden_standard_ref.slugs
+        evaluated = evaluated_ref.slugs
+
+        true_positives = 0
+        false_positives = 0
+        false_negatives = 0
+
+        for item in evaluated:
+            if item in golden_standard:
+                true_positives += 1
+            else:
+                false_positives += 1
+
+        for item in golden_standard:
+            if item not in evaluated:
+                false_negatives += 1
+
+        return true_positives, false_positives, false_negatives
+
 class DataHandler:
     def __init__(self, golden_standard_filename, evaluated_filename, considered_slugs_filename):
         self.golden_standard_filename = golden_standard_filename
@@ -141,4 +161,5 @@ if __name__ == "__main__":
 
     handler = DataHandler("golden_standard_labels_march_2024.jsonl", 'golden_standard_labels_march_2024.jsonl', 'all_slugs_and_titles_for_prodigy.csv')
     evaluator = Evaluator(handler.get_golden_standard(), handler.get_evaluated(), handler.get_considered_slugs())
-    print(evaluator.compute_accuracy())
+    for g, e in zip(evaluator.golden_standard_projection, evaluator.evaluated_projection):
+        print(evaluator.compute_metrics_for_single_ref(g, e))
