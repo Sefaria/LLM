@@ -12,7 +12,7 @@ django.setup()
 from sefaria.model import *
 from sefaria.helper.topic import get_topic
 from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source, _make_llm_topic
-from sefaria_llm_interface.topic_source_curation.curated_topic import CuratedTopic
+from sefaria_llm_interface.topic_source_curation import CuratedTopic
 
 
 random.seed(613)
