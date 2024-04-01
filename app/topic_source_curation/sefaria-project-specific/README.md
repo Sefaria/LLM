@@ -1,0 +1,1 @@
+This dir is for files that require sefaria-project
