@@ -103,6 +103,13 @@ class Evaluator:
         total_recall = total_true_positives / (total_true_positives + total_false_negatives) if (total_true_positives + total_false_negatives) > 0 else 0
         return total_recall
 
+    def compute_f1_score(self):
+        precision = self.compute_total_precision()
+        recall = self.compute_total_recall()
+
+        f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+        return f1_score
+
 
 class DataHandler:
     def __init__(self, golden_standard_filename, predicted_filename, considered_slugs_filename):
