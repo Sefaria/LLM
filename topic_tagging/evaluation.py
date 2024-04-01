@@ -18,6 +18,8 @@ class Evaluator:
         self.considered_labels = considered_labels
 
         self.golden_standard_projection = self.get_projection_of_labelled_refs(self.golden_standard)
+        self.golden_standard_projection = self.filter_out_refs_not_in_evaluated(self.golden_standard_projection)
+
         self.evaluated_projection = self.get_projection_of_labelled_refs(self.evaluated)
 
     def get_projection_of_labelled_refs(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
@@ -26,6 +28,26 @@ class Evaluator:
         for ref in lrs:
             projected.append(LabelledRef(ref.ref, [slug for slug in ref.slugs if slug in self.considered_labels]))
         return projected
+
+    def filter_out_refs_not_in_evaluated(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
+        evaluated_refs = [laballed_ref.ref for laballed_ref in self.evaluated]
+        projected = [labelled_ref for labelled_ref in lrs if labelled_ref.ref in evaluated_refs]
+        return projected
+
+    def compute_accuracy(self) -> float:
+        correct_predictions = 0
+        total_predictions = 0
+
+        for golden_ref, evaluated_ref in zip(self.golden_standard_projection, self.evaluated_projection):
+            total_predictions += 1
+            if set(golden_ref.slugs) == set(evaluated_ref.slugs):
+                correct_predictions += 1
+
+        if total_predictions == 0:
+            return 0.0
+
+        accuracy = correct_predictions / total_predictions
+        return accuracy
 
 class DataHandler:
     def __init__(self, golden_standard_filename, evaluated_filename, considered_slugs_filename):
@@ -82,7 +104,7 @@ class DataHandler:
     def get_evaluated(self) -> List[LabelledRef]:
         return self._jsonl_to_labelled_refs(self.evaluated_filename)
 
-    def get_evaluated(self) -> List[LabelledRef]:
+    def get_considered_slugs(self) -> List[LabelledRef]:
         return self._read_first_column_or_array(self.considered_slugs_filename)
 
 
@@ -117,5 +139,6 @@ if __name__ == "__main__":
     for ref in evaluator.evaluated_projection:
         print(ref)
 
-    handler = DataHandler("golden_standard_labels_march_2024.jsonl", '', '')
-    print(handler.get_golden_standard())
+    handler = DataHandler("golden_standard_labels_march_2024.jsonl", 'golden_standard_labels_march_2024.jsonl', 'all_slugs_and_titles_for_prodigy.csv')
+    evaluator = Evaluator(handler.get_golden_standard(), handler.get_evaluated(), handler.get_considered_slugs())
+    print(evaluator.compute_accuracy())
