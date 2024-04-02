@@ -162,4 +162,5 @@ project.lock
 output
 
 .langchain.db
+.llm_cache.db
 .DS_Store
