@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from anthropic import Anthropic
 from openai import OpenAI
 from basic_langchain.schema import AIMessage, AbstractMessage, LLMCompany
-from basic_langchain.chat_cache import sqlite_cache
+from basic_langchain.cache import sqlite_cache
 
 
 class AbstractChatModel(ABC):
@@ -30,7 +30,7 @@ class ChatOpenAI(AbstractChatModel):
         super().__init__(model, temperature)
         self.client = OpenAI()
 
-    @sqlite_cache
+    @sqlite_cache('chat')
     def __call__(self, messages: List[AbstractMessage]) -> AIMessage:
         response = self.client.chat.completions.create(
             model=self.model,
@@ -50,7 +50,7 @@ class ChatAnthropic(AbstractChatModel):
         self.client = Anthropic()
         self.max_tokens = max_tokens
 
-    @sqlite_cache
+    @sqlite_cache('chat')
     def __call__(self, messages: List[AbstractMessage]) -> AIMessage:
         system = "You are a helpful AI."
         if len(messages) > 0 and messages[0].role == "system":
