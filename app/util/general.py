@@ -1,6 +1,7 @@
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 import diff_match_patch
 import re
+import numpy as np
 
 
 def get_source_text_with_fallback(source: TopicPromptSource, lang: str, auto_translate=False) -> str:
@@ -47,3 +48,19 @@ def get_by_xml_tag(text, tag_name) -> str:
         return None
     return match.group(1)
 
+
+def embedding_distance(embedding1, embedding2):
+    # Compute dot product
+    dot_product = np.dot(embedding1, embedding2)
+
+    # Compute magnitudes
+    magnitude1 = np.linalg.norm(embedding1)
+    magnitude2 = np.linalg.norm(embedding2)
+
+    # Compute cosine similarity
+    cosine_similarity = dot_product / (magnitude1 * magnitude2)
+
+    # Compute cosine distance (1 - cosine_similarity)
+    cosine_distance = 1 - cosine_similarity
+
+    return cosine_distance
