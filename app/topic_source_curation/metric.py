@@ -23,6 +23,7 @@ from basic_langchain.chat_models import ChatOpenAI
 from basic_langchain.schema import SystemMessage, HumanMessage
 from topic_prompt.uniqueness_of_source import summarize_based_on_uniqueness
 from basic_langchain.embeddings import OpenAIEmbeddings
+from basic_langchain.chat_models import ChatOpenAI
 from util.general import embedding_distance
 from tqdm import tqdm
 
@@ -35,6 +36,11 @@ def get_dataset(filename):
     with open(filename, 'r') as fin:
         examples = json.load(fin)
         return [CuratedTopic(**example) for example in examples]
+
+
+def summary_question(question: str) -> str:
+    llm = ChatOpenAI("gpt-4", 0)
+    system = SystemMessage(content="You are a Jewish scholar. Given a  about a given topic, summarize the que")
 
 
 def get_question_answered(source: TopicPromptSource, topic: Topic):
