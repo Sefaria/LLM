@@ -22,7 +22,7 @@ class Evaluator:
         self.golden_standard_projection = self.filter_out_refs_not_in_predicted(self.golden_standard_projection)
 
         self.predicted_projection = self.get_projection_of_labelled_refs(self.predicted)
-        self.golden_standard_projection = self.filter_out_refs_not_in_gold(self.predicted_projection)
+        self.predicted_projection = self.filter_out_refs_not_in_gold(self.predicted_projection)
 
     def get_projection_of_labelled_refs(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
         # Remove irrelevant slugs from the slugs list
@@ -83,7 +83,7 @@ class Evaluator:
         total_false_positives = 0
         total_false_negatives = 0
 
-        for golden_standard_ref, predicted_ref in zip(self.golden_standard, self.predicted_projection):
+        for golden_standard_ref, predicted_ref in zip(self.golden_standard_projection, self.predicted_projection):
             true_positives, false_positives, false_negatives = self.compute_metrics_for_refs_pair(golden_standard_ref, predicted_ref)
             total_true_positives += true_positives
             total_false_positives += false_positives
@@ -98,8 +98,8 @@ class Evaluator:
 
         for golden_standard_ref, predicted_ref in zip(self.golden_standard_projection, self.predicted_projection):
             true_positives, _, false_negatives = self.compute_metrics_for_refs_pair(golden_standard_ref, predicted_ref)
-            if false_negatives != 0:
-                print("oh!")
+            # if false_negatives != 0:
+            #     print("oh!")
             total_true_positives += true_positives
             total_false_negatives += false_negatives
 
@@ -174,7 +174,12 @@ class DataHandler:
 
 
 
-
+def evaluate_results(results_jsonl_filename):
+    handler = DataHandler("evaluation_data/gold.jsonl", results_jsonl_filename, 'evaluation_data/all_slugs_and_titles_for_prodigy.csv')
+    evaluator = Evaluator(handler.get_golden_standard(), handler.get_predicted(), handler.get_considered_slugs())
+    print("Recall: ", evaluator.compute_total_recall())
+    print("Precision: ",evaluator.compute_total_precision())
+    print("F1 :", evaluator.compute_f1_score())
 
 if __name__ == "__main__":
     # Create some sample data
