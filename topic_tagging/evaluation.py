@@ -3,6 +3,7 @@ import json
 from dataclasses import dataclass, field
 from typing import List
 
+
 @dataclass
 class LabelledRef:
     ref: str
@@ -29,6 +30,8 @@ class Evaluator:
         for ref in lrs:
             projected.append(LabelledRef(ref.ref, [slug for slug in ref.slugs if slug in self.considered_labels]))
         return projected
+
+
 
     def filter_out_refs_not_in_predicted(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
         predicted_refs = [labelled_ref.ref for labelled_ref in self.predicted]
@@ -173,8 +176,6 @@ class DataHandler:
 
 
 
-
-
 if __name__ == "__main__":
     # Create some sample data
     golden_standard = [
@@ -205,4 +206,6 @@ if __name__ == "__main__":
 
     handler = DataHandler("evaluation_data/gold.jsonl", "evaluation_data/gold.jsonl", 'evaluation_data/all_slugs_and_titles_for_prodigy.csv')
     evaluator = Evaluator(handler.get_golden_standard(), handler.get_predicted(), handler.get_considered_slugs())
-    print(evaluator.compute_total_recall())
+    print(evaluator.compute_f1_score())
+
+

@@ -380,7 +380,7 @@ class TopicTagger:
         if english_text == '':
             english_text = self._translate_ref(tref)
         return self.tag_segment(english_text)
-    def tag_segment(self, segment_text, number_of_rejects_till_break=10):
+    def tag_segment(self, segment_text, number_of_rejects_till_break=1):
         model_topics = self._get_inferred_topics(self.infer_topics_template, segment_text)
         verified_slugs = set()
         rejected_slugs = set()
@@ -461,15 +461,16 @@ def load_refs_from_csv(file_name):
             slugs += row
     return slugs
 
-def tag_sample_refs(source_csv="refs_sample.csv", dest_csv="sample_refs_tagged.csv"):
+def tag_sample_refs(source_csv="refs_sample.csv", dest_jsonl="sample_refs_tagged.jsonl"):
     from tqdm import tqdm
+
 
     def ref_exists(file_path, ref):
         # Check if the Ref already exists in the file
-        with open(file_path, 'r') as csvfile:
-            reader = csv.DictReader(csvfile)
-            for row in reader:
-                if row['Ref'] == ref:
+        with open(file_path, 'r') as jsonl_file:
+            for line in jsonl_file:
+                record = json.loads(line)
+                if record['ref'] == ref:
                     return True
         return False
 
@@ -482,33 +483,29 @@ def tag_sample_refs(source_csv="refs_sample.csv", dest_csv="sample_refs_tagged.c
     verifier = TopicVerifier(data_handler, oracle)
     tagger = TopicTagger(vector_space, verifier, oracle)
 
-    fieldnames = ['Ref', 'LLM Original Topics', 'Nearest Sefaria Slugs']
+    fieldnames = ['ref', 'original_unverified_slugs', 'slugs']
 
     # Check if destination file exists
-    if os.path.exists(dest_csv):
+    if os.path.exists(dest_jsonl):
         # If it exists, open in append mode
         mode = 'a'
     else:
         # If it doesn't exist, create a new file
         mode = 'w'
 
-    with open(dest_csv, mode, newline='') as csvfile:
-        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
-        # If it's a new file, write the header
-        if mode == 'w':
-            writer.writeheader()
-
+    with open(dest_jsonl, mode, newline='') as jsonl_file:
         for tref in tqdm(trefs, desc="Tagging Refs", unit="Ref"):
             # Check if the Ref already exists in the file
-            if not ref_exists(dest_csv, tref):
+            if not ref_exists(dest_jsonl, tref):
                 try:
                     model_topics, verified_slugs = tagger.tag_ref(tref)
-                    writer.writerow({
+                    record = {
                         fieldnames[0]: tref,
-                        fieldnames[1]: ', '.join(model_topics),
-                        fieldnames[2]: ', '.join(verified_slugs)
-                    })
+                        fieldnames[1]: list(model_topics),
+                        fieldnames[2]: list(verified_slugs)
+                    }
+                    jsonl_file.write(json.dumps(record) + '\n')
                 except Exception as e:
                     print(f"Problem with ref: {tref}, Exception: {e}")
 
@@ -548,13 +545,7 @@ if __name__ == '__main__':
 
     # tree = generate_html_tree(toc)
     # create_html_page(tree)
-    make_stream_file_for_prodigy()
-
-
-
-
-
-
-   # tag_sample_refs()
+    # make_stream_file_for_prodigy()
+    tag_sample_refs()
 
     print("bye")
