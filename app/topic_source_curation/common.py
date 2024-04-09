@@ -15,6 +15,7 @@ from tqdm import tqdm
 
 BAD_DATASET = "input/bad_curation.json"
 GOOD_DATASET = "input/good_curation.json"
+EXPORTED_TOPIC_PAGES = "input/exported_topic_pages.json"
 
 
 def _get_dataset(filename):
@@ -25,3 +26,7 @@ def _get_dataset(filename):
 
 def get_datasets():
     return _get_dataset(BAD_DATASET), _get_dataset(GOOD_DATASET)
+
+
+def get_exported_topic_pages():
+    return _get_dataset(EXPORTED_TOPIC_PAGES)
