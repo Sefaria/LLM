@@ -23,6 +23,7 @@ class Evaluator:
 
         self.predicted_projection = self.get_projection_of_labelled_refs(self.predicted)
         self.predicted_projection = self.filter_out_refs_not_in_gold(self.predicted_projection)
+        self.predicted_projection = self.sort_list1_based_on_list2_and_ref_field(self.predicted_projection, self.golden_standard_projection)
 
     def get_projection_of_labelled_refs(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
         # Remove irrelevant slugs from the slugs list
@@ -42,6 +43,17 @@ class Evaluator:
         gold_refs = [labelled_ref.ref for labelled_ref in self.golden_standard]
         projected = [labelled_ref for labelled_ref in lrs if labelled_ref.ref in gold_refs]
         return projected
+
+    def sort_list1_based_on_list2_and_ref_field(self, list1, list2):
+        field_index_map = {labelledRef.ref: index for index, labelledRef in enumerate(list2)}
+
+        def custom_sort_key(labelledRef):
+            return field_index_map.get(labelledRef.ref, float('inf'))
+
+        # Sort list1 using the custom sorting key
+        sorted_list1 = sorted(list1, key=custom_sort_key)
+
+        return sorted_list1
 
     def compute_accuracy(self) -> float:
         correct_predictions = 0
