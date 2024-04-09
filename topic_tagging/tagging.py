@@ -374,8 +374,7 @@ class TopicTagger:
         return concatenated_string
 
     def tag_ref(self, tref):
-        english_text = Ref(tref).text(lang="en").text
-        english_text = self._concatenate_strings(english_text)
+        english_text = Ref(tref).text(lang="en").as_string()
         english_text = normalizer.normalize(english_text)
         if english_text == '':
             english_text = self._translate_ref(tref)
