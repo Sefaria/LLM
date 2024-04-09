@@ -68,8 +68,7 @@ class SourceCluster:
 
 
 def summarize_topic_page(curated_topic: CuratedTopic) -> list[SummarizedSource]:
-    # llm = ChatAnthropic(model='claude-3-haiku-20240307', temperature=0)
-    llm = ChatOpenAI(model='gpt-3.5-turbo', temperature=0)
+    llm = ChatAnthropic(model='claude-3-haiku-20240307', temperature=0)
     topic = curated_topic.topic
     topic_str = f"Title: '{topic.title}'. Description: '{topic.description.get('en', 'N/A')}'."
     summaries: list[SummarizedSource] = []
@@ -135,7 +134,7 @@ def summarize_cluster(topic, summarized_sources: list[SummarizedSource]):
     sample = random.sample(summaries, min(len(summaries), 5))
     # for x in sample:
     #     print(x['source'].ref)
-    llm = ChatOpenAI("gpt-3.5-turbo", 0)
+    llm = ChatOpenAI("gpt-4", 0)
     system = SystemMessage(content="You are a Jewish scholar familiar with Torah. Given a few ideas (wrapped in <idea> "
                                    "XML tags) about a given topic (wrapped in <topic> XML tags) output a summary of the"
                                    "ideas as they related to the topic. Wrap the output in <summary> tags. Summary"
