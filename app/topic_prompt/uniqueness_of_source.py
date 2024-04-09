@@ -38,9 +38,7 @@ def get_uniqueness_of_source(source: TopicPromptSource, topic: Topic, other_sour
     return _get_uniqueness_of_source_as_compared_to_other_sources(source, other_sources, topic)
 
 
-def summarize_based_on_uniqueness(text: str, uniqueness: str) -> str:
-
-    llm = ChatOpenAI(model="gpt-4", temperature=0)
+def summarize_based_on_uniqueness(text: str, uniqueness: str, llm) -> str:
     system_message = SystemMessage(content=
                                    "You are an intelligent Jewish scholar who is knowledgeable in all aspects of the Torah and Jewish texts.\n"
                                    "# Task\n"

@@ -37,7 +37,7 @@ from sefaria_llm_interface.topic_source_curation import CuratedTopic
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface.common.topic import Topic
 from basic_langchain.embeddings import OpenAIEmbeddings
-from basic_langchain.chat_models import ChatOpenAI
+from basic_langchain.chat_models import ChatOpenAI, ChatAnthropic
 from basic_langchain.schema import SystemMessage, HumanMessage
 from dataclasses import dataclass
 
@@ -68,11 +68,13 @@ class SourceCluster:
 
 
 def summarize_topic_page(curated_topic: CuratedTopic) -> list[SummarizedSource]:
+    # llm = ChatAnthropic(model='claude-3-haiku-20240307', temperature=0)
+    llm = ChatOpenAI(model='gpt-3.5-turbo', temperature=0)
     topic = curated_topic.topic
     topic_str = f"Title: '{topic.title}'. Description: '{topic.description.get('en', 'N/A')}'."
     summaries: list[SummarizedSource] = []
     for source in tqdm(curated_topic.sources, desc=f'summarize_topic_page: {topic.title["en"]}', disable=not verbose):
-        summary = summarize_based_on_uniqueness(source.text.get('en', source.text['he']), topic_str)
+        summary = summarize_based_on_uniqueness(source.text.get('en', source.text['he']), topic_str, llm)
         summaries.append(SummarizedSource(source, summary))
     return summaries
 
@@ -133,7 +135,7 @@ def summarize_cluster(topic, summarized_sources: list[SummarizedSource]):
     sample = random.sample(summaries, min(len(summaries), 5))
     # for x in sample:
     #     print(x['source'].ref)
-    llm = ChatOpenAI("gpt-4", 0)
+    llm = ChatOpenAI("gpt-3.5-turbo", 0)
     system = SystemMessage(content="You are a Jewish scholar familiar with Torah. Given a few ideas (wrapped in <idea> "
                                    "XML tags) about a given topic (wrapped in <topic> XML tags) output a summary of the"
                                    "ideas as they related to the topic. Wrap the output in <summary> tags. Summary"
@@ -206,7 +208,9 @@ def add_embeddings_to_clusters(clusters: list[SourceCluster]) -> list[SourceClus
     return cluster
 
 def summarize_and_embed(curated_topic: CuratedTopic):
-    print(random.seed)
+    # make unique
+    source_by_ref = {s.ref: s for s in curated_topic.sources}
+    curated_topic.sources = list(source_by_ref.values())
     summarized_sources = summarize_topic_page(curated_topic)
     summarized_sources = add_embeddings_to_sources(summarized_sources)
     n_clusters = guess_optimal_clustering([s.embedding for s in summarized_sources])
