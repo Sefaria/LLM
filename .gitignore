@@ -164,3 +164,6 @@ output
 .langchain.db
 .llm_cache.db
 .DS_Store
+
+# specific project files
+/app/topic_source_curation/input/exported_topic_pages.json
