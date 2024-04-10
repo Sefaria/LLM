@@ -2,7 +2,9 @@ import csv
 import json
 from dataclasses import dataclass, field
 from typing import List
-
+from sefaria.model import *
+import django
+django.setup()
 
 @dataclass
 class LabelledRef:
@@ -20,10 +22,12 @@ class Evaluator:
 
         self.golden_standard_projection = self.get_projection_of_labelled_refs(self.golden_standard)
         self.golden_standard_projection = self.filter_out_refs_not_in_predicted(self.golden_standard_projection)
+        self.add_implied_toc_slugs(self.golden_standard_projection)
 
         self.predicted_projection = self.get_projection_of_labelled_refs(self.predicted)
         self.predicted_projection = self.filter_out_refs_not_in_gold(self.predicted_projection)
         self.predicted_projection = self.sort_list1_based_on_list2_and_ref_field(self.predicted_projection, self.golden_standard_projection)
+        self.add_implied_toc_slugs(self.predicted_projection)
 
     def get_projection_of_labelled_refs(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
         # Remove irrelevant slugs from the slugs list
@@ -54,6 +58,36 @@ class Evaluator:
         sorted_list1 = sorted(list1, key=custom_sort_key)
 
         return sorted_list1
+
+    def add_implied_toc_slugs(self, labelled_refs: List[LabelledRef]):
+
+        def _find_parent_slug(data_structure, target_slug):
+            # Access the 'children' list
+            children = data_structure['children']
+
+            # Iterate through each category dictionary
+            for category in children:
+                # If the target slug matches the current category's slug
+                if category['slug'] == target_slug:
+                    # Return the parent slug
+                    return data_structure['slug']
+                # If the current category has children, recursively search within them
+                if 'children' in category:
+                    result = _find_parent_slug(category, target_slug)
+                    # If the parent slug is found in any of the children, return it
+                    if result:
+                        return result
+            # If the target slug is not found in any children, return None
+            return None
+
+        toc = library.get_topic_toc_json_recursive()
+        for lr in labelled_refs:
+            print(lr.ref)
+            for slug in lr.slugs:
+                parent = (_find_parent_slug({"children": toc, "slug": None}, slug))
+                if parent and parent not in lr.slugs:
+                    print(f"{parent} missing parent of {slug}")
+                    lr.slugs.append(parent)
 
     def compute_accuracy(self) -> float:
         correct_predictions = 0
