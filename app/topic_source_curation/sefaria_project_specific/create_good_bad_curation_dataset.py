@@ -28,8 +28,14 @@ def get_good_curation_dataset(n=50) -> dict[str, list[str]]:
     dataset = defaultdict(list)
     for link in links:
         dataset[link.toTopic] += [link.ref]
+    more_links = RefTopicLinkSet({"toTopic": "shabbat", "descriptions.en.title": {"$exists": True}})
     dataset = {k: v for k, v in random.sample(list(dataset.items()), k=n)}
+    dataset['shabbat'] = []
+    for link in more_links:
+        dataset[link.toTopic] += [link.ref]
     return dataset
+
+
 
 
 def output_dataset(name, dataset):

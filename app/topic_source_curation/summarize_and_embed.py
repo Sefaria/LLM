@@ -44,7 +44,7 @@ from basic_langchain.chat_models import ChatOpenAI, ChatAnthropic
 from basic_langchain.schema import SystemMessage, HumanMessage
 from dataclasses import dataclass, asdict
 
-random.seed = 567454
+random.seed(567454)
 
 @dataclass
 class SummarizedSource:
@@ -216,9 +216,7 @@ def get_source_clusters(n_clusters: int, topic: Topic, summarized_sources: list[
             continue
         cluster_summary = summarize_cluster(topic, curr_sources)
         clusters += [SourceCluster(label, curr_sources, cluster_summary)]
-    cluster_embeddings = embed_stuff([c.cluster_summary for c in clusters])
-    for cluster, embedding in zip(clusters, cluster_embeddings):
-        cluster.embedding = embedding
+    clusters = add_embeddings_to_clusters(clusters)
     return clusters
 
 def add_embeddings_to_sources(summarized_sources: list[SummarizedSource]) -> list[SummarizedSource]:
@@ -231,7 +229,7 @@ def add_embeddings_to_clusters(clusters: list[SourceCluster]) -> list[SourceClus
     embeddings = np.array(embed_stuff([s.cluster_summary for s in clusters]))
     for embedding, cluster in zip(embeddings, clusters):
         cluster.embedding = embedding
-    return cluster
+    return clusters
 
 def source_cluster_cache(func):
     @wraps(func)
@@ -263,9 +261,34 @@ def cluster_by_subtopic(curated_topic: CuratedTopic) -> list[SourceCluster]:
     return sort_by_highest_avg_pairwise_distance(source_clusters)
 
 
+def get_cluster_diversity_for_dataset(clusters: list[SourceCluster]) -> None:
+    from topic_source_curation.common import get_datasets
+    from collections import defaultdict
+    source_to_label = {s.source.ref: c.label for c in clusters for s in c.summarized_sources}
+    bad, good = get_datasets()
+    for example in good:
+        if example.topic.title['en'] != "Shabbat":
+            continue
+        cluster_diversity = defaultdict(list)
+
+        for source in example.sources:
+            try:
+                cluster_diversity[source_to_label[source.ref]] += [source.ref]
+                print(f"Source {source.ref} found")
+            except KeyError:
+                print(f"Source {source.ref} not found")
+        print(len(cluster_diversity)/len(example.sources))
+
+
 if __name__ == '__main__':
     verbose = True
     topic_pages = get_exported_topic_pages()
-    cluster_by_subtopic(topic_pages[1])
+    clusters = cluster_by_subtopic(topic_pages[1])
+    get_cluster_diversity_for_dataset(clusters)
+    # for c in clusters:
+    #     print('----')
+    #     print(c.cluster_summary)
+    #     for s in c.summarized_sources[:10]:
+    #         print('\t', s.source.ref)
 
 
