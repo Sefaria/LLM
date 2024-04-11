@@ -4,8 +4,8 @@ Given all the sources curated for a topic, determine what is unique about this s
 import json
 import re
 from functools import reduce
-from typing import List
-from util.general import get_source_text_with_fallback
+from typing import List, Optional
+from util.general import get_source_text_with_fallback, get_by_xml_tag
 
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface import Topic
@@ -38,7 +38,7 @@ def get_uniqueness_of_source(source: TopicPromptSource, topic: Topic, other_sour
     return _get_uniqueness_of_source_as_compared_to_other_sources(source, other_sources, topic)
 
 
-def summarize_based_on_uniqueness(text: str, uniqueness: str, llm) -> str:
+def summarize_based_on_uniqueness(text: str, uniqueness: str, llm, lang: str) -> Optional[str]:
     system_message = SystemMessage(content=
                                    "You are an intelligent Jewish scholar who is knowledgeable in all aspects of the Torah and Jewish texts.\n"
                                    "# Task\n"
@@ -49,14 +49,19 @@ def summarize_based_on_uniqueness(text: str, uniqueness: str, llm) -> str:
                                    "<text> text to be summarized according to idea </text>\n"
                                    "<idea> idea mentioned in the text </idea>\n"
                                    "# Output format\n"
-                                   "A summary of the text that focuses on the idea, in 50 words or less.\n"
+                                   "If <text> doesn't discuss <idea>, output the text '<summary>N/A</summary>' verbatim.\n"
+                                   f"Else if <text> does discuss <idea>, output a summary of the text that focuses on the idea, in 50 words or less written in {lang}.\n"
                                    "Wrap the summary in <summary> tags."
                                    "Summary should start with the words \"The text discusses...\""
                                    )
     prompt = PromptTemplate.from_template("<text>{text}</text>\n<idea>{idea}</idea>")
     human_message = HumanMessage(content=prompt.format(text=text, idea=uniqueness))
     response = llm([system_message, human_message])
-    return re.search(r"<summary>\s*The text discusses (.+?)</summary>", response.content).group(1)
+    summary = get_by_xml_tag(response.content, 'summary')
+    summary = re.sub(r'^\s*The text discusses\s*.', '', summary)
+    if summary == "N/A":
+        return None
+    return summary
 
 
 def _get_uniqueness_of_source_as_compared_to_other_sources(source: TopicPromptSource, other_sources: List[TopicPromptSource], topic: Topic) -> str:
