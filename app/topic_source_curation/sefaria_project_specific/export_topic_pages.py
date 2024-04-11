@@ -14,4 +14,4 @@ def export_topic_page(slugs: list[str]):
 
 
 if __name__ == '__main__':
-    export_topic_page(['abraham', 'shabbat'])
+    export_topic_page(['abraham', 'shabbat', 'dogs'])
