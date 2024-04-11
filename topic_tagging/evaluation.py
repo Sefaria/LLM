@@ -29,6 +29,8 @@ class Evaluator:
         self.predicted_projection = self.sort_list1_based_on_list2_and_ref_field(self.predicted_projection, self.golden_standard_projection)
         self.add_implied_toc_slugs(self.predicted_projection)
 
+        self.gold_prediction_pairs = zip(self.golden_standard_projection, self.predicted_projection)
+
     def get_projection_of_labelled_refs(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
         # Remove irrelevant slugs from the slugs list
         projected = []
@@ -82,12 +84,48 @@ class Evaluator:
 
         toc = library.get_topic_toc_json_recursive()
         for lr in labelled_refs:
-            print(lr.ref)
             for slug in lr.slugs:
                 parent = (_find_parent_slug({"children": toc, "slug": None}, slug))
-                if parent and parent not in lr.slugs:
-                    print(f"{parent} missing parent of {slug}")
+                if parent and parent not in lr.slugs and parent in self.considered_labels:
+                    # print(f"{parent} missing parent of {slug}")
                     lr.slugs.append(parent)
+
+    def find_childless_slugs(self, labelled_refs: List[LabelledRef]):
+
+        def _find_children_by_slug(data_structure, target_slug):
+            # Access the 'children' list
+            children = data_structure.get('children', [])
+
+            # Initialize a list to store the children
+            found_children = []
+
+            # Iterate through each category dictionary
+            for category in children:
+                # If the target slug matches the current category's slug
+                if category['slug'] == target_slug:
+                    # If the current category has children, add them to the list
+                    if 'children' in category:
+                        found_children.extend(category['children'])
+                    # Return the list of children or an empty list if no children found
+                    return found_children or None
+
+                # If the current category has children, recursively search within them
+                if 'children' in category:
+                    result = _find_children_by_slug(category, target_slug)
+                    # If children are found in any of the children, extend the list
+                    if result:
+                        found_children.extend(result)
+
+        toc = library.get_topic_toc_json_recursive()
+        for lr in labelled_refs:
+            for slug in lr.slugs:
+                if slug == 'laws':
+                    continue
+                children = (_find_children_by_slug({"children": toc, "slug": None}, slug))
+
+                if children and all(child['slug'] not in lr.slugs for child in children):
+                    print(lr.ref)
+                    print(f"{slug}'s children are not included")
 
     def compute_accuracy(self) -> float:
         correct_predictions = 0
@@ -121,6 +159,26 @@ class Evaluator:
         for item in golden_standard:
             if item not in predicted:
                 false_negatives += 1
+
+        return true_positives, false_positives, false_negatives
+
+    def get_slug_differences(self, golden_standard_ref: LabelledRef, predicted_ref: LabelledRef):
+        golden_standard = golden_standard_ref.slugs
+        predicted = predicted_ref.slugs
+
+        true_positives = []
+        false_positives = []
+        false_negatives = []
+
+        for item in predicted:
+            if item in golden_standard:
+                true_positives.append(item)
+            else:
+                false_positives.append(item)
+
+        for item in golden_standard:
+            if item not in predicted:
+                false_negatives.append(item)
 
         return true_positives, false_positives, false_negatives
 
@@ -158,6 +216,24 @@ class Evaluator:
 
         f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
         return f1_score
+
+    def compute_slug_stats(self):
+        slug_stats = {}
+        for slug in self.considered_labels:
+            slug_stats[slug] = {"false_positives": 0,
+                                "false_negatives": 0,
+                                "true_positives": 0}
+        for gold_lr, pred_lr in self.gold_prediction_pairs:
+            true_positives, false_positives, false_negatives = self.get_slug_differences(gold_lr, pred_lr)
+            for slug in true_positives:
+                slug_stats[slug]['true_positives'] += 1
+            for slug in false_positives:
+                slug_stats[slug]['false_positives'] += 1
+            for slug in false_negatives:
+                slug_stats[slug]['false_negatives'] += 1
+        return slug_stats
+
+
 
 
 class DataHandler:
@@ -219,12 +295,30 @@ class DataHandler:
         return self._read_first_column_or_array(self.considered_slugs_filename)
 
 
+def write_slugs_stats_to_csv(data, filename):
+    # Extracting column names
+    columns = set()
+    for row_data in data.values():
+        columns.update(row_data.keys())
+
+    # Writing to CSV
+    with open(filename, 'w', newline='') as csvfile:
+        writer = csv.DictWriter(csvfile, fieldnames=[''] + list(columns))
+        writer.writeheader()
+        for row_key, row_data in data.items():
+            row = {key: row_data.get(key, '') for key in columns}
+            row[''] = row_key
+            writer.writerow(row)
 
 def evaluate_results(results_jsonl_filename):
     handler = DataHandler("evaluation_data/gold.jsonl", results_jsonl_filename, 'evaluation_data/all_slugs_and_titles_for_prodigy.csv')
     evaluator = Evaluator(handler.get_golden_standard(), handler.get_predicted(), handler.get_considered_slugs())
+    stats = evaluator.compute_slug_stats()
+    write_slugs_stats_to_csv(stats, 'evaluation_data/slugs_stats.csv')
+    # sort_slugs_by_false_positives = sorted(stats.items(), key=lambda x: x[1]['false_positives'], reverse=True)
+
     print("Recall: ", evaluator.compute_total_recall())
-    print("Precision: ",evaluator.compute_total_precision())
+    print("Precision: ", evaluator.compute_total_precision())
     print("F1 :", evaluator.compute_f1_score())
 
 if __name__ == "__main__":
