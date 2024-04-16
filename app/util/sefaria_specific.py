@@ -33,7 +33,7 @@ def get_ref_text_with_fallback(oref: Ref, lang: str, auto_translate=False) -> st
     raw_text = get_raw_ref_text(oref, lang)
     if len(raw_text) == 0:
         if auto_translate and lang == "en":
-            from translation.poc import translate_segment
+            from translation.translation import translate_segment
             raw_text = translate_segment(oref.normal())
         else:
             other_lang = "en" if lang == "he" else "he"

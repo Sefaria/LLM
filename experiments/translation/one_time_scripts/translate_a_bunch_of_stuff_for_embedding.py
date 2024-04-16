@@ -1,7 +1,7 @@
 import django
 django.setup()
 from sefaria.model import *
-from translation.poc import translate_text
+from translation.translation import translate_text
 from util.sefaria_specific import get_normalized_ref_text
 from tqdm import tqdm
 import csv
@@ -18,6 +18,10 @@ def translate_book(title):
         cout.writerow({"ref": segment_oref.normal(), "hebrew": segment_text, "english": translation})
     fout.close()
 
+def translate_books(titles):
+    for title in titles:
+        translate_book(title)
+
 
 if __name__ == '__main__':
-    translate_book("Shenei Luchot HaBerit")
+    translate_books(["Noam Elimelech", "Tanna Debei Eliyahu Rabbah", "Tanna debei Eliyahu Zuta", "Ba'al Shem Tov"])
