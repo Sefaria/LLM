@@ -21,12 +21,12 @@ def load_mongo_docs(*db_manager_args):
     return my_db.output_collection.find({})
 
 
-def get_raw_ref_text(oref: Ref, lang: str) -> str:
-    return oref.text(lang).ja().flatten_to_string()
+def get_raw_ref_text(oref: Ref, lang: str, vtitle=None) -> str:
+    return oref.text(lang, vtitle=vtitle).ja().flatten_to_string()
 
 
-def get_normalized_ref_text(oref: Ref, lang: str) -> str:
-    return normalizer.normalize(get_raw_ref_text(oref, lang))
+def get_normalized_ref_text(oref: Ref, lang: str, vtitle=None) -> str:
+    return normalizer.normalize(get_raw_ref_text(oref, lang, vtitle))
 
 
 def get_ref_text_with_fallback(oref: Ref, lang: str, auto_translate=False) -> str:
