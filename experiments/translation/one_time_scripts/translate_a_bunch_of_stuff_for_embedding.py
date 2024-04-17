@@ -24,4 +24,6 @@ def translate_books(titles):
 
 
 if __name__ == '__main__':
-    translate_books(["Noam Elimelech", "Tanna Debei Eliyahu Rabbah", "Tanna debei Eliyahu Zuta", "Ba'al Shem Tov"])
+    # ["Zohar", "Shulchan Arukh, Yoreh De'ah", "Shulchan Arukh, Orach Chayim", "Shem MiShmuel", "Kedushat Levi", "Netzach Yisrael", "Ohr Chadash", "Gevurot Hashem", "Tiferet Yisrael", "Et HaOchel", "Peri Tzadik", "Tzidkat HaTzadik", "Shemirat HaLashon", "Be'er Mayim Chaim", "Peninei Halakhah, Family", "Peninei Halakhah, Berakhot", "Malbim on Proverbs", "Malbim on Deuteronomy"
+    # ,"Haamek Davar on Exodus", "Mishpetei Uziel", "Esh Kodesh", "Chovat HaTalmidim", "Sefer Chasidim", "Sefat Emet", "Ben Ish Hai"
+    translate_books(["Kli Yakar on Deuteronomy", "Zohar"])
