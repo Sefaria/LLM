@@ -168,3 +168,4 @@ output
 # specific project files
 /app/topic_source_curation/input/exported_topic_pages.json
 /app/topic_source_curation/_cache/
+_cache
