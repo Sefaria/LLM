@@ -233,6 +233,26 @@ class Evaluator:
                 slug_stats[slug]['false_negatives'] += 1
         return slug_stats
 
+    def compute_slug_stats_and_actual_refs(self):
+        slug_stats = {}
+        for slug in self.considered_labels:
+            slug_stats[slug] = {"true_positive_num": 0, "true_positive_refs": [],
+                                "false_positive_num": 0, "false_positive_refs": [],
+                                "false_negative_num": 0, "false_negative_refs": [],
+                                }
+        for gold_lr, pred_lr in self.gold_prediction_pairs:
+            true_positives, false_positives, false_negatives = self.get_slug_differences(gold_lr, pred_lr)
+            for slug in true_positives:
+                slug_stats[slug]['true_positive_num'] += 1
+                slug_stats[slug]['true_positive_refs'] += ["https://www.sefaria.org.il/" + Ref(gold_lr.ref).url()]
+            for slug in false_positives:
+                slug_stats[slug]['false_positive_num'] += 1
+                slug_stats[slug]['false_positive_refs'] += ["https://www.sefaria.org.il/" + Ref(gold_lr.ref).url()]
+            for slug in false_negatives:
+                slug_stats[slug]['false_negative_num'] += 1
+                slug_stats[slug]['false_negative_refs'] += ["https://www.sefaria.org.il/" + Ref(gold_lr.ref).url()]
+        return slug_stats
+
 
 
 
@@ -296,12 +316,10 @@ class DataHandler:
 
 
 def write_slugs_stats_to_csv(data, filename):
-    # Extracting column names
     columns = set()
     for row_data in data.values():
         columns.update(row_data.keys())
 
-    # Writing to CSV
     with open(filename, 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=[''] + list(columns))
         writer.writeheader()
@@ -310,10 +328,11 @@ def write_slugs_stats_to_csv(data, filename):
             row[''] = row_key
             writer.writerow(row)
 
+
 def evaluate_results(results_jsonl_filename):
     handler = DataHandler("evaluation_data/gold.jsonl", results_jsonl_filename, 'evaluation_data/all_slugs_and_titles_for_prodigy.csv')
     evaluator = Evaluator(handler.get_golden_standard(), handler.get_predicted(), handler.get_considered_slugs())
-    stats = evaluator.compute_slug_stats()
+    stats = evaluator.compute_slug_stats_and_actual_refs()
     write_slugs_stats_to_csv(stats, 'evaluation_data/slugs_stats.csv')
     # sort_slugs_by_false_positives = sorted(stats.items(), key=lambda x: x[1]['false_positives'], reverse=True)
 
