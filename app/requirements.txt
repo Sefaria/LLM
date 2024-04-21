@@ -10,5 +10,7 @@ celery[redis]~=5.2.7
 diff-match-patch
 dnspython~=2.5.0
 tiktoken~=0.4.0
+readability_lxml
+requests
 numpy
 -e file:./llm_interface
