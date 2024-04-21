@@ -34,7 +34,7 @@ def get_exported_topic_pages():
 
 
 def is_text_about_topic(topic_description, text):
-    llm = ChatAnthropic(model='claude-3-haiku-20240229', temperature=0)
+    llm = ChatAnthropic(model='claude-3-opus-20240229', temperature=0)
     system = SystemMessage(content="You are a Jewish scholar. Given a topic description wrapped in <topic> and a text, "
                                    "wrapped in <text>, output 'Yes' if <text> is about <topic> and 'No' if <text> is "
                                    "not about <topic>. Wrap output in <answer> tags.")
