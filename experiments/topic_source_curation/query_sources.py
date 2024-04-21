@@ -38,5 +38,6 @@ if __name__ == '__main__':
    docs = querier.query_sources(query, top_k, 0.9)
    for doc in docs:
        print(doc[0].metadata['source'])
+       print(doc[0].page_content)
        print(doc[1])
    print(len(docs))

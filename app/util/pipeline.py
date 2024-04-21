@@ -8,3 +8,7 @@ class Artifact:
     def __rshift__(self, other: Callable):
         result = other(self._data)
         return Artifact(result)
+
+    @property
+    def data(self) -> Any:
+        return self._data
