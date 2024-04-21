@@ -1,6 +1,6 @@
 from typing import List
 from abc import ABC, abstractmethod
-from anthropic import Anthropic, InternalServerError
+from anthropic import Anthropic, InternalServerError, RateLimitError
 from time import sleep
 from openai import OpenAI
 from basic_langchain.schema import AIMessage, AbstractMessage, LLMCompany
@@ -72,6 +72,11 @@ class ChatAnthropic(AbstractChatModel):
                 messages=self._serialize_messages(messages)
             )
         except InternalServerError:
-            print("Internal Server Error")
+            print("Internal Server Error. Waiting 5 seconds...")
             sleep(5)
             return self._api_call(system, messages)
+        except RateLimitError:
+            print("Rate Limit Error. Waiting 10min...")
+            sleep(60*10)
+            return self._api_call(system, messages)
+
