@@ -33,6 +33,7 @@ def translate_text(text: str, context: str = None):
     translation = get_by_xml_tag(response_message.content, 'translation')
     if translation is None:
         print("TRANSLATION FAILED")
+        print(text)
         print(response_message.content)
         return response_message.content
     return translation
