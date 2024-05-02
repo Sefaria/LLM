@@ -1,26 +1,18 @@
-"""
-- TopicPageSourceGetter
-    - depends on export of topic ref links
-    - get(slug: str) -> List[TopicPromptSource]
-
-- SourceGatherer
-    def init(topic_page_source_getter, source_querier, combo_question_generator)
-    def gather(slug) -> List[TopicPromptSource]
-        make sources unique before returning
-        and filter_subset_refs
-
-- filter_sources_about_topic(topic, sources: List[TopicPromptSource) -> List[TopicPromptSource]
-    Artifact(topic, sources).pipe(cluster_sources).pipe(label_clusters).pipe(filter_clusters_not_about_topic).pipe(convert_clusters_to_list)
-"""
+from typing import Any, Callable
 import django
 django.setup()
 from sefaria.model.text import Ref
+from functools import reduce
 from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface.common.topic import Topic
+from basic_langchain.chat_models import ChatAnthropic
+from basic_langchain.schema import HumanMessage, SystemMessage
+from util.general import get_by_xml_tag
 from sefaria.helper.topic import get_topic
 from experiments.topic_source_curation_v2.gather.source_querier import SourceQuerierFactory, AbstractSourceQuerier
 from experiments.topic_source_curation_v2.gather.question_generator import create_multi_source_question_generator, AbstractQuestionGenerator
+from experiments.topic_source_curation_v2.cluster import get_clustered_sources, summarize_source_clusters, Cluster
 from util.pipeline import Artifact
 
 
@@ -39,8 +31,17 @@ def _make_sources_unique(sources: list[TopicPromptSource]) -> list[TopicPromptSo
     return [sources_by_tref[tref] for tref in unique_trefs]
 
 def _filter_sources_about_topic(sources: list[TopicPromptSource], topic: Topic) -> list[TopicPromptSource]:
-    pass
-    # Artifact(topic, sources).pipe(cluster_sources).pipe(label_clusters).pipe(filter_clusters_not_about_topic).pipe(convert_clusters_to_list)
+    def get_cluster_summary(cluster: Cluster) -> str:
+        return cluster.summary
+    return (Artifact(sources)
+            .pipe(get_clustered_sources)
+            .pipe(summarize_source_clusters, topic)
+            .pipe(_get_items_relevant_to_topic, get_cluster_summary, topic)
+            .pipe(_convert_clusters_to_list)
+           )
+
+def _convert_clusters_to_list(clusters: list[Cluster]) -> list[TopicPromptSource]:
+    return reduce(lambda x, y: x + y.items, clusters, [])
 
 def _create_source_gatherer() -> 'SourceGatherer':
     return SourceGatherer(
@@ -113,3 +114,23 @@ def filter_subset_refs(orefs: list[Ref]) -> list[Ref]:
         # never dealt with last oref
         deduped_orefs += [orefs[-1]]
     return deduped_orefs
+
+def _get_topic_description(topic: Topic):
+    return f"{topic.title['en']}\nDescription: {topic.description.get('en', 'N/A')}"
+
+def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], topic: Topic):
+    topic_description = _get_topic_description(topic)
+    return list(filter(lambda item: _is_text_about_topic(topic_description, key(item)), items))
+
+def _is_text_about_topic(topic_description, text):
+    llm = ChatAnthropic(model='claude-3-opus-20240229', temperature=0)
+    system = SystemMessage(content="You are a Jewish scholar. Given a topic description wrapped in <topic> and a text, "
+                                   "wrapped in <text>, output 'Yes' if <text> is about <topic> and 'No' if <text> is "
+                                   "not about <topic>. Wrap output in <answer> tags.")
+    human = HumanMessage(content=f"<topic>{topic_description}</topic>\n<text>{text}</text>")
+    response = llm([system, human])
+    answer = get_by_xml_tag(response.content, 'answer').strip()
+    if answer not in {'Yes', 'No'}:
+        print(f"Answer not in Yes or No: {answer}")
+        return False
+    return answer == 'Yes'

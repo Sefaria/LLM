@@ -44,8 +44,29 @@ class SummarizedSource:
         return serial
 
 
-def get_clustered_sources(sources: list[TopicPromptSource], topic: Topic) -> list[Cluster]:
-    return Artifact(sources).pipe(_summarize_sources, topic).pipe(_cluster_sources).data
+def get_clustered_sources_based_on_summaries(sources: list[TopicPromptSource], topic: Topic) -> list[Cluster]:
+    """
+    Clusters sources based on LLM summaries of the source text
+    :param sources:
+    :param topic:
+    :return:
+    """
+    key = lambda source: source.summary
+    return Artifact(sources).pipe(_summarize_sources, topic).pipe(_cluster_sources, key).data
+
+
+def get_text_from_source(source: TopicPromptSource) -> str:
+    text = source.text
+    return text.get('en', text.get('he', 'N/A'))
+
+
+def get_clustered_sources(sources: list[TopicPromptSource]) -> list[Cluster]:
+    """
+    Clusters sources based on the source text. Faster than `get_clustered_sources_based_on_summaries` since it doesn't require summarization
+    :param sources:
+    :return:
+    """
+    return Artifact(sources).pipe(_cluster_sources, get_text_from_source).data
 
 
 def _summarize_sources(sources: list[TopicPromptSource], topic: Topic, verbose=False) -> list[SummarizedSource]:
@@ -62,9 +83,15 @@ def _summarize_sources(sources: list[TopicPromptSource], topic: Topic, verbose=F
         summaries.append(SummarizedSource(source, summary))
     return summaries
 
-def _cluster_sources(sources: list[SummarizedSource]) -> list[Cluster]:
+def _cluster_sources(sources: list[SummarizedSource], key: Callable[[SummarizedSource], str]) -> list[Cluster]:
     embedding_fn = lambda text: np.array(OpenAIEmbeddings(model="text-embedding-ada-002").embed_query(text))
-    return cluster_items(sources, lambda source: source.summary, embedding_fn)
+    return cluster_items(sources, key, embedding_fn)
+
+def summarize_source_clusters(clusters: list[Cluster], topic) -> list[Cluster]:
+    topic_desc = ''
+    if topic.description.get('en', False) and False:
+        topic_desc = f': {topic.description["en"]}'
+    return [summarize_cluster(cluster, topic_desc, get_text_from_source) for cluster in clusters]
 
 def summarize_cluster(cluster: Cluster, context: str, key: Callable[[Any], str], sample_size=5) -> Cluster:
     sample = random.sample(cluster.items, min(len(cluster), sample_size))
