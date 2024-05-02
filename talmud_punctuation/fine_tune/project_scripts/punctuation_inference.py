@@ -12,12 +12,13 @@ from tqdm import tqdm
 api_key = os.getenv("OPENAI_API_KEY")
 class PunctuationOracle:
     def __init__(self, model_name,
-                 system_message='Punctuate this Talmudic passage based on the commentary I provide. Extract the relevant punctuation marks (, : . ? ! \"\" ; —) from the commentary and put them in the original. Output only the original Aramaic passage with punctuation without \"cantilation\" or \"nikud\".\n"'
+                 system_message='Punctuate this Talmudic passage based on the commentary I provide. Extract the relevant punctuation marks (, : . ? ! \"\" ; —) from the commentary and put them in the original. Output only the original Aramaic passage with punctuation without \"cantilation\" or \"nikud\".\n'
                  ):
         self.model_name = model_name
         self.system_message = system_message
 
     def _ask_OpenAI_model(self, original_passage, commentary):
+        commentary = commentary.replace('—', '–')
         user_message = "Original Talmudic Passage:\n" + original_passage + '\n' + "Commentary:\n" + commentary
         messages = [
                 {
@@ -39,12 +40,22 @@ class PunctuationOracle:
         }
         try:
             response = openai.ChatCompletion.create(**params, model=self.model_name, messages=messages)
+            inference = response["choices"][0]["message"]["content"]
+        # hack to handle this weird exception: "Failed to create completion as the model generated invalid Unicode output."
         except:
-            #hack to handle this weird exception: "Failed to create completion as the model generated invalid Unicode output."
-            messages.append({"role": "assistant", "content": original_passage})
-            response = openai.ChatCompletion.create(**params, model=self.model_name, messages=messages)
+            stream = openai.ChatCompletion.create(**params, model=self.model_name, messages=messages, stream=True)
+            response_buffer = ''
+            try:
+                for chunk in stream:
+                    if chunk.choices[0].delta.content is not None:
+                        # print(chunk.choices[0].delta.content, end="")
+                        response_buffer += chunk.choices[0].delta.content
+            except:
+                messages.append({"role": "assistant", "content": response_buffer})
+                messages.append({"role": "user", "content": "restart"})
+                response = openai.ChatCompletion.create(**params, model=self.model_name, messages=messages)
+                inference = response["choices"][0]["message"]["content"]
 
-        inference = response["choices"][0]["message"]["content"]
         return inference
 
     def _is_subsequence(self, sub, main):
@@ -76,6 +87,9 @@ class PunctuationOracle:
 
         return unpunctuated_word
     def _punctuate_vocalized(self, punctuated_text: str, vocalised_text: str) -> str:
+        #####
+        punctuated_text = punctuated_text.replace("–", "—")
+
         punctuated_text_list = punctuated_text.replace(' —', '—').split()
         vocalised_text_list = vocalised_text.split()
         vocalised_text_list_suffix = vocalised_text.split()
@@ -159,6 +173,8 @@ if __name__ == '__main__':
     oracle_old = PunctuationOracle(model_name="ft:gpt-3.5-turbo-0613:sefaria:he-punct:8ottZMB1")
     # refs = Ref('Bava Metzia 75b:14 - 119a:6').all_segment_refs()
     refs = Ref('Bava Metzia 75b:14 - 119a:6').all_segment_refs()
+    # oracle_old.punctuate_and_vocalize_segment(Ref('Bava Metzia 75b:15'))
+    # print(oracle_new.punctuate_and_vocalize_segment(Ref('Bava Metzia 75b:15')))
     # punctuate_segments_and_write_to_csv('bava_metzia_punctuated_75b_14_to_end.csv' , refs , oracle_new)
 
-    punctuate_segments_and_write_to_csv('bava_metzia_punctuated_75b_14_to_end_old_model.csv', refs, oracle_old)
+    punctuate_segments_and_write_to_csv('bava_metzia_punctuated_75b_14_to_end_new_model.csv', refs, oracle_new)
