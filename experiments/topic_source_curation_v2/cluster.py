@@ -88,9 +88,9 @@ def _cluster_sources(sources: list[SummarizedSource], key: Callable[[SummarizedS
     return cluster_items(sources, key, embedding_fn)
 
 def summarize_source_clusters(clusters: list[Cluster], topic) -> list[Cluster]:
-    topic_desc = ''
+    topic_desc = f'{topic.title['en']}'
     if topic.description.get('en', False) and False:
-        topic_desc = f': {topic.description["en"]}'
+        topic_desc += f': {topic.description["en"]}'
     return [summarize_cluster(cluster, topic_desc, get_text_from_source) for cluster in clusters]
 
 def summarize_cluster(cluster: Cluster, context: str, key: Callable[[Any], str], sample_size=5) -> Cluster:
