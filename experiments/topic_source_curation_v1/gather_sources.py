@@ -7,9 +7,9 @@ import django
 django.setup()
 from sefaria.model.topic import Topic
 from sefaria.helper.llm.topic_prompt import _make_llm_topic
-from experiments.topic_source_curation.generate_questions import get_urls_for_slug, generate_questions_from_url_list
-from experiments.topic_source_curation.query_sources import SourceQuerier
-from experiments.topic_source_curation.common import is_text_about_topic
+from experiments.topic_source_curation_v1.generate_questions import get_urls_for_slug, generate_questions_from_url_list
+from experiments.topic_source_curation_v1.query_sources import SourceQuerier
+from experiments.topic_source_curation_v1.common import is_text_about_topic
 from app.util.pipeline import Artifact
 from functools import partial
 from tqdm import tqdm
@@ -33,6 +33,28 @@ def get_topic_description(topic_slug):
     topic = Topic.init(topic_slug)
     llm_topic = _make_llm_topic(topic)
     return f"{llm_topic.title['en']}\nDescription: {llm_topic.description.get('en', 'N/A')}"
+
+def get_sources_relevant_to_topic_by_sliding_window(topic_slug, window_size, min_relevant, docs):
+    topic_description = get_topic_description(topic_slug)
+    window = []
+    relevant_sources = []
+    count_docs = 0
+    for doc in docs:
+        is_relevant = is_text_about_topic(topic_description, doc[0].page_content)
+        count_docs += 1
+        if is_relevant:
+            relevant_sources += [doc]
+        window += [is_relevant]
+        if len(window) > window_size:
+            window = window[1:]
+        if len(window) == window_size and window.count(True) < min_relevant:
+            break
+        else:
+            print(window.count(True))
+    print("doc count", count_docs)
+
+    return relevant_sources
+
 
 def get_sources_relevant_to_topic_biscect(topic_slug, docs):
     topic_description = get_topic_description(topic_slug)
@@ -63,8 +85,7 @@ def get_all_sources(topic_slug, top_k, score_threshold, questions) -> list:
     for question in tqdm(questions, desc='Querying sources'):
         print('question', question)
         temp_docs = (Artifact(question) >> query_sources >>
-                     partial(get_sources_relevant_to_topic_biscect, topic_slug) >>
-                     partial(get_sources_relevant_to_topic_exact, topic_slug))
+                     partial(get_sources_relevant_to_topic_by_sliding_window, topic_slug, 10, 1))
         print('FINAL RELEVANT', len(temp_docs.data))
         for doc in temp_docs.data:
             docs_by_ref[get_ref_from_doc(doc)] = doc

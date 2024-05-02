@@ -1,7 +1,7 @@
 """
 Functions to explore existing topic curations
 """
-from experiments.topic_source_curation.common import get_datasets
+from experiments.topic_source_curation_v1.common import get_datasets
 from collections import defaultdict
 import django
 django.setup()

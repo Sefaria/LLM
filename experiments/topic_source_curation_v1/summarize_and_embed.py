@@ -33,7 +33,7 @@ from sklearn.metrics import silhouette_score, pairwise_distances
 from sklearn.cluster import KMeans
 from tqdm import tqdm
 import numpy as np
-from experiments.topic_source_curation.common import get_exported_topic_pages
+from experiments.topic_source_curation_v1.common import get_exported_topic_pages
 from topic_prompt.uniqueness_of_source import summarize_based_on_uniqueness
 from util.general import get_by_xml_tag
 from sefaria_llm_interface.topic_source_curation import CuratedTopic
@@ -272,7 +272,7 @@ def cluster_by_subtopic(curated_topic: CuratedTopic) -> list[SourceCluster]:
 
 
 def get_cluster_diversity_for_dataset(clusters: list[SourceCluster]) -> None:
-    from experiments.topic_source_curation.common import get_datasets
+    from experiments.topic_source_curation_v1.common import get_datasets
     from collections import defaultdict
     source_to_label = {s.source.ref: c.label for c in clusters for s in c.summarized_sources}
     label_to_cluster = {c.label: c for c in clusters}

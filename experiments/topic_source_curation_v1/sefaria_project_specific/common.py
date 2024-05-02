@@ -8,34 +8,6 @@ from sefaria.helper.topic import get_topic
 from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source, _make_llm_topic
 from sefaria_llm_interface.topic_source_curation import CuratedTopic
 
-def filter_subset_refs_old(orefs: list[Ref]) -> list[Ref]:
-    orefs.sort(key=lambda x: x.order_id())
-    deduped_orefs = []
-    skip_next = False
-    for ioref, oref in enumerate(orefs[:-1]):
-        if skip_next:
-            skip_next = False
-            continue
-        next_oref = orefs[ioref+1]
-        if oref.index.title != next_oref.index.title:
-            # optimization, the easiest cases to check for
-            deduped_orefs.append(oref)
-        elif oref.contains(next_oref):
-            # will be dealt with in next iteration
-            continue
-        elif next_oref.contains(oref):
-            # unfortunately Ref.order_id() doesn't consistently put larger refs before smaller ones
-            # e.g. Tosafot on Berakhot 2 precedes Tosafot on Berakhot Chapter 1...
-            # check if next match actually contains this match
-            deduped_orefs += [oref]
-            skip_next = True
-        else:
-            deduped_orefs += [oref]
-    if len(orefs) > 0:
-        # never dealt with last oref
-        deduped_orefs += [orefs[-1]]
-    return deduped_orefs
-
 def filter_subset_refs(orefs: list[Ref]) -> list[Ref]:
     orefs.sort(key=lambda x: x.order_id())
     deduped_orefs = []
