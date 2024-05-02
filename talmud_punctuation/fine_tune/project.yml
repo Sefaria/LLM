@@ -15,7 +15,7 @@ workflows:
 commands:
   - name: create_punctuation_training
     script:
-      - 'python project_scripts/create_punctuation_input_for_fine_tuning.py output/gpt_punctuation_training.jsonl output/gpt_punctuation_validation.jsonl project_scripts/horayot_inferences_vocalized_for_train.csv'
+      - 'python project_scripts/create_punctuation_input_for_fine_tuning.py output/gpt_punctuation_training.jsonl output/gpt_punctuation_validation.jsonl project_scripts/horayot_inferences_vocalized_for_train.csv "Bava Metzia 2a:1 - 75b:13"'
     outputs:
       - 'output/gpt_punctuation_training.jsonl'
       - 'output/gpt_citation_validation.jsonl'

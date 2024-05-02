@@ -1,3 +1,5 @@
+from typing import List
+
 import django
 django.setup()
 import typer
@@ -10,6 +12,7 @@ import re
 seed_value = 613
 random.seed(seed_value)
 sample_size = 1000
+best_samples_ratio = 0.8
 
 train_proportion = 0.8
 
@@ -73,35 +76,59 @@ def merge_and_delete(list1, list2):
         del list1[index]
     list1.extend(list2)
 
-def create_data(output_training_filename: str, output_validation_filename: str, manual_data_csv_filename: str):
-    all_samples = []
-    punctuationre = re.compile(
-        r'[\.\!\?\:\,\u05F4]+(?![\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d\u05d0-\u05eA](?:[\.\!\?\:\,\u05F4\s]|$))|—\s')
+def segment_ref_to_sample(segment_ref: Ref):
+    non_punctuated = segment_ref.text('he', "William Davidson Edition - Aramaic").text
+    punctuated = strip_cantillation(segment_ref.text('he').text, strip_vowels=True)
+    steinsaltz = Ref("Steinsaltz on " + segment_ref.normal()).text('he').text
+    sample = create_new_context(task_desciption, non_punctuated, steinsaltz, punctuated)
+    return sample
+
+def mix_best_and_good_samples(best_samples : List, good_samples: List):
+    num_of_best = int(sample_size * best_samples_ratio)
+    num_of_good = sample_size - num_of_best
+    mixed = random.sample(best_samples, num_of_best) + random.sample(good_samples, num_of_good)
+    return mixed
+
+def get_good_samples():
+    good_samples = []
     for masechet in masechtot_ordered:
         print("creating data from Masechet " + masechet)
         all_segment_refs = Ref(masechet).all_segment_refs()
         for segment_ref in all_segment_refs:
-            non_punctuated = segment_ref.text('he', "William Davidson Edition - Aramaic").text
-            punctuated = strip_cantillation(segment_ref.text('he').text, strip_vowels=True)
-            steinsaltz = Ref("Steinsaltz on " + segment_ref.normal()).text('he').text
-            all_samples.append(create_new_context(task_desciption, non_punctuated, steinsaltz, punctuated))
+            good_samples.append(segment_ref_to_sample(segment_ref))
         if masechet == last_masechet:
             break
+    return good_samples
 
-    #get only limited num of samples
-    samples_trimmed = []
-    samples_trimmed = random.sample(all_samples, sample_size)
+def get_best_samples(manual_data_csv_filename, best_refs):
+    best_samples = []
 
     if (manual_data_csv_filename):
-        manual_samples = parse_manual_data(manual_data_csv_filename)
-        merge_and_delete(samples_trimmed, manual_samples)
+        best_samples += parse_manual_data(manual_data_csv_filename)
+    best_seg_refs = []
+    if isinstance(best_refs, list):
+        for tref in best_refs:
+            best_seg_refs += [Ref(tref).all_segment_refs()]
+    else:
+        best_seg_refs += Ref(best_refs).all_segment_refs()
+    for segment_ref in best_seg_refs:
+        best_samples.append(segment_ref_to_sample(segment_ref))
+    return best_samples
+
+def create_data(output_training_filename: str, output_validation_filename: str, manual_data_csv_filename: str, best_refs: str):
+    print("creating good samples:")
+    good_samples = get_good_samples()
+    print("creating best samples:")
+    best_samples = get_best_samples(manual_data_csv_filename, best_refs)
+    final_sample = mix_best_and_good_samples(best_samples, good_samples)
+
 
     # Calculate the number of items for training
-    num_train = int(len(samples_trimmed) * train_proportion)
+    num_train = int(len(final_sample) * train_proportion)
 
     # Use random.sample to partition the list according to the seed
-    train_samples = random.sample(samples_trimmed, num_train)
-    validation_samples = [item for item in samples_trimmed if item not in train_samples]
+    train_samples = random.sample(final_sample, num_train)
+    validation_samples = [item for item in final_sample if item not in train_samples]
 
     with open(output_training_filename, 'w', encoding='utf-8') as jsonl_file:
         for json_obj in train_samples:
@@ -119,6 +146,6 @@ def create_data(output_training_filename: str, output_validation_filename: str, 
     print("VALIDATION SAMPLES: " + str(len(validation_samples)))
 
 if __name__ == '__main__':
-    # typer.run(create_data)
-    # create_data("output/gpt_punctuation_training.jsonl", "output/gpt_punctuation_validation.jsonl")
-    parse_manual_data()
+    typer.run(create_data)
+    # create_data("output/gpt_punctuation_training.jsonl", "output/gpt_punctuation_validation.jsonl", "horayot_inferences_vocalized_for_train.csv", "Bava Metzia 2a:1 - 75b:13")
+    # parse_manual_data()
