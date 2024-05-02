@@ -11,18 +11,15 @@ from tqdm import tqdm
 
 api_key = os.getenv("OPENAI_API_KEY")
 class PunctuationOracle:
-    def __init__(self, model_name="ft:gpt-3.5-turbo-0613:sefaria:he-punct:8ottZMB1",
+    def __init__(self, model_name,
                  system_message='Punctuate this Talmudic passage based on the commentary I provide. Extract the relevant punctuation marks (, : . ? ! \"\" ; —) from the commentary and put them in the original. Output only the original Aramaic passage with punctuation without \"cantilation\" or \"nikud\".\n"'
-
                  ):
         self.model_name = model_name
         self.system_message = system_message
 
     def _ask_OpenAI_model(self, original_passage, commentary):
         user_message = "Original Talmudic Passage:\n" + original_passage + '\n' + "Commentary:\n" + commentary
-        response = openai.ChatCompletion.create(
-            model=self.model_name,
-            messages=[
+        messages = [
                 {
                     "role": "system",
                     "content": self.system_message
@@ -32,14 +29,21 @@ class PunctuationOracle:
                     "content": user_message
                 }
 
-            ],
-            temperature=1,
-            max_tokens=600,
-            top_p=1,
-            frequency_penalty=0,
-            presence_penalty=0
-        )
-        # print(response)
+            ]
+        params = {
+            "temperature": 1,
+            "max_tokens": 600,
+            "top_p": 1,
+            "frequency_penalty": 0,
+            "presence_penalty": 0
+        }
+        try:
+            response = openai.ChatCompletion.create(**params, model=self.model_name, messages=messages)
+        except:
+            #hack to handle this weird exception: "Failed to create completion as the model generated invalid Unicode output."
+            messages.append({"role": "assistant", "content": original_passage})
+            response = openai.ChatCompletion.create(**params, model=self.model_name, messages=messages)
+
         inference = response["choices"][0]["message"]["content"]
         return inference
 
@@ -98,13 +102,17 @@ class PunctuationOracle:
     def punctuate_and_vocalize_segments(self, segment_refs: list[Ref]):
         result = []
         for seg_ref in tqdm(segment_refs, desc="Processing segments", unit="segment"):
-            raw_text = seg_ref.text('he', "William Davidson Edition - Aramaic").text
-            commentary = Ref("Steinsaltz on " + seg_ref.tref).text('he').text
+            result.append(self.punctuate_and_vocalize_segment(seg_ref))
+        return result
 
-            raw_punctuated = self._ask_OpenAI_model(raw_text, commentary)
-            raw_vocalized = seg_ref.text('he', "William Davidson Edition - Vocalized Aramaic").text
-            punctuated_vocalized = self._punctuate_vocalized(raw_punctuated, raw_vocalized)
-            result += [{"ref": seg_ref.tref, "punctuated": punctuated_vocalized}]
+    def punctuate_and_vocalize_segment(self, seg_ref: Ref):
+        raw_text = seg_ref.text('he', "William Davidson Edition - Aramaic").text
+        commentary = Ref("Steinsaltz on " + seg_ref.tref).text('he').text
+
+        raw_punctuated = self._ask_OpenAI_model(raw_text, commentary)
+        raw_vocalized = seg_ref.text('he', "William Davidson Edition - Vocalized Aramaic").text
+        punctuated_vocalized = self._punctuate_vocalized(raw_punctuated, raw_vocalized)
+        result = {"ref": seg_ref.tref, "punctuated": punctuated_vocalized}
         return result
 
     def punctuate_segments_and_write_to_csv(self, segment_refs: list[Ref], csv_filename):
@@ -115,6 +123,27 @@ class PunctuationOracle:
             csv_writer.writeheader()
             csv_writer.writerows(punctuated_segments)
 
+def punctuate_segments_and_write_to_csv(csv_filename, segment_refs, oracle: PunctuationOracle):
+    existing_refs = set()
+    try:
+        with open(csv_filename, 'r', newline='') as fin:
+            reader = csv.DictReader(fin)
+            for row in reader:
+                existing_refs.add(row['ref'])
+    except FileNotFoundError:
+        pass  # If the file doesn't exist yet, ignore the error and proceed
+
+
+    fout = open(csv_filename, 'a', newline='')
+    cout = csv.DictWriter(fout, ['ref', 'punctuated'])
+    if fout.tell() == 0:
+        cout.writeheader()
+    for segment_oref in tqdm(segment_refs, desc=f"Punctuating"):
+        if segment_oref.normal() in existing_refs:
+            continue
+        punctuated_dict = oracle.punctuate_and_vocalize_segment(segment_oref)
+        cout.writerow(punctuated_dict)
+    fout.close()
 
 
 
@@ -126,6 +155,10 @@ class PunctuationOracle:
 
 
 if __name__ == '__main__':
-    oracle = PunctuationOracle()
-    refs = Ref('Bava Metzia 2a.1 - 75b.13').all_segment_refs()
-    oracle.punctuate_segments_and_write_to_csv(refs, 'bava_metzia_punctuated.csv')
+    oracle_new = PunctuationOracle(model_name="ft:gpt-3.5-turbo-0125:sefaria:he-punct:9K2PHRwC")
+    oracle_old = PunctuationOracle(model_name="ft:gpt-3.5-turbo-0613:sefaria:he-punct:8ottZMB1")
+    # refs = Ref('Bava Metzia 75b:14 - 119a:6').all_segment_refs()
+    refs = Ref('Bava Metzia 75b:14 - 119a:6').all_segment_refs()
+    # punctuate_segments_and_write_to_csv('bava_metzia_punctuated_75b_14_to_end.csv' , refs , oracle_new)
+
+    punctuate_segments_and_write_to_csv('bava_metzia_punctuated_75b_14_to_end_old_model.csv', refs, oracle_old)
