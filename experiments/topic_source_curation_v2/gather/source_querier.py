@@ -33,7 +33,7 @@ class AbstractSourceQuerier(ABC):
 
     def query(self, query: str, top_k: int, score_threshold: float) -> tuple[list[TopicPromptSource], list[float]]:
         retrieved_docs = self.vector_db.similarity_search_with_relevance_scores(
-            query.lower(), top_k
+            query.lower(), top_k, score_threshold=score_threshold
         )
         docs, scores = list(zip(*retrieved_docs)) if len(retrieved_docs) > 0 else ([], [])
 

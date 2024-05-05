@@ -66,7 +66,7 @@ class SourceGatherer:
         questions = self.question_generator.generate(topic)
         sources: list[TopicPromptSource] = self.topic_page_source_getter.get(topic)
         for question in questions:
-            temp_sources, _ = self.source_querier.query(question, 10, 0.0)
+            temp_sources, _ = self.source_querier.query(question, 10, 0.9)
             sources.extend(temp_sources)
         return sources
 
