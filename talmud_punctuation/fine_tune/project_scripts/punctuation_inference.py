@@ -18,7 +18,6 @@ class PunctuationOracle:
         self.system_message = system_message
 
     def _ask_OpenAI_model(self, original_passage, commentary):
-        commentary = commentary.replace('—', '–')
         user_message = "Original Talmudic Passage:\n" + original_passage + '\n' + "Commentary:\n" + commentary
         messages = [
                 {
