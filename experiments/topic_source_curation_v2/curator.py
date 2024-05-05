@@ -8,6 +8,9 @@ from sefaria.helper.llm.topic_prompt import _make_llm_topic
 from sefaria_llm_interface.common.topic import Topic
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from util.pipeline import Artifact
+import django
+django.setup()
+from sefaria.model.topic import Topic as SefariaTopic
 
 def curate_topic(topic: Topic) -> list[TopicPromptSource]:
     return (Artifact(topic)
@@ -17,6 +20,6 @@ def curate_topic(topic: Topic) -> list[TopicPromptSource]:
 
 if __name__ == '__main__':
     slug = "stars"
-    topic = _make_llm_topic(slug)
+    topic = _make_llm_topic(SefariaTopic.init(slug))
     curate_topic(topic)
 

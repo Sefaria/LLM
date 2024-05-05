@@ -4,6 +4,9 @@ questions are meant to be used as queries to a vector store
 which will be used to gather many sources about a topic to curate
 """
 
+import django
+django.setup()
+from sefaria.model.topic import Topic as SefariaTopic
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from basic_langchain.schema import SystemMessage, HumanMessage
@@ -17,7 +20,7 @@ from sefaria_llm_interface.common.topic import Topic
 
 def create_multi_source_question_generator() -> 'AbstractQuestionGenerator':
     return MultiSourceQuestionGenerator([
-        TemplatedQuestionGenerator("input/templated_questions_by_type.csv"),
+        TemplatedQuestionGenerator("gather/input/templated_questions_by_type.csv"),
         WebPageQuestionGenerator(_TopicURLMapping())
     ])
 
@@ -42,6 +45,22 @@ class MultiSourceQuestionGenerator(AbstractQuestionGenerator):
 
 
 class TemplatedQuestionGenerator(AbstractQuestionGenerator):
+    """
+    learning team types:
+    holiday
+    figure
+    story
+    liturgy
+    mitzvah
+    ritual object
+    customs
+    rabbinic principles
+    idea/belief
+    """
+
+    ontology_type_to_learning_team_type_map = {
+
+    }
 
     def __init__(self, templated_questions_by_type_filename: str):
         self.templated_questions_by_type = self.__get_templated_questions_by_type(templated_questions_by_type_filename)
@@ -50,7 +69,7 @@ class TemplatedQuestionGenerator(AbstractQuestionGenerator):
     def __get_templated_questions_by_type(templated_questions_by_type_filename: str) -> dict[str, list[str]]:
         questions_by_type = defaultdict(list)
         with open(templated_questions_by_type_filename, "r") as fin:
-            cin = csv.DictReader(templated_questions_by_type_filename)
+            cin = csv.DictReader(fin)
             for row in cin:
                 questions_by_type[row['Type']] += [row['Question']]
         return questions_by_type
@@ -60,11 +79,11 @@ class TemplatedQuestionGenerator(AbstractQuestionGenerator):
         pass
 
     def generate(self, topic: Topic) -> list[str]:
-        return self.templated_questions_by_type[self.__get_type_for_topic(topic)]
+        return [q.format(topic.title['en']) for q in self.templated_questions_by_type[self.__get_type_for_topic(topic)]]
 
 
 class _TopicURLMapping:
-    slug_url_mapping = "input/Topic Webpage mapping for question generation - Sheet1.csv"
+    slug_url_mapping = "gather/input/Topic Webpage mapping for question generation - Sheet1.csv"
 
     def __init__(self):
         self._raw_mapping = self._get_raw_mapping()

@@ -7,6 +7,7 @@ from langchain.vectorstores.neo4j_vector import Neo4jVector
 from langchain.vectorstores.chroma import Chroma
 from langchain.embeddings.openai import OpenAIEmbeddings
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
+from langchain_voyageai.embeddings import VoyageAIEmbeddings
 
 
 class SourceQuerierFactory:
@@ -32,9 +33,9 @@ class AbstractSourceQuerier(ABC):
 
     def query(self, query: str, top_k: int, score_threshold: float) -> tuple[list[TopicPromptSource], list[float]]:
         retrieved_docs = self.vector_db.similarity_search_with_relevance_scores(
-            query.lower(), top_k, score_threshold=score_threshold
+            query.lower(), top_k
         )
-        docs, scores = zip(*retrieved_docs)
+        docs, scores = list(zip(*retrieved_docs)) if len(retrieved_docs) > 0 else ([], [])
 
         sources = [_make_topic_prompt_source(Ref(doc.metadata['ref']), '', with_commentary=False) for doc in docs]
         return sources, scores
@@ -42,11 +43,11 @@ class AbstractSourceQuerier(ABC):
 
 
 class ChromaSourceQuerier(AbstractSourceQuerier):
-    persist_directory = 'embedding/.chromadb'
+    persist_directory = '../embedding/.chromadb'
 
     @classmethod
     def _get_vector_db(cls):
-        return Chroma(persist_directory=cls.persist_directory)
+        return Chroma(persist_directory=cls.persist_directory, embedding_function=VoyageAIEmbeddings(model="voyage-large-2-instruct"))
 
 
 class Neo4jSourceQuerier(AbstractSourceQuerier):

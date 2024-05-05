@@ -37,7 +37,7 @@ def _filter_sources_about_topic(sources: list[TopicPromptSource], topic: Topic) 
             .pipe(get_clustered_sources)
             .pipe(summarize_source_clusters, topic)
             .pipe(_get_items_relevant_to_topic, get_cluster_summary, topic)
-            .pipe(_convert_clusters_to_list)
+            .pipe(_convert_clusters_to_list).data
            )
 
 def _convert_clusters_to_list(clusters: list[Cluster]) -> list[TopicPromptSource]:
@@ -66,7 +66,7 @@ class SourceGatherer:
         questions = self.question_generator.generate(topic)
         sources: list[TopicPromptSource] = self.topic_page_source_getter.get(topic)
         for question in questions:
-            temp_sources, _ = self.source_querier.query(question, 1000, 0.9)
+            temp_sources, _ = self.source_querier.query(question, 10, 0.0)
             sources.extend(temp_sources)
         return sources
 
@@ -82,7 +82,14 @@ class TopicPageSourceGetter:
         out = get_topic(True, slug, with_refs=True, ref_link_type_filters=['about', 'popular-writing-of'])
         try:
             trefs = [d['ref'] for d in out['refs']['about']['refs'] if not d['is_sheet']]
-            return [tref for tref in trefs[:top_n] if Ref.is_ref(tref)]
+            out_trefs = []
+            for tref in trefs[:top_n]:
+                try:
+                    Ref(tref)
+                    out_trefs.append(tref)
+                except:
+                    continue
+            return out_trefs
         except KeyError:
             print('No refs found for {}'.format(slug))
             return []

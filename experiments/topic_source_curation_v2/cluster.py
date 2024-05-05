@@ -88,7 +88,7 @@ def _cluster_sources(sources: list[SummarizedSource], key: Callable[[SummarizedS
     return cluster_items(sources, key, embedding_fn)
 
 def summarize_source_clusters(clusters: list[Cluster], topic) -> list[Cluster]:
-    topic_desc = f'{topic.title['en']}'
+    topic_desc = f'{topic.title["en"]}'
     if topic.description.get('en', False) and False:
         topic_desc += f': {topic.description["en"]}'
     return [summarize_cluster(cluster, topic_desc, get_text_from_source) for cluster in clusters]
@@ -104,7 +104,9 @@ def summarize_cluster(cluster: Cluster, context: str, key: Callable[[Any], str],
     human = HumanMessage(content=f"<topic>{context}</topic><idea>{'</idea><idea>'.join(strs_to_summarize)}</idea>")
     response = llm([system, human])
     summary = get_by_xml_tag(response.content, "summary")
-    return Cluster(summary=summary, **asdict(cluster))
+    cluster_dict = asdict(cluster)
+    cluster_dict.pop('summary', None)
+    return Cluster(summary=summary, **cluster_dict)
 
 
 def cluster_items(items: list[Any], key: Callable[[Any], str], embedding_fn: Callable[[str], ndarray]) -> list[Cluster]:
@@ -126,7 +128,7 @@ def cluster_items(items: list[Any], key: Callable[[Any], str], embedding_fn: Cal
     return clusters
 
 
-def _guess_optimal_clustering(embeddings):
+def _guess_optimal_clustering(embeddings, verbose=False):
     best_sil_coeff = -1
     best_num_clusters = 0
     n_clusters = range(2, len(embeddings)//2)
