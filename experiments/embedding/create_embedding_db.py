@@ -1,10 +1,12 @@
 from langchain_voyageai import VoyageAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain.docstore.document import Document
+from time import sleep
 from langchain_text_splitters import CharacterTextSplitter
 from srsly import read_jsonl
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
+from voyageai.error import RateLimitError
 import os
 import json
 import django
@@ -33,7 +35,13 @@ def add_herzog_tanakh_passages():
 
 
 def ingest_document(doc, db, pbar):
-    db.add_documents([doc])
+    try:
+        db.add_documents([doc])
+    except RateLimitError:
+        sleep(60)
+        ingest_document(doc, db, pbar)
+        return
+
     with pbar.get_lock():
         pbar.update(1)
 
@@ -69,6 +77,6 @@ def query():
     print("DB size", len(db.get()["ids"]))
 
 if __name__ == '__main__':
-    ingest_all(139765)
+    ingest_all(855836)
     # query()
     # add_herzog_tanakh_passages()
