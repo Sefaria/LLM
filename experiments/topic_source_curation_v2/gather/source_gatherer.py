@@ -3,7 +3,7 @@ import django
 django.setup()
 from sefaria.model.text import Ref
 from functools import reduce
-from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source
+from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source, _make_llm_topic
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface.common.topic import Topic
 from basic_langchain.chat_models import ChatAnthropic
@@ -14,8 +14,15 @@ from experiments.topic_source_curation_v2.gather.source_querier import SourceQue
 from experiments.topic_source_curation_v2.gather.question_generator import create_multi_source_question_generator, AbstractQuestionGenerator
 from experiments.topic_source_curation_v2.cluster import get_clustered_sources, summarize_source_clusters, Cluster
 from util.pipeline import Artifact
+from sefaria.model.topic import Topic as SefariaTopic
 
 
+def jaccard_similarity(list1, list2):
+    set1 = set(list1)
+    set2 = set(list2)
+    intersection = len(set1.intersection(set2))
+    union = len(set1.union(set2))
+    return intersection / union
 def gather_sources_about_topic(topic: Topic) -> list[TopicPromptSource]:
     source_gatherer = _create_source_gatherer()
     return (Artifact(topic)
@@ -44,11 +51,13 @@ def _convert_clusters_to_list(clusters: list[Cluster]) -> list[TopicPromptSource
     return reduce(lambda x, y: x + y.items, clusters, [])
 
 def _create_source_gatherer() -> 'SourceGatherer':
-    return SourceGatherer(
+    return (
+        # SourceGatherer(
+        CategoryAwareSourceGatherer(
         TopicPageSourceGetter(),
         SourceQuerierFactory.create('chroma'),
         create_multi_source_question_generator()
-    )
+    ))
 
 
 class SourceGatherer:
@@ -66,9 +75,56 @@ class SourceGatherer:
         questions = self.question_generator.generate(topic)
         sources: list[TopicPromptSource] = self.topic_page_source_getter.get(topic)
         for question in questions:
-            temp_sources, _ = self.source_querier.query(question, 10, 0.9)
+            temp_sources, _ = self.source_querier.query(question, 10, 0.2)
             sources.extend(temp_sources)
         return sources
+
+class CategoryAwareSourceGatherer:
+
+    def __init__(self,
+                 topic_page_source_getter: 'TopicPageSourceGetter',
+                 source_querier: AbstractSourceQuerier,
+                 question_generator: AbstractQuestionGenerator
+                ):
+        self.topic_page_source_getter = topic_page_source_getter
+        self.source_querier = source_querier
+        self.question_generator = question_generator
+
+    def gather(self, topic: Topic) -> list[TopicPromptSource]:
+        questions_and_categories = self.question_generator.generate(topic)
+        sources: list[TopicPromptSource] = self.topic_page_source_getter.get(topic)
+        for question_and_cats in questions_and_categories:
+            question, cats = question_and_cats[0], question_and_cats[1]
+            temp_sources, _ = self.source_querier.query(question, 500, 0.2)
+            temp_sources = self._filter_by_category(temp_sources, cats)
+            temp_sources = self._add_base_text_sources(temp_sources)
+            sources.extend(temp_sources)
+        return sources
+    def _filter_by_category(self, sources: list[TopicPromptSource], categories):
+        if not categories:
+            return sources
+        filtered = [source for source in sources if any(cat in source.categories for cat in categories)]
+        return filtered
+
+    def _extract_base_text_source_from_commentary(self, source: TopicPromptSource):
+        sefaria_commentary_ref = Ref(source.ref)
+        if sefaria_commentary_ref.is_commentary():
+            commentary_links = [link for link in sefaria_commentary_ref.linkset().array() if link.type == "commentary"]
+            if not commentary_links:
+                return None
+            linked_refs = commentary_links[0].refs
+            base_text_ref = linked_refs[0] if Ref(linked_refs[0]).book != sefaria_commentary_ref.book else linked_refs[1]
+            return _make_topic_prompt_source(Ref(base_text_ref), '', with_commentary=False)
+        else:
+            return None
+    def _add_base_text_sources(self, sources: list[TopicPromptSource]):
+        extracted_sources = []
+        for source in sources:
+            base_text_source = self._extract_base_text_source_from_commentary(source)
+            if base_text_source:
+                extracted_sources.append(base_text_source)
+        return sources + extracted_sources
+
 
 
 class TopicPageSourceGetter:
@@ -141,3 +197,7 @@ def _is_text_about_topic(topic_description, text):
         print(f"Answer not in Yes or No: {answer}")
         return False
     return answer == 'Yes'
+
+if __name__ == "__main__":
+    topic = _make_llm_topic(SefariaTopic.init('stars'))
+    gather_sources_about_topic(topic)

@@ -19,8 +19,12 @@ from sefaria_llm_interface.common.topic import Topic
 
 
 def create_multi_source_question_generator() -> 'AbstractQuestionGenerator':
+    # return MultiSourceQuestionGenerator([
+    #     TemplatedQuestionGenerator("gather/input/templated_questions_by_type.csv"),
+    #     WebPageQuestionGenerator(_TopicURLMapping())
+    # ])
     return MultiSourceQuestionGenerator([
-        TemplatedQuestionGenerator("gather/input/templated_questions_by_type.csv"),
+        TemplatedQuestionCategoryAwareGenerator("gather/input/templated_questions_and_categories_by_type.csv"),
         WebPageQuestionGenerator(_TopicURLMapping())
     ])
 
@@ -76,11 +80,53 @@ class TemplatedQuestionGenerator(AbstractQuestionGenerator):
 
     @staticmethod
     def __get_type_for_topic(topic: Topic) -> str:
-        pass
+        naive_map = {"stars": "neutral-object"}
+        return(naive_map[topic.slug])
+
 
     def generate(self, topic: Topic) -> list[str]:
         return [q.format(topic.title['en']) for q in self.templated_questions_by_type[self.__get_type_for_topic(topic)]]
+class TemplatedQuestionCategoryAwareGenerator(AbstractQuestionGenerator):
+    """
+    learning team types:
+    holiday
+    figure
+    story
+    liturgy
+    mitzvah
+    ritual object
+    customs
+    rabbinic principles
+    idea/belief
+    """
 
+    ontology_type_to_learning_team_type_map = {
+
+    }
+
+    def __init__(self, templated_questions_by_type_filename: str):
+        self.templated_questions_and_categories_by_type = self.__get_templated_questions_by_type(templated_questions_by_type_filename)
+
+    @staticmethod
+    def __get_templated_questions_by_type(templated_questions_by_type_filename: str) -> dict[str, list[(str, list[str])]]:
+        questions_and_categories_by_type = defaultdict(list)
+        with open(templated_questions_by_type_filename, "r") as fin:
+            cin = csv.DictReader(fin)
+            for row in cin:
+                questions_and_categories_by_type[row['Type']].append((row['Question'],
+                                                                      None if not row["Categories"] else
+                                                                      row["Categories"].split(",") if "," in row["Categories"]
+                                                                      else [row["Categories"]]))
+        return questions_and_categories_by_type
+
+    @staticmethod
+    def __get_type_for_topic(topic: Topic) -> str:
+        naive_map = {"stars": "neutral-object"}
+        return(naive_map[topic.slug])
+
+
+    def generate(self, topic: Topic) -> list[str]:
+        return [(q[0].format(topic.title['en']), q[1]) for q in self.templated_questions_and_categories_by_type[self.__get_type_for_topic(topic)]]
 
 class _TopicURLMapping:
     slug_url_mapping = "gather/input/Topic Webpage mapping for question generation - Sheet1.csv"

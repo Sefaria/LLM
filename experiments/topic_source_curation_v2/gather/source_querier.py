@@ -37,6 +37,7 @@ class AbstractSourceQuerier(ABC):
         )
         docs, scores = list(zip(*retrieved_docs)) if len(retrieved_docs) > 0 else ([], [])
 
+
         sources = [_make_topic_prompt_source(Ref(doc.metadata['ref']), '', with_commentary=False) for doc in docs]
         return sources, scores
 
