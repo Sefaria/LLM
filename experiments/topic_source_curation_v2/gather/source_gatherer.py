@@ -52,8 +52,8 @@ def _convert_clusters_to_list(clusters: list[Cluster]) -> list[TopicPromptSource
 
 def _create_source_gatherer() -> 'SourceGatherer':
     return (
-        # SourceGatherer(
-        CategoryAwareSourceGatherer(
+        SourceGatherer(
+        # CategoryAwareSourceGatherer(
         TopicPageSourceGetter(),
         SourceQuerierFactory.create('chroma'),
         create_multi_source_question_generator()
@@ -74,6 +74,7 @@ class SourceGatherer:
     def gather(self, topic: Topic) -> list[TopicPromptSource]:
         questions = self.question_generator.generate(topic)
         sources: list[TopicPromptSource] = self.topic_page_source_getter.get(topic)
+        sources = []
         for question in questions:
             temp_sources, _ = self.source_querier.query(question, 10, 0.2)
             sources.extend(temp_sources)
@@ -199,5 +200,5 @@ def _is_text_about_topic(topic_description, text):
     return answer == 'Yes'
 
 if __name__ == "__main__":
-    topic = _make_llm_topic(SefariaTopic.init('stars'))
+    topic = _make_llm_topic(SefariaTopic.init('jesse'))
     gather_sources_about_topic(topic)

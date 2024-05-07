@@ -23,10 +23,16 @@ def create_multi_source_question_generator() -> 'AbstractQuestionGenerator':
     #     TemplatedQuestionGenerator("gather/input/templated_questions_by_type.csv"),
     #     WebPageQuestionGenerator(_TopicURLMapping())
     # ])
+    # return MultiSourceQuestionGenerator([
+    #     TemplatedQuestionCategoryAwareGenerator("gather/input/templated_questions_and_categories_by_type.csv"),
+    #     WebPageQuestionGenerator(_TopicURLMapping())
+    # ])
     return MultiSourceQuestionGenerator([
-        TemplatedQuestionCategoryAwareGenerator("gather/input/templated_questions_and_categories_by_type.csv"),
+        LlmExpandedTemplatedQuestionGenerator("gather/input/templated_questions_to_expand_by_type.csv"),
         WebPageQuestionGenerator(_TopicURLMapping())
     ])
+
+
 
 
 class AbstractQuestionGenerator(ABC):
@@ -128,6 +134,62 @@ class TemplatedQuestionCategoryAwareGenerator(AbstractQuestionGenerator):
     def generate(self, topic: Topic) -> list[str]:
         return [(q[0].format(topic.title['en']), q[1]) for q in self.templated_questions_and_categories_by_type[self.__get_type_for_topic(topic)]]
 
+class LlmExpandedTemplatedQuestionGenerator(AbstractQuestionGenerator):
+    """
+    learning team types:
+    holiday
+    figure
+    story
+    liturgy
+    mitzvah
+    ritual object
+    customs
+    rabbinic principles
+    idea/belief
+    """
+
+    ontology_type_to_learning_team_type_map = {
+
+    }
+
+    def __init__(self, templated_questions_by_type_filename: str):
+        self.templated_questions_by_type = self.__get_templated_questions_by_type(templated_questions_by_type_filename)
+
+    @staticmethod
+    def __get_templated_questions_by_type(templated_questions_by_type_filename: str) -> dict[str, list[str]]:
+        questions_by_type = defaultdict(list)
+        with open(templated_questions_by_type_filename, "r") as fin:
+            cin = csv.DictReader(fin)
+            for row in cin:
+                questions_by_type[row['Type']] += [row['Question']]
+        return questions_by_type
+
+    def _expand_question(self, seed_question: str):
+        llm = ChatAnthropic(model="claude-3-opus-20240229", temperature=0)
+        system = SystemMessage(content="You are a Jewish teacher well versed in all Jewih texts and customs. Given a general question about a topic in Judasim wrapped in <text> tag, produce a multiple more speific questions exploring speficif aspects of the general topic. wrap each question in <question> tag")
+        human = HumanMessage(content=f"<text>{seed_question}</text>")
+        response = llm([system, human])
+        questions = []
+        for match in re.finditer(r"<question>(.*?)</question>", response.content):
+            questions += [match.group(1)]
+        return questions
+
+    @staticmethod
+    def __get_type_for_topic(topic: Topic) -> str:
+        naive_map = {"stars": "neutral-object",
+                     "jesse": "biblical-figure",
+                     "friendship": "idea/belief"}
+        return(naive_map[topic.slug])
+
+
+    def generate(self, topic: Topic) -> list[str]:
+        questions = []
+        for q in self.templated_questions_by_type[self.__get_type_for_topic(topic)]:
+            q = q.replace("{}", topic.title['en'])
+            expanded = self._expand_question(q)
+            print(expanded)
+            questions.extend(expanded)
+        return questions
 class _TopicURLMapping:
     slug_url_mapping = "gather/input/Topic Webpage mapping for question generation - Sheet1.csv"
 
