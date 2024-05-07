@@ -70,7 +70,8 @@ def get_clustered_sources(sources: list[TopicPromptSource]) -> list[Cluster]:
 
 
 def _summarize_sources(sources: list[TopicPromptSource], topic: Topic, verbose=False) -> list[SummarizedSource]:
-    llm = ChatAnthropic(model='claude-3-haiku-20240229', temperature=0)
+    # llm = ChatAnthropic(model='claude-3-haiku-20240229', temperature=0)
+    llm = ChatAnthropic(model='claude-3-opus-20240229', temperature=0)
     topic_str = f"Title: '{topic.title}'. Description: '{topic.description.get('en', 'N/A')}'."
     summaries: list[SummarizedSource] = []
     for source in tqdm(sources, desc=f'summarize_topic_page: {topic.title["en"]}', disable=not verbose):

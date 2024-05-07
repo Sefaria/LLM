@@ -56,7 +56,7 @@ def summarize_based_on_uniqueness(text: str, uniqueness: str, llm, lang) -> str:
     prompt = PromptTemplate.from_template("<text>{text}</text>\n<idea>{idea}</idea>")
     human_message = HumanMessage(content=prompt.format(text=text, idea=uniqueness))
     response = llm([system_message, human_message])
-    return re.search(r"<summary>\s*The text discusses (.+?)</summary>", response.content).group(1)
+    return re.search(r"<summary>\s*The text discusses (.+?)\s*</summary>", response.content).group(1)
 
 
 def _get_uniqueness_of_source_as_compared_to_other_sources(source: TopicPromptSource, other_sources: List[TopicPromptSource], topic: Topic) -> str:

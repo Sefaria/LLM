@@ -96,7 +96,8 @@ class SourceCluster:
 
 
 def summarize_topic_page(curated_topic: CuratedTopic) -> list[SummarizedSource]:
-    llm = ChatAnthropic(model='claude-3-haiku-20240229', temperature=0)
+    # llm = ChatAnthropic(model='claude-3-haiku-20240229', temperature=0)
+    llm = ChatAnthropic(model='claude-3-opus-20240229', temperature=0)
     topic = curated_topic.topic
     topic_str = f"Title: '{topic.title}'. Description: '{topic.description.get('en', 'N/A')}'."
     summaries: list[SummarizedSource] = []

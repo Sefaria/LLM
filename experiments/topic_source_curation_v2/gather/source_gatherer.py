@@ -48,7 +48,8 @@ def _filter_sources_about_topic(sources: list[TopicPromptSource], topic: Topic) 
            )
 
 def _convert_clusters_to_list(clusters: list[Cluster]) -> list[TopicPromptSource]:
-    return reduce(lambda x, y: x + y.items, clusters, [])
+    sources_dicts = reduce(lambda x, y: x + y.items, clusters, [])
+    return [TopicPromptSource(**source_data) for source_data in sources_dicts]
 
 def _create_source_gatherer() -> 'SourceGatherer':
     return (
