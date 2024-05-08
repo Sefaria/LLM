@@ -8,6 +8,7 @@ from langchain.vectorstores.chroma import Chroma
 from langchain.embeddings.openai import OpenAIEmbeddings
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from langchain_voyageai.embeddings import VoyageAIEmbeddings
+from experiments.topic_source_curation_v2.common import filter_invalid_refs
 
 
 class SourceQuerierFactory:
@@ -35,9 +36,8 @@ class AbstractSourceQuerier(ABC):
         retrieved_docs = self.vector_db.similarity_search_with_relevance_scores(
             query.lower(), top_k, score_threshold=score_threshold
         )
+        retrieved_docs = filter_invalid_refs(retrieved_docs, key=lambda x: x[0].metadata['ref'])
         docs, scores = list(zip(*retrieved_docs)) if len(retrieved_docs) > 0 else ([], [])
-
-
         sources = [_make_topic_prompt_source(Ref(doc.metadata['ref']), '', with_commentary=False) for doc in docs]
         return sources, scores
 

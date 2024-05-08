@@ -13,6 +13,7 @@ from sefaria.helper.topic import get_topic
 from experiments.topic_source_curation_v2.gather.source_querier import SourceQuerierFactory, AbstractSourceQuerier
 from experiments.topic_source_curation_v2.gather.question_generator import create_multi_source_question_generator, AbstractQuestionGenerator
 from experiments.topic_source_curation_v2.cluster import get_clustered_sources, summarize_source_clusters, Cluster
+from experiments.topic_source_curation_v2.common import filter_invalid_refs
 from util.pipeline import Artifact
 from sefaria.model.topic import Topic as SefariaTopic
 
@@ -140,14 +141,8 @@ class TopicPageSourceGetter:
         out = get_topic(True, slug, with_refs=True, ref_link_type_filters=['about', 'popular-writing-of'])
         try:
             trefs = [d['ref'] for d in out['refs']['about']['refs'] if not d['is_sheet']]
-            out_trefs = []
-            for tref in trefs[:top_n]:
-                try:
-                    Ref(tref)
-                    out_trefs.append(tref)
-                except:
-                    continue
-            return out_trefs
+            trefs = filter_invalid_refs(trefs[:top_n])
+            return trefs
         except KeyError:
             print('No refs found for {}'.format(slug))
             return []
