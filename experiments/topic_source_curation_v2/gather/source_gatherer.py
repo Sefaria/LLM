@@ -2,6 +2,7 @@ from typing import Any, Callable
 import django
 django.setup()
 from sefaria.model.text import Ref
+from tqdm import tqdm
 from functools import reduce
 from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source, _make_llm_topic
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
@@ -73,13 +74,14 @@ class SourceGatherer:
         self.source_querier = source_querier
         self.question_generator = question_generator
 
-    def gather(self, topic: Topic) -> list[TopicPromptSource]:
+    def gather(self, topic: Topic, verbose=True) -> list[TopicPromptSource]:
         questions = self.question_generator.generate(topic)
         sources: list[TopicPromptSource] = self.topic_page_source_getter.get(topic)
         sources = []
-        for question in questions:
+        for question in tqdm(questions, desc='gather sources', disable=not verbose):
             temp_sources, _ = self.source_querier.query(question, 10, 0.2)
             sources.extend(temp_sources)
+        print(f'total sources: {len(sources)}')
         return sources
 
 class CategoryAwareSourceGatherer:
@@ -178,9 +180,13 @@ def filter_subset_refs(orefs: list[Ref]) -> list[Ref]:
 def _get_topic_description(topic: Topic):
     return f"{topic.title['en']}\nDescription: {topic.description.get('en', 'N/A')}"
 
-def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], topic: Topic):
+def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], topic: Topic, verbose=True):
     topic_description = _get_topic_description(topic)
-    return list(filter(lambda item: _is_text_about_topic(topic_description, key(item)), items))
+    filtered_items = []
+    for item in tqdm(items, desc='get items relevant to topic', disable=not verbose):
+        if _is_text_about_topic(topic_description, key(item)):
+            filtered_items += [item]
+    return filtered_items
 
 def _is_text_about_topic(topic_description, text):
     llm = ChatAnthropic(model='claude-3-opus-20240229', temperature=0)

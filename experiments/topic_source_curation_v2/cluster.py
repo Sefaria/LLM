@@ -1,6 +1,6 @@
 from typing import Any, Callable, Union
 from tqdm import tqdm
-from langchain_openai import OpenAIEmbeddings
+from langchain_voyageai import VoyageAIEmbeddings
 from sklearn.metrics import silhouette_score
 from sklearn.cluster import KMeans
 import random
@@ -85,14 +85,14 @@ def _summarize_sources(sources: list[TopicPromptSource], topic: Topic, verbose=F
     return summaries
 
 def _cluster_sources(sources: list[SummarizedSource], key: Callable[[SummarizedSource], str]) -> list[Cluster]:
-    embedding_fn = lambda text: np.array(OpenAIEmbeddings(model="text-embedding-ada-002").embed_query(text))
+    embedding_fn = lambda text: np.array(VoyageAIEmbeddings(model="voyage-large-2-instruct", batch_size=1).embed_query(text))
     return cluster_items(sources, key, embedding_fn)
 
-def summarize_source_clusters(clusters: list[Cluster], topic) -> list[Cluster]:
+def summarize_source_clusters(clusters: list[Cluster], topic, verbose=True) -> list[Cluster]:
     topic_desc = f'{topic.title["en"]}'
     if topic.description.get('en', False) and False:
         topic_desc += f': {topic.description["en"]}'
-    return [summarize_cluster(cluster, topic_desc, get_text_from_source) for cluster in clusters]
+    return [summarize_cluster(cluster, topic_desc, get_text_from_source) for cluster in tqdm(clusters, desc='summarize source clusters', disable=not verbose)]
 
 def summarize_cluster(cluster: Cluster, context: str, key: Callable[[Any], str], sample_size=5) -> Cluster:
     sample = random.sample(cluster.items, min(len(cluster), sample_size))
@@ -129,7 +129,7 @@ def cluster_items(items: list[Any], key: Callable[[Any], str], embedding_fn: Cal
     return clusters
 
 
-def _guess_optimal_clustering(embeddings, verbose=False):
+def _guess_optimal_clustering(embeddings, verbose=True):
     best_sil_coeff = -1
     best_num_clusters = 0
     n_clusters = range(2, len(embeddings)//2)
