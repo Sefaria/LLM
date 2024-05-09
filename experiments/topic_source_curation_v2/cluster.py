@@ -121,9 +121,8 @@ def summarize_cluster(cluster: Cluster, context: str, key: Callable[[Any], str],
     human = HumanMessage(content=f"<topic>{context}</topic><idea>{'</idea><idea>'.join(strs_to_summarize)}</idea>")
     response = llm([system, human])
     summary = get_by_xml_tag(response.content, "summary")
-    cluster_dict = asdict(cluster)
-    cluster_dict.pop('summary', None)
-    return Cluster(summary=summary, **cluster_dict)
+    cluster.summary = summary
+    return cluster
 
 
 def cluster_items(items: list[Any], key: Callable[[Any], str], embedding_fn: Callable[[str], ndarray], verbose=True) -> list[Cluster]:
