@@ -3,7 +3,7 @@ Defines classes for generating questions about a topic
 questions are meant to be used as queries to a vector store
 which will be used to gather many sources about a topic to curate
 """
-
+from tqdm import tqdm
 import django
 django.setup()
 from sefaria.model.topic import Topic as SefariaTopic
@@ -166,7 +166,7 @@ class LlmExpandedTemplatedQuestionGenerator(AbstractQuestionGenerator):
 
     def _expand_question(self, seed_question: str):
         llm = ChatAnthropic(model="claude-3-opus-20240229", temperature=0)
-        system = SystemMessage(content="You are a Jewish teacher well versed in all Jewih texts and customs. Given a general question about a topic in Judasim wrapped in <text> tag, produce a multiple more speific questions exploring speficif aspects of the general topic. wrap each question in <question> tag")
+        system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given a general question about a topic in Judasim wrapped in <text> tag, produce a multiple more specific questions exploring specific aspects of the general topic. wrap each question in <question> tag")
         human = HumanMessage(content=f"<text>{seed_question}</text>")
         response = llm([system, human])
         questions = []
@@ -178,7 +178,9 @@ class LlmExpandedTemplatedQuestionGenerator(AbstractQuestionGenerator):
     def __get_type_for_topic(topic: Topic) -> str:
         naive_map = {"stars": "neutral-object",
                      "jesse": "biblical-figure",
-                     "friendship": "idea/belief"}
+                     "friendship": "idea/belief",
+                     "bread": "idea/belief",
+                     "ulla": "idea/belief"}
         return(naive_map[topic.slug])
 
 
@@ -196,6 +198,8 @@ class LlmExpandedTemplatedQuestionGenerator(AbstractQuestionGenerator):
                     print('\t-', expanded_q)
             questions.extend(expanded)
         return questions
+
+
 class _TopicURLMapping:
     slug_url_mapping = "gather/input/Topic Webpage mapping for question generation - Sheet1.csv"
 
@@ -219,24 +223,46 @@ class WebPageQuestionGenerator(AbstractQuestionGenerator):
     def __init__(self, topic_url_mapping: _TopicURLMapping):
         self._topic_url_mapping = topic_url_mapping
 
-    def _get_urls_for_topic(self, topic: Topic) -> list[str]:
+    def _get_urls_for_topic_from_mapping(self, topic: Topic) -> list[str]:
         return self._topic_url_mapping[topic.slug]
 
-    def generate(self, topic: Topic) -> list[str]:
+    def _get_urls_for_topic_from_topic_object(self, topic: Topic) -> list[str]:
+        sefaria_topic = SefariaTopic.init(topic.slug)
+        assert isinstance(sefaria_topic, SefariaTopic)
+        url_fields = [["enWikiLink", "heWikiLink"], ["enNliLink", "heNliLink"], ["jeLink"]]
+        urls = []
+        for fields_by_priority in url_fields:
+            for field in fields_by_priority:
+                value = sefaria_topic.get_property(field)
+                if value is not None:
+                    urls.append(value)
+                    break
+        return urls
+
+    def _get_urls_for_topic(self, topic: Topic) -> list[str]:
+        return self._get_urls_for_topic_from_mapping(topic) + self._get_urls_for_topic_from_topic_object(topic)
+
+
+    def generate(self, topic: Topic, verbose=True) -> list[str]:
         urls = self._get_urls_for_topic(topic)
         questions = []
-        for url in urls:
+        for url in tqdm(urls, desc="Generating questions from urls", disable=not verbose):
             questions += self._generate_for_url(url)
+        if verbose:
+            print('---WEB-DERIVED QUESTIONS---')
+            for question in questions:
+                print('\t-', question)
+
         return questions
 
     def _generate_for_url(self, url: str) -> list[str]:
         webpage_text = self._get_webpage_text(url)
         llm = ChatAnthropic(model="claude-3-opus-20240229", temperature=0)
-        system = SystemMessage(content="You are a Jewish teacher looking to stimulate students to pose questions about Jewish topics. Your students don't have a strong background in Judaism but are curious to learn more. Given text about a Jewish topic, wrapped in <text>, output a list of questions that this student would ask in order to learn more about this topic. Wrap each question in a <question> tag.")
+        system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given text about a Jewish topic, wrapped in <text>, summary the text and output the most important bullet points the text discusses. Wrap each bullet point in a <bullet_point> tag.")
         human = HumanMessage(content=f"<text>{webpage_text}</text>")
         response = llm([system, human])
         questions = []
-        for match in re.finditer(r"<question>(.*?)</question>", response.content):
+        for match in re.finditer(r"<bullet_point>(.*?)</bullet_point>", response.content):
             questions += [match.group(1)]
         return questions
 
