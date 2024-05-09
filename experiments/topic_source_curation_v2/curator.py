@@ -37,5 +37,13 @@ def curate_topic(topic: Topic) -> list[TopicPromptSource]:
 if __name__ == '__main__':
     slug = "friendship"
     topic = _make_llm_topic(SefariaTopic.init(slug))
-    curate_topic(topic)
+    sources = curate_topic(topic)
+    print('---CURATION---')
+    print('num sources', len(sources))
+    for source in sources:
+        s = source.source
+        print('---')
+        print('\t-', s.ref)
+        print('\t-', s.text['en'])
+
 

@@ -7,6 +7,7 @@ Given clusters tries to
     - Interesting sources: the rest of the sources should represent interesting ideas for a newcomer to Sefaria
 """
 import voyageai
+from tqdm import tqdm
 from experiments.topic_source_curation_v2.cluster import Cluster, embed_text, get_text_from_source
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sklearn.metrics import pairwise_distances
@@ -27,7 +28,7 @@ def choose_ideal_clusters(clusters: list[Cluster], max_clusters: int) -> list[Cl
     # sorted_clusters = _sort_by_highest_avg_pairwise_distance(clusters)
     return clusters
 
-def choose_ideal_sources(source_clusters: list[Cluster]) -> list[TopicPromptSource]:
+def choose_ideal_sources(source_clusters: list[Cluster], verbose=True) -> list[TopicPromptSource]:
     """
     Criteria could be:
         Pagerank based on link graph for topic page. Higher means more relevant
@@ -36,7 +37,7 @@ def choose_ideal_sources(source_clusters: list[Cluster]) -> list[TopicPromptSour
         Fulfills category quota. Want to choose sources from different categories
     """
     ideal_sources = []
-    for cluster in source_clusters:
+    for cluster in tqdm(source_clusters, desc='choose ideal sources', disable=not verbose):
        ideal_sources += [choose_ideal_source_from_cluster(cluster)]
     return ideal_sources
 
