@@ -182,12 +182,18 @@ class LlmExpandedTemplatedQuestionGenerator(AbstractQuestionGenerator):
         return(naive_map[topic.slug])
 
 
-    def generate(self, topic: Topic) -> list[str]:
+    def generate(self, topic: Topic, verbose=True) -> list[str]:
+        if verbose:
+            print('---LLM QUESTION EXPANDER---')
         questions = []
         for q in self.templated_questions_by_type[self.__get_type_for_topic(topic)]:
             q = q.replace("{}", topic.title['en'])
             expanded = self._expand_question(q)
-            print(expanded)
+            if verbose:
+                print('----')
+                print('\toriginal question:', q)
+                for expanded_q in expanded:
+                    print('\t-', expanded_q)
             questions.extend(expanded)
         return questions
 class _TopicURLMapping:

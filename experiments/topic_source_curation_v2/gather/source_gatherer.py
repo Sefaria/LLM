@@ -51,6 +51,7 @@ def _filter_sources_about_topic(sources: list[TopicPromptSource], topic: Topic) 
 
 def _convert_clusters_to_list(clusters: list[Cluster]) -> list[TopicPromptSource]:
     sources_dicts = reduce(lambda x, y: x + y.items, clusters, [])
+    print('after filtering', len(sources_dicts))
     return [TopicPromptSource(**source_data) for source_data in sources_dicts]
 
 def _create_source_gatherer() -> 'SourceGatherer':
@@ -186,6 +187,13 @@ def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], to
     for item in tqdm(items, desc='get items relevant to topic', disable=not verbose):
         if _is_text_about_topic(topic_description, key(item)):
             filtered_items += [item]
+        elif verbose:
+            print("Filtered item", key(item))
+            assert isinstance(item, Cluster)
+            print(len(item.items))
+            for item in item.items:
+                print(item['ref'])
+                print(item['text']['en'])
     return filtered_items
 
 def _is_text_about_topic(topic_description, text):
