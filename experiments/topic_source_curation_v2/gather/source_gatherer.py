@@ -42,11 +42,6 @@ def _make_sources_unique(sources: list[TopicPromptSource]) -> list[TopicPromptSo
 def _filter_sources_about_topic(sources: list[TopicPromptSource], topic: Topic) -> list[TopicPromptSource]:
     return _get_items_relevant_to_topic(sources, get_text_from_source, topic)
 
-def _convert_clusters_to_list(clusters: list[Cluster]) -> list[TopicPromptSource]:
-    sources_dicts = reduce(lambda x, y: x + y.items, clusters, [])
-    print('after filtering', len(sources_dicts))
-    return [TopicPromptSource(**source_data) for source_data in sources_dicts]
-
 def _create_source_gatherer() -> 'SourceGatherer':
     return (
         SourceGatherer(
@@ -180,9 +175,15 @@ def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], to
     is_about_topic_list = run_parallel([key(item) for item in items], unit_func, 2,
                                        desc="filter irrelevant sources", disable=not verbose)
     filtered_items = []
+    if verbose:
+        print("---FILTERING---")
     for is_about_topic, item in zip(is_about_topic_list, items):
         if is_about_topic:
             filtered_items += [item]
+        else:
+            if verbose:
+                print(item.ref)
+                print(key(item))
     if verbose:
         print('after filtering: ', len(filtered_items))
     return filtered_items
