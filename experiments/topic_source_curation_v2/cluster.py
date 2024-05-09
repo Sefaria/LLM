@@ -4,6 +4,7 @@ from langchain_voyageai import VoyageAIEmbeddings
 from sklearn.metrics import silhouette_score
 from sklearn.cluster import KMeans
 import random
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, asdict
 from numpy import ndarray
 from topic_prompt.uniqueness_of_source import summarize_based_on_uniqueness
@@ -52,10 +53,12 @@ def get_clustered_sources_based_on_summaries(sources: list[TopicPromptSource], t
     :return:
     """
     key = lambda source: source.summary
-    return Artifact(sources).pipe(_summarize_sources, topic).pipe(_cluster_sources, key).data
+    return Artifact(sources).pipe(_summarize_sources_parallel, topic).pipe(_cluster_sources, key).pipe(summarize_source_clusters, topic).data
 
 
-def get_text_from_source(source: TopicPromptSource) -> str:
+def get_text_from_source(source: Union[TopicPromptSource, SummarizedSource]) -> str:
+    if isinstance(source, SummarizedSource):
+        source = source.source
     text = source.text
     return text.get('en', text.get('he', 'N/A'))
 
@@ -69,30 +72,55 @@ def get_clustered_sources(sources: list[TopicPromptSource]) -> list[Cluster]:
     return Artifact(sources).pipe(_cluster_sources, get_text_from_source).data
 
 
-def _summarize_sources(sources: list[TopicPromptSource], topic: Topic, verbose=False) -> list[SummarizedSource]:
-    # llm = ChatAnthropic(model='claude-3-haiku-20240229', temperature=0)
-    llm = ChatAnthropic(model='claude-3-opus-20240229', temperature=0)
+def _summarize_source(source: TopicPromptSource, llm: object, topic_str: str):
+    source_text = source.text['en'] if len(source.text['en']) > 0 else source.text['he']
+    if len(source_text) == 0:
+        return None
+    summary = summarize_based_on_uniqueness(source_text, topic_str, llm, "English")
+    if summary is None:
+        return None
+    return SummarizedSource(source, summary)
+
+
+def _summarize_sources_parallel(sources: list[TopicPromptSource], topic: Topic, verbose=True) -> list[SummarizedSource]:
+    llm = ChatAnthropic(model='claude-3-haiku-20240307', temperature=0)
     topic_str = f"Title: '{topic.title}'. Description: '{topic.description.get('en', 'N/A')}'."
-    summaries: list[SummarizedSource] = []
-    for source in tqdm(sources, desc=f'summarize_topic_page: {topic.title["en"]}', disable=not verbose):
-        source_text = source.text['en'] if len(source.text['en']) > 0 else source.text['he']
-        if len(source_text) == 0:
-            continue
-        summary = summarize_based_on_uniqueness(source_text, topic_str, llm, "English")
-        if summary is None:
-            continue
-        summaries.append(SummarizedSource(source, summary))
+
+    def _summarize_source_pbar(pbar, source, llm, topic_str):
+        summarized_source = _summarize_source(source, llm, topic_str)
+        with pbar.get_lock():
+            pbar.update(1)
+        return summarized_source
+
+
+    with tqdm(total=len(sources), desc=f'summarize_topic_page: {topic.title["en"]}', disable=not verbose) as pbar:
+        with ThreadPoolExecutor(max_workers=10) as executor:
+            futures = []
+            for source in sources:
+                futures.append(executor.submit(_summarize_source_pbar, pbar, source, llm, topic_str))
+
+    summaries = [future.result() for future in futures if future.result() is not None]
     return summaries
 
-def _cluster_sources(sources: list[SummarizedSource], key: Callable[[SummarizedSource], str]) -> list[Cluster]:
-    embedding_fn = lambda text: np.array(VoyageAIEmbeddings(model="voyage-large-2-instruct", batch_size=1).embed_query(text))
-    return cluster_items(sources, key, embedding_fn)
+def embed_text(text):
+    return np.array(VoyageAIEmbeddings(model="voyage-large-2-instruct", batch_size=1).embed_query(text))
 
-def summarize_source_clusters(clusters: list[Cluster], topic, verbose=True) -> list[Cluster]:
+def _cluster_sources(sources: list[SummarizedSource], key: Callable[[SummarizedSource], str]) -> list[Cluster]:
+    return cluster_items(sources, key, embed_text)
+
+def _get_topic_desc_str(topic: Topic) -> str:
     topic_desc = f'{topic.title["en"]}'
     if topic.description.get('en', False) and False:
         topic_desc += f': {topic.description["en"]}'
-    return [summarize_cluster(cluster, topic_desc, get_text_from_source) for cluster in tqdm(clusters, desc='summarize source clusters', disable=not verbose)]
+    return topic_desc
+
+def summarize_source_clusters(clusters: list[Cluster], topic, verbose=True) -> list[Cluster]:
+    summarized_clusters = [summarize_cluster(cluster, _get_topic_desc_str(topic), get_text_from_source) for cluster in tqdm(clusters, desc='summarize source clusters', disable=not verbose)]
+    if verbose:
+        print('---SUMMARIES---')
+        for cluster in summarized_clusters:
+            print('\t-', len(cluster.items), cluster.summary.strip())
+    return summarized_clusters
 
 def summarize_cluster(cluster: Cluster, context: str, key: Callable[[Any], str], sample_size=5) -> Cluster:
     sample = random.sample(cluster.items, min(len(cluster), sample_size))
@@ -110,14 +138,14 @@ def summarize_cluster(cluster: Cluster, context: str, key: Callable[[Any], str],
     return Cluster(summary=summary, **cluster_dict)
 
 
-def cluster_items(items: list[Any], key: Callable[[Any], str], embedding_fn: Callable[[str], ndarray]) -> list[Cluster]:
+def cluster_items(items: list[Any], key: Callable[[Any], str], embedding_fn: Callable[[str], ndarray], verbose=True) -> list[Cluster]:
     """
     :param items: Generic list of items to cluster
     :param key: function that takes an item from `items` and returns a string to pass to `embedding_fn`
     :param embedding_fn: Given a str (from `key` function) return its embedding
     :return: list of Cluster objects
     """
-    embeddings = [embedding_fn(key(item)) for item in items]
+    embeddings = [embedding_fn(key(item)) for item in tqdm(items, desc="embedding items for clustering", disable=not verbose)]
     n_clusters = _guess_optimal_clustering(embeddings)
     kmeans = KMeans(n_clusters=n_clusters, n_init='auto', random_state=RANDOM_SEED).fit(embeddings)
     clusters = []
