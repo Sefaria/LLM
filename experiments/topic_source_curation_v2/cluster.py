@@ -1,4 +1,5 @@
 from typing import Any, Callable, Union
+from functools import partial
 from tqdm import tqdm
 from basic_langchain.embeddings import VoyageAIEmbeddings
 from sklearn.metrics import silhouette_score
@@ -12,6 +13,7 @@ from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface.common.topic import Topic
 from basic_langchain.chat_models import ChatAnthropic
 from basic_langchain.schema import HumanMessage, SystemMessage
+from experiments.topic_source_curation_v2.common import run_parallel
 from util.general import get_by_xml_tag
 from util.pipeline import Artifact
 import numpy as np
@@ -72,7 +74,7 @@ def get_clustered_sources(sources: list[TopicPromptSource]) -> list[Cluster]:
     return Artifact(sources).pipe(_cluster_sources, get_text_from_source).data
 
 
-def _summarize_source(source: TopicPromptSource, llm: object, topic_str: str):
+def _summarize_source(llm: object, topic_str: str, source: TopicPromptSource):
     source_text = source.text['en'] if len(source.text['en']) > 0 else source.text['he']
     if len(source_text) == 0:
         return None
@@ -85,22 +87,8 @@ def _summarize_source(source: TopicPromptSource, llm: object, topic_str: str):
 def _summarize_sources_parallel(sources: list[TopicPromptSource], topic: Topic, verbose=True) -> list[SummarizedSource]:
     llm = ChatAnthropic(model='claude-3-haiku-20240307', temperature=0)
     topic_str = f"Title: '{topic.title}'. Description: '{topic.description.get('en', 'N/A')}'."
-
-    def _summarize_source_pbar(pbar, source, llm, topic_str):
-        summarized_source = _summarize_source(source, llm, topic_str)
-        with pbar.get_lock():
-            pbar.update(1)
-        return summarized_source
-
-
-    with tqdm(total=len(sources), desc=f'summarize_topic_page: {topic.title["en"]}', disable=not verbose) as pbar:
-        with ThreadPoolExecutor(max_workers=10) as executor:
-            futures = []
-            for source in sources:
-                futures.append(executor.submit(_summarize_source_pbar, pbar, source, llm, topic_str))
-
-    summaries = [future.result() for future in futures if future.result() is not None]
-    return summaries
+    return run_parallel(sources, partial(_summarize_source, llm, topic_str), 10,
+                        desc="summarize sources", disable=not verbose)
 
 def embed_text(text):
     return np.array(VoyageAIEmbeddings(model="voyage-large-2-instruct").embed_query(text))
@@ -168,4 +156,5 @@ def _guess_optimal_clustering(embeddings, verbose=True):
         if sil_coeff > best_sil_coeff:
             best_sil_coeff = sil_coeff
             best_num_clusters = n_cluster
+    print("Best silhouette score", round(best_sil_coeff, 4))
     return best_num_clusters
