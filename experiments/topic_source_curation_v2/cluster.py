@@ -87,7 +87,7 @@ def _summarize_source(llm: object, topic_str: str, source: TopicPromptSource):
 def _summarize_sources_parallel(sources: list[TopicPromptSource], topic: Topic, verbose=True) -> list[SummarizedSource]:
     llm = ChatAnthropic(model='claude-3-haiku-20240307', temperature=0)
     topic_str = f"Title: '{topic.title}'. Description: '{topic.description.get('en', 'N/A')}'."
-    return run_parallel(sources, partial(_summarize_source, llm, topic_str), 10,
+    return run_parallel(sources, partial(_summarize_source, llm, topic_str), 2,
                         desc="summarize sources", disable=not verbose)
 
 def embed_text(text):
