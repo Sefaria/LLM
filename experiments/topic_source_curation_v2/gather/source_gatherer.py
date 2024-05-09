@@ -12,7 +12,7 @@ from basic_langchain.schema import HumanMessage, SystemMessage
 from util.general import get_by_xml_tag
 from sefaria.helper.topic import get_topic
 from experiments.topic_source_curation_v2.gather.source_querier import SourceQuerierFactory, AbstractSourceQuerier
-from experiments.topic_source_curation_v2.gather.question_generator import create_multi_source_question_generator, AbstractQuestionGenerator
+from experiments.topic_source_curation_v2.gather.question_generator import create_multi_source_question_generator, AbstractQuestionGenerator, WebPageQuestionGenerator
 from experiments.topic_source_curation_v2.cluster import get_text_from_source, Cluster
 from experiments.topic_source_curation_v2.common import filter_invalid_refs, run_parallel
 from util.pipeline import Artifact
@@ -167,7 +167,8 @@ def filter_subset_refs(orefs: list[Ref]) -> list[Ref]:
     return deduped_orefs
 
 def _get_topic_description(topic: Topic):
-    return f"{topic.title['en']}\nDescription: {topic.description.get('en', 'N/A')}"
+    return f"{topic.title['en']}\nDescription: {topic.description.get('en', WebPageQuestionGenerator.get_topic_description(topic)) or 'N/A'}"
+
 
 def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], topic: Topic, verbose=True):
     topic_description = _get_topic_description(topic)

@@ -11,6 +11,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from basic_langchain.schema import SystemMessage, HumanMessage
 from basic_langchain.chat_models import ChatAnthropic
+from util.general import get_by_xml_tag
 import requests
 from readability import Document
 import re
@@ -226,7 +227,26 @@ class WebPageQuestionGenerator(AbstractQuestionGenerator):
     def _get_urls_for_topic_from_mapping(self, topic: Topic) -> list[str]:
         return self._topic_url_mapping[topic.slug]
 
-    def _get_urls_for_topic_from_topic_object(self, topic: Topic) -> list[str]:
+    @staticmethod
+    def get_topic_description(topic: Topic):
+        urls = WebPageQuestionGenerator._get_urls_for_topic_from_topic_object(topic)
+        if len(urls) == 0:
+            return
+        text = WebPageQuestionGenerator._get_webpage_text(urls[0])
+        desc = WebPageQuestionGenerator._generate_topic_description(text)
+        print("Generated topic desc", desc)
+        return desc
+
+    @staticmethod
+    def _generate_topic_description(webpage_text):
+        llm = ChatAnthropic(model="claude-3-opus-20240229", temperature=0)
+        system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given text about a Jewish topic, wrapped in <text>, summarize the text in a small paragraph. Summary should be wrapped in <summary> tags.")
+        human = HumanMessage(content=f"<text>{webpage_text}</text>")
+        response = llm([system, human])
+        return get_by_xml_tag(response.content, "summary")
+
+    @staticmethod
+    def _get_urls_for_topic_from_topic_object(topic: Topic) -> list[str]:
         sefaria_topic = SefariaTopic.init(topic.slug)
         assert isinstance(sefaria_topic, SefariaTopic)
         url_fields = [["enWikiLink", "heWikiLink"], ["enNliLink", "heNliLink"], ["jeLink"]]
