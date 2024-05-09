@@ -1,6 +1,6 @@
 from typing import Any, Callable, Union
 from tqdm import tqdm
-from langchain_voyageai import VoyageAIEmbeddings
+from basic_langchain.embeddings import VoyageAIEmbeddings
 from sklearn.metrics import silhouette_score
 from sklearn.cluster import KMeans
 import random
@@ -103,7 +103,7 @@ def _summarize_sources_parallel(sources: list[TopicPromptSource], topic: Topic, 
     return summaries
 
 def embed_text(text):
-    return np.array(VoyageAIEmbeddings(model="voyage-large-2-instruct", batch_size=1).embed_query(text))
+    return np.array(VoyageAIEmbeddings(model="voyage-large-2-instruct").embed_query(text))
 
 def _cluster_sources(sources: list[SummarizedSource], key: Callable[[SummarizedSource], str]) -> list[Cluster]:
     return cluster_items(sources, key, embed_text)
