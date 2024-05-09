@@ -3,7 +3,7 @@ import django
 django.setup()
 from sefaria.model.text import Ref
 from tqdm import tqdm
-from functools import reduce
+from functools import reduce, partial
 from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source, _make_llm_topic
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface.common.topic import Topic
@@ -13,8 +13,8 @@ from util.general import get_by_xml_tag
 from sefaria.helper.topic import get_topic
 from experiments.topic_source_curation_v2.gather.source_querier import SourceQuerierFactory, AbstractSourceQuerier
 from experiments.topic_source_curation_v2.gather.question_generator import create_multi_source_question_generator, AbstractQuestionGenerator
-from experiments.topic_source_curation_v2.cluster import get_clustered_sources, summarize_source_clusters, Cluster
-from experiments.topic_source_curation_v2.common import filter_invalid_refs
+from experiments.topic_source_curation_v2.cluster import get_text_from_source, Cluster
+from experiments.topic_source_curation_v2.common import filter_invalid_refs, run_parallel
 from util.pipeline import Artifact
 from sefaria.model.topic import Topic as SefariaTopic
 
@@ -40,14 +40,7 @@ def _make_sources_unique(sources: list[TopicPromptSource]) -> list[TopicPromptSo
     return [sources_by_tref[tref] for tref in unique_trefs]
 
 def _filter_sources_about_topic(sources: list[TopicPromptSource], topic: Topic) -> list[TopicPromptSource]:
-    def get_cluster_summary(cluster: Cluster) -> str:
-        return cluster.summary
-    return (Artifact(sources)
-            .pipe(get_clustered_sources)
-            .pipe(summarize_source_clusters, topic)
-            .pipe(_get_items_relevant_to_topic, get_cluster_summary, topic)
-            .pipe(_convert_clusters_to_list).data
-           )
+    return _get_items_relevant_to_topic(sources, get_text_from_source, topic)
 
 def _convert_clusters_to_list(clusters: list[Cluster]) -> list[TopicPromptSource]:
     sources_dicts = reduce(lambda x, y: x + y.items, clusters, [])
@@ -183,17 +176,15 @@ def _get_topic_description(topic: Topic):
 
 def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], topic: Topic, verbose=True):
     topic_description = _get_topic_description(topic)
+    unit_func = partial(_is_text_about_topic, topic_description)
+    is_about_topic_list = run_parallel([key(item) for item in items], unit_func, 2,
+                                       desc="filter irrelevant sources", disable=not verbose)
     filtered_items = []
-    for item in tqdm(items, desc='get items relevant to topic', disable=not verbose):
-        if _is_text_about_topic(topic_description, key(item)):
+    for is_about_topic, item in zip(is_about_topic_list, items):
+        if is_about_topic:
             filtered_items += [item]
-        elif verbose:
-            print("Filtered item", key(item))
-            assert isinstance(item, Cluster)
-            print(len(item.items))
-            for item in item.items:
-                print(item['ref'])
-                print(item['text']['en'])
+    if verbose:
+        print('after filtering: ', len(filtered_items))
     return filtered_items
 
 def _is_text_about_topic(topic_description, text):
