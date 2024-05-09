@@ -6,7 +6,7 @@ Given clusters tries to
     - Fundamental sources: funadmental sources from Tanakh and Talmud etc. should be chosen. These should be few, made 2-3
     - Interesting sources: the rest of the sources should represent interesting ideas for a newcomer to Sefaria
 """
-from experiments.topic_source_curation_v2.cluster import Cluster
+from experiments.topic_source_curation_v2.cluster import Cluster, embed_text
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sklearn.metrics import pairwise_distances
 from util.pipeline import Artifact
@@ -44,6 +44,6 @@ def _get_highest_avg_pairwise_distance_indices(embeddings: np.ndarray) -> np.nda
     return sorted_indices
 
 def _sort_by_highest_avg_pairwise_distance(clusters: list[Cluster]) -> list[Cluster]:
-    embeddings = np.array([c.embedding for c in clusters])
+    embeddings = np.array([embed_text(c.summary) for c in clusters])
     sorted_indices = _get_highest_avg_pairwise_distance_indices(embeddings)
     return [clusters[i] for i in sorted_indices]
