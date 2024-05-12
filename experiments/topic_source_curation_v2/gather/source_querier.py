@@ -6,7 +6,7 @@ from sefaria.model.text import Ref
 from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source
 from langchain.vectorstores.neo4j_vector import Neo4jVector
 from langchain.vectorstores.chroma import Chroma
-from langchain.embeddings.openai import OpenAIEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from langchain_voyageai.embeddings import VoyageAIEmbeddings
 from experiments.topic_source_curation_v2.common import filter_invalid_refs
