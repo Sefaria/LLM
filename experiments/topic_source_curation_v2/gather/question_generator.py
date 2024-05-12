@@ -167,29 +167,24 @@ class LlmExpandedTemplatedQuestionGenerator(AbstractQuestionGenerator):
 
     def _expand_question(self, seed_question: str):
         llm = ChatAnthropic(model="claude-3-opus-20240229", temperature=0)
-        system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given a general question about a topic in Judasim wrapped in <text> tag, produce a multiple more specific questions exploring specific aspects of the general topic. wrap each question in <question> tag")
+        system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given a general question about a topic in Judasim wrapped in <text> tag, produce a multiple answers to the question that are specific. wrap each answer in an <answer> tag")
         human = HumanMessage(content=f"<text>{seed_question}</text>")
         response = llm([system, human])
         questions = []
-        for match in re.finditer(r"<question>(.*?)</question>", response.content):
+        for match in re.finditer(r"<answer>(.*?)</answer>", response.content.replace('\n', ' ')):
             questions += [match.group(1)]
         return questions
 
     @staticmethod
     def __get_type_for_topic(topic: Topic) -> str:
-        naive_map = {"stars": "neutral-object",
-                     "jesse": "biblical-figure",
-                     "friendship": "idea/belief",
-                     "bread": "idea/belief",
-                     "ulla": "idea/belief"}
-        return(naive_map[topic.slug])
+        return "generic"
 
 
     def generate(self, topic: Topic, verbose=True) -> list[str]:
         if verbose:
             print('---LLM QUESTION EXPANDER---')
         questions = []
-        for q in self.templated_questions_by_type[self.__get_type_for_topic(topic)]:
+        for q in tqdm(self.templated_questions_by_type[self.__get_type_for_topic(topic)], desc="llm question expander", disable=not verbose):
             q = q.replace("{}", topic.title['en'])
             expanded = self._expand_question(q)
             if verbose:
