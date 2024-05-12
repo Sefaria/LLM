@@ -47,7 +47,7 @@ def _create_source_gatherer() -> 'SourceGatherer':
         SourceGatherer(
         # CategoryAwareSourceGatherer(
         TopicPageSourceGetter(),
-        SourceQuerierFactory.create('chroma_openai'),
+        SourceQuerierFactory.create('chroma_all'),
         create_multi_source_question_generator()
     ))
 

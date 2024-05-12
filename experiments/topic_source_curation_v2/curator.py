@@ -35,7 +35,7 @@ def curate_topic(topic: Topic) -> list[TopicPromptSource]:
             .pipe(choose_ideal_sources_for_clusters).data)
 
 if __name__ == '__main__':
-    slug = "friendship"
+    slug = "ulla"
     topic = _make_llm_topic(SefariaTopic.init(slug))
     sources = curate_topic(topic)
     print('---CURATION---')

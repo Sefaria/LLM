@@ -2,7 +2,7 @@ from typing import Any, Callable, Union
 from functools import partial
 from tqdm import tqdm
 from basic_langchain.embeddings import VoyageAIEmbeddings
-from langchain_openai import OpenAIEmbeddings
+from basic_langchain.embeddings import OpenAIEmbeddings
 from sklearn.metrics import silhouette_score
 from sklearn.cluster import KMeans
 import random

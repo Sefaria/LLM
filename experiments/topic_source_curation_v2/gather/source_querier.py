@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import django
 django.setup()
+from typing import Union
 from sefaria.model.text import Ref
 from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source
 from langchain.vectorstores.neo4j_vector import Neo4jVector
@@ -14,14 +15,20 @@ from experiments.topic_source_curation_v2.common import filter_invalid_refs
 class SourceQuerierFactory:
 
     @staticmethod
-    def create(typ) -> 'AbstractSourceQuerier':
+    def create(typ) -> Union['AbstractSourceQuerier', 'SourceQuerierComposer']:
         if typ == "neo4j":
             return Neo4jSourceQuerier()
         if typ == "chroma_voyageai":
             return VoyageAIChromaSourceQuerier()
         if typ == "chroma_openai":
             return OpenAIChromaSourceQuerier()
+        if typ == "chroma_all":
+            return SourceQuerierComposer([
+                SourceQuerierFactory.create('chroma_voyageai'),
+                SourceQuerierFactory.create('chroma_openai')
+            ])
         raise Exception("Type not found", typ)
+
 
 
 class AbstractSourceQuerier(ABC):
@@ -83,3 +90,20 @@ class Neo4jSourceQuerier(AbstractSourceQuerier):
             username=cls.db['db_username'],
             password=cls.db['db_password'],
         )
+
+
+class SourceQuerierComposer:
+
+    def __init__(self, queriers: list[AbstractSourceQuerier]):
+        self.queriers = queriers
+
+
+    def query(self, query: str, top_k: int, score_threshold: float) -> tuple[list[TopicPromptSource], list[float]]:
+        sources = []
+        scores = []
+        for q in self.queriers:
+            temp_sources, temp_scores = q.query(query, top_k=top_k, score_threshold=score_threshold)
+            sources.extend(temp_sources)
+            scores.extend(temp_scores)
+        return sources, scores
+
