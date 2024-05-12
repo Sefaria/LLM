@@ -17,8 +17,10 @@ class SourceQuerierFactory:
     def create(typ) -> 'AbstractSourceQuerier':
         if typ == "neo4j":
             return Neo4jSourceQuerier()
-        if typ == "chroma":
-            return ChromaSourceQuerier()
+        if typ == "chroma_voyageai":
+            return VoyageAIChromaSourceQuerier()
+        if typ == "chroma_openai":
+            return OpenAIChromaSourceQuerier()
         raise Exception("Type not found", typ)
 
 
@@ -43,12 +45,22 @@ class AbstractSourceQuerier(ABC):
 
 
 
-class ChromaSourceQuerier(AbstractSourceQuerier):
-    persist_directory = '../embedding/.chromadb'
+class AbstractChromaSourceQuerier(AbstractSourceQuerier):
+    persist_directory = None
+    embedding_function = None
 
     @classmethod
     def _get_vector_db(cls):
-        return Chroma(persist_directory=cls.persist_directory, embedding_function=VoyageAIEmbeddings(model="voyage-large-2-instruct"))
+        return Chroma(persist_directory=cls.persist_directory, embedding_function=cls.embedding_function)
+
+
+class VoyageAIChromaSourceQuerier(AbstractChromaSourceQuerier):
+    persist_directory = '../embedding/.chromadb'
+    embedding_function = VoyageAIEmbeddings(model="voyage-large-2-instruct")
+
+class OpenAIChromaSourceQuerier(AbstractChromaSourceQuerier):
+    persist_directory = '../embedding/.chromadb_openai'
+    embedding_function = OpenAIEmbeddings(model="text-embedding-3-large")
 
 
 class Neo4jSourceQuerier(AbstractSourceQuerier):

@@ -47,7 +47,7 @@ def _create_source_gatherer() -> 'SourceGatherer':
         SourceGatherer(
         # CategoryAwareSourceGatherer(
         TopicPageSourceGetter(),
-        SourceQuerierFactory.create('chroma'),
+        SourceQuerierFactory.create('chroma_openai'),
         create_multi_source_question_generator()
     ))
 
@@ -66,7 +66,6 @@ class SourceGatherer:
     def gather(self, topic: Topic, verbose=True) -> list[TopicPromptSource]:
         questions = self.question_generator.generate(topic)
         sources: list[TopicPromptSource] = self.topic_page_source_getter.get(topic)
-        sources = []
         for question in tqdm(questions, desc='gather sources', disable=not verbose):
             temp_sources, _ = self.source_querier.query(question, 10, 0.2)
             sources.extend(temp_sources)
@@ -182,9 +181,10 @@ def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], to
         if is_about_topic:
             filtered_items += [item]
         else:
-            if verbose:
-                print(item.ref)
-                print(key(item))
+            pass
+            # if verbose:
+            #     print(item.ref)
+            #     print(key(item))
     if verbose:
         print('after filtering: ', len(filtered_items))
     return filtered_items
