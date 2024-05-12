@@ -2,12 +2,14 @@ from typing import Any, Callable
 import django
 django.setup()
 from sefaria.model.text import Ref
+from openai import BadRequestError
 from tqdm import tqdm
 from functools import reduce, partial
 from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source, _make_llm_topic
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface.common.topic import Topic
 from basic_langchain.chat_models import ChatAnthropic
+from basic_langchain.chat_models import ChatOpenAI
 from basic_langchain.schema import HumanMessage, SystemMessage
 from util.general import get_by_xml_tag
 from sefaria.helper.topic import get_topic
@@ -65,12 +67,48 @@ class SourceGatherer:
 
     def gather(self, topic: Topic, verbose=True) -> list[TopicPromptSource]:
         questions = self.question_generator.generate(topic)
-        sources: list[TopicPromptSource] = self.topic_page_source_getter.get(topic)
+        topic_page_sources: list[TopicPromptSource] = self.topic_page_source_getter.get(topic)
+        retrieved_sources = []
         for question in tqdm(questions, desc='gather sources', disable=not verbose):
-            temp_sources, _ = self.source_querier.query(question, 10, 0.2)
-            sources.extend(temp_sources)
-        print(f'total sources: {len(sources)}')
-        return sources
+            temp_sources, _ = self.source_querier.query(question, 100, 0.5)
+            retrieved_sources.extend(temp_sources)
+        print(f'RECALL', self._calculate_recall_of_sources(topic_page_sources, retrieved_sources))
+        return topic_page_sources + retrieved_sources
+
+    @staticmethod
+    def _calculate_recall_of_sources(topic_page_sources: list[TopicPromptSource], retrieved_sources: list[TopicPromptSource]) -> float:
+        """
+        A bit pedantic is how specific the metric is, but I wanted to make sure it's 100% accurate
+        :param topic_page_sources:
+        :param retrieved_sources:
+        :return:
+        """
+        topic_page_sources = _make_sources_unique(topic_page_sources)
+        retrieved_sources = _make_sources_unique(retrieved_sources)
+        topic_page_trefs = set()
+        for source in topic_page_sources:
+            topic_page_trefs |= {subref.normal() for subref in Ref(source.ref).range_list()}
+        num_recalled = 0
+        recalled_trefs = set()
+        for source in retrieved_sources:
+            for subref in Ref(source.ref).range_list():
+                if subref.normal() in topic_page_trefs:
+                    num_recalled += 1
+                    recalled_trefs.add(subref.normal())
+                    break
+        not_recalled_trefs = set()
+        for source in topic_page_sources:
+            recalled = False
+            for subref in Ref(source.ref).range_list():
+                if subref.normal() in recalled_trefs:
+                    recalled = True
+                    break
+            if not recalled:
+                print('NOT RECALLED', source.ref)
+                not_recalled_trefs.add(source.ref)
+
+        return num_recalled / len(topic_page_sources)
+
 
 class CategoryAwareSourceGatherer:
 
@@ -172,7 +210,7 @@ def _get_topic_description(topic: Topic):
 def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], topic: Topic, verbose=True):
     topic_description = _get_topic_description(topic)
     unit_func = partial(_is_text_about_topic, topic_description)
-    is_about_topic_list = run_parallel([key(item) for item in items], unit_func, 2,
+    is_about_topic_list = run_parallel([key(item) for item in items], unit_func, 20,
                                        desc="filter irrelevant sources", disable=not verbose)
     filtered_items = []
     if verbose:
@@ -190,12 +228,15 @@ def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], to
     return filtered_items
 
 def _is_text_about_topic(topic_description, text):
-    llm = ChatAnthropic(model='claude-3-opus-20240229', temperature=0)
+    llm = ChatOpenAI(model='gpt-4', temperature=0)
     system = SystemMessage(content="You are a Jewish scholar. Given a topic description wrapped in <topic> and a text, "
                                    "wrapped in <text>, output 'Yes' if <text> is about <topic> and 'No' if <text> is "
                                    "not about <topic>. Wrap output in <answer> tags.")
     human = HumanMessage(content=f"<topic>{topic_description}</topic>\n<text>{text}</text>")
-    response = llm([system, human])
+    try:
+        response = llm([system, human])
+    except BadRequestError:
+        return False
     answer = get_by_xml_tag(response.content, 'answer').strip()
     if answer not in {'Yes', 'No'}:
         print(f"Answer not in Yes or No: {answer}")
