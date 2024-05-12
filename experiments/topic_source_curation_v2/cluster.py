@@ -93,6 +93,7 @@ def _summarize_sources_parallel(sources: list[TopicPromptSource], topic: Topic, 
 
 def embed_text(text):
     return np.array(OpenAIEmbeddings(model="text-embedding-3-large").embed_query(text))
+    # return np.array(VoyageAIEmbeddings(model="voyage-large-2-instruct").embed_query(text))
 
 def _cluster_sources(sources: list[SummarizedSource], key: Callable[[SummarizedSource], str]) -> list[Cluster]:
     return cluster_items(sources, key, embed_text)
