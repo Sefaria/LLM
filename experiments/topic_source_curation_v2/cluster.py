@@ -13,7 +13,7 @@ from numpy import ndarray
 from topic_prompt.uniqueness_of_source import summarize_based_on_uniqueness
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface.common.topic import Topic
-from basic_langchain.chat_models import ChatAnthropic
+from basic_langchain.chat_models import ChatOpenAI, ChatAnthropic
 from basic_langchain.schema import HumanMessage, SystemMessage
 from experiments.topic_source_curation_v2.common import run_parallel
 from util.general import get_by_xml_tag
@@ -22,6 +22,7 @@ import numpy as np
 
 RANDOM_SEED = 567454
 random.seed(RANDOM_SEED)
+
 
 @dataclass
 class Cluster:
@@ -45,7 +46,7 @@ class SummarizedSource:
 
     def serialize(self) -> dict:
         serial = asdict(self)
-        serial['embedding'] = self.embedding.tolist()
+        serial['embedding'] = self.embedding.tolist() if self.embedding is not None else None
         return serial
 
 
@@ -98,17 +99,17 @@ def embed_text_openai(text):
 def embed_text_voyageai(text):
     return np.array(VoyageAIEmbeddings(model="voyage-large-2-instruct").embed_query(text))
 
-def _make_knn_algo(embeddings: np.ndarray):
+def _make_kmeans_algo(embeddings: np.ndarray):
     n_clusters = _guess_optimal_clustering(embeddings)
     return KMeans(n_clusters=n_clusters, n_init='auto', random_state=RANDOM_SEED)
 
 def _make_hdbscan_algo(embeddings: np.ndarray):
-    return hdbscan.HDBSCAN(min_samples=1, min_cluster_size=2, cluster_selection_method='eom')
+    return hdbscan.HDBSCAN(min_samples=1, min_cluster_size=2, cluster_selection_method='leaf', cluster_selection_epsilon=0.6)
 
 def _cluster_sources(sources: list[SummarizedSource], key: Callable[[SummarizedSource], str]) -> list[Cluster]:
 
-    openai_clusters = cluster_items(sources, key, embed_text_openai, _make_hdbscan_algo)
-    # openai_clusters = cluster_items(sources, key, embed_text_openai, _make_knn_algo)
+    # openai_clusters = cluster_items(sources, key, embed_text_openai, _make_hdbscan_algo)
+    openai_clusters = cluster_items(sources, key, embed_text_openai, _make_kmeans_algo)
     # voyageai_clusters = cluster_items(sources, key, embed_text_voyageai)
     return openai_clusters
 
@@ -122,7 +123,8 @@ def _get_topic_desc_str(topic: Topic) -> str:
     return topic_desc
 
 def summarize_source_clusters(clusters: list[Cluster], topic, verbose=True) -> list[Cluster]:
-    summarized_clusters = [summarize_cluster(cluster, _get_topic_desc_str(topic), get_text_from_source) for cluster in tqdm(clusters, desc='summarize source clusters', disable=not verbose)]
+    topic_desc = _get_topic_desc_str(topic)
+    summarized_clusters = run_parallel(clusters, partial(summarize_cluster, context=topic_desc, key=get_text_from_source), max_workers=20, desc='summarize source clusters', disable=not verbose)
     if verbose:
         print('---SUMMARIES---')
         for cluster in summarized_clusters:
@@ -135,7 +137,7 @@ def summarize_cluster(cluster: Cluster, context: str, key: Callable[[Any], str],
     if len(cluster) == 1:
         cluster.summary = strs_to_summarize[0]
         return cluster
-    llm = ChatAnthropic("claude-3-opus-20240229", 0)
+    llm = ChatOpenAI("gpt-4o", 0)
     system = SystemMessage(content="You are a Jewish scholar familiar with Torah. Given a few ideas (wrapped in <idea> "
                                    "XML tags) about a given topic (wrapped in <topic> XML tags) output a summary of the"
                                    "ideas as they related to the topic. Wrap the output in <summary> tags. Summary"
@@ -177,7 +179,7 @@ def cluster_items(items: list[Any], key: Callable[[Any], str], embedding_fn: Cal
 def _guess_optimal_clustering(embeddings, verbose=True):
     best_sil_coeff = -1
     best_num_clusters = 0
-    n_clusters = range(2, len(embeddings)//2)
+    n_clusters = range(4, len(embeddings)//2)
     for n_cluster in tqdm(n_clusters, total=len(n_clusters), desc='guess optimal clustering', disable=not verbose):
         kmeans = KMeans(n_clusters=n_cluster, n_init='auto', random_state=RANDOM_SEED).fit(embeddings)
         labels = kmeans.labels_
