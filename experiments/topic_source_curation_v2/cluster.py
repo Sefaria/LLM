@@ -3,6 +3,7 @@ from functools import partial
 from tqdm import tqdm
 from basic_langchain.embeddings import VoyageAIEmbeddings
 from basic_langchain.embeddings import OpenAIEmbeddings
+import hdbscan
 from sklearn.metrics import silhouette_score
 from sklearn.cluster import KMeans
 import random
@@ -91,12 +92,28 @@ def _summarize_sources_parallel(sources: list[TopicPromptSource], topic: Topic, 
     return run_parallel(sources, partial(_summarize_source, llm, topic_str), 2,
                         desc="summarize sources", disable=not verbose)
 
-def embed_text(text):
+def embed_text_openai(text):
     return np.array(OpenAIEmbeddings(model="text-embedding-3-large").embed_query(text))
-    # return np.array(VoyageAIEmbeddings(model="voyage-large-2-instruct").embed_query(text))
+
+def embed_text_voyageai(text):
+    return np.array(VoyageAIEmbeddings(model="voyage-large-2-instruct").embed_query(text))
+
+def _make_knn_algo(embeddings: np.ndarray):
+    n_clusters = _guess_optimal_clustering(embeddings)
+    return KMeans(n_clusters=n_clusters, n_init='auto', random_state=RANDOM_SEED)
+
+def _make_hdbscan_algo(embeddings: np.ndarray):
+    return hdbscan.HDBSCAN(min_samples=1, min_cluster_size=2, cluster_selection_method='eom')
 
 def _cluster_sources(sources: list[SummarizedSource], key: Callable[[SummarizedSource], str]) -> list[Cluster]:
-    return cluster_items(sources, key, embed_text)
+
+    openai_clusters = cluster_items(sources, key, embed_text_openai, _make_hdbscan_algo)
+    # openai_clusters = cluster_items(sources, key, embed_text_openai, _make_knn_algo)
+    # voyageai_clusters = cluster_items(sources, key, embed_text_voyageai)
+    return openai_clusters
+
+def _get_cluster_size_by_source(clusters: list[Cluster]) -> dict:
+    pass
 
 def _get_topic_desc_str(topic: Topic) -> str:
     topic_desc = f'{topic.title["en"]}'
@@ -115,6 +132,9 @@ def summarize_source_clusters(clusters: list[Cluster], topic, verbose=True) -> l
 def summarize_cluster(cluster: Cluster, context: str, key: Callable[[Any], str], sample_size=5) -> Cluster:
     sample = random.sample(cluster.items, min(len(cluster), sample_size))
     strs_to_summarize = [key(item) for item in sample]
+    if len(cluster) == 1:
+        cluster.summary = strs_to_summarize[0]
+        return cluster
     llm = ChatAnthropic("claude-3-opus-20240229", 0)
     system = SystemMessage(content="You are a Jewish scholar familiar with Torah. Given a few ideas (wrapped in <idea> "
                                    "XML tags) about a given topic (wrapped in <topic> XML tags) output a summary of the"
@@ -127,21 +147,29 @@ def summarize_cluster(cluster: Cluster, context: str, key: Callable[[Any], str],
     return cluster
 
 
-def cluster_items(items: list[Any], key: Callable[[Any], str], embedding_fn: Callable[[str], ndarray], verbose=True) -> list[Cluster]:
+def cluster_items(items: list[Any], key: Callable[[Any], str], embedding_fn: Callable[[str], ndarray],
+                  get_cluster_algo: Callable, verbose=True) -> list[Cluster]:
     """
     :param items: Generic list of items to cluster
     :param key: function that takes an item from `items` and returns a string to pass to `embedding_fn`
     :param embedding_fn: Given a str (from `key` function) return its embedding
+    :param get_cluster_algo:
+    :param verbose:
     :return: list of Cluster objects
     """
     embeddings = [embedding_fn(key(item)) for item in tqdm(items, desc="embedding items for clustering", disable=not verbose)]
-    n_clusters = _guess_optimal_clustering(embeddings)
-    kmeans = KMeans(n_clusters=n_clusters, n_init='auto', random_state=RANDOM_SEED).fit(embeddings)
+    kmeans = get_cluster_algo(embeddings).fit(embeddings)
     clusters = []
     for label in set(kmeans.labels_):
         indices = np.where(kmeans.labels_ == label)[0]
         curr_embeddings = [embeddings[j] for j in indices]
         curr_items = [items[j] for j in indices]
+        if label == -1:
+            if verbose:
+                print('skipping noise cluster')
+                for item in curr_items:
+                    print(key(item))
+            continue
         clusters += [Cluster(label, curr_embeddings, curr_items)]
     return clusters
 
