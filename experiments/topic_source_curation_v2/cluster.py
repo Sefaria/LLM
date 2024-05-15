@@ -135,7 +135,8 @@ def summarize_cluster(cluster: Cluster, context: str, key: Callable[[Any], str],
     sample = random.sample(cluster.items, min(len(cluster), sample_size))
     strs_to_summarize = [key(item) for item in sample]
     if len(cluster) == 1:
-        cluster.summary = strs_to_summarize[0]
+        # assumes items have a summary field
+        cluster.summary = cluster.items[0].summary
         return cluster
     llm = ChatOpenAI("gpt-4o", 0)
     system = SystemMessage(content="You are a Jewish scholar familiar with Torah. Given a few ideas (wrapped in <idea> "
