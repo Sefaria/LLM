@@ -6,16 +6,18 @@ which will be used to gather many sources about a topic to curate
 from tqdm import tqdm
 import django
 django.setup()
+from functools import reduce
 from sefaria.model.topic import Topic as SefariaTopic
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from basic_langchain.schema import SystemMessage, HumanMessage
-from basic_langchain.chat_models import ChatAnthropic
+from basic_langchain.chat_models import ChatOpenAI
 from util.general import get_by_xml_tag
 import requests
 from readability import Document
 import re
 import csv
+from experiments.topic_source_curation_v2.common import run_parallel
 from sefaria_llm_interface.common.topic import Topic
 
 
@@ -166,7 +168,7 @@ class LlmExpandedTemplatedQuestionGenerator(AbstractQuestionGenerator):
         return questions_by_type
 
     def _expand_question(self, seed_question: str):
-        llm = ChatAnthropic(model="claude-3-opus-20240229", temperature=0)
+        llm = ChatOpenAI(model="gpt-4o", temperature=0)
         system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given a general question about a topic in Judasim wrapped in <text> tag, produce a multiple answers to the question that are specific. wrap each answer in an <answer> tag")
         human = HumanMessage(content=f"<text>{seed_question}</text>")
         response = llm([system, human])
@@ -183,17 +185,15 @@ class LlmExpandedTemplatedQuestionGenerator(AbstractQuestionGenerator):
     def generate(self, topic: Topic, verbose=True) -> list[str]:
         if verbose:
             print('---LLM QUESTION EXPANDER---')
-        questions = []
-        for q in tqdm(self.templated_questions_by_type[self.__get_type_for_topic(topic)], desc="llm question expander", disable=not verbose):
-            q = q.replace("{}", topic.title['en'])
-            expanded = self._expand_question(q)
-            if verbose:
+        original_questions = [q.format(topic.title['en']) for q in self.templated_questions_by_type[self.__get_type_for_topic(topic)]]
+        expanded_questions = run_parallel(original_questions, self._expand_question, max_workers=20, desc="llm question expander", disable=not verbose)
+        if verbose:
+            for original_q, expanded_qs in zip(original_questions, expanded_questions):
                 print('----')
-                print('\toriginal question:', q)
-                for expanded_q in expanded:
+                print('\toriginal question:', original_q)
+                for expanded_q in expanded_qs:
                     print('\t-', expanded_q)
-            questions.extend(expanded)
-        return questions
+        return reduce(lambda a, b: a + b, expanded_questions)
 
 
 class _TopicURLMapping:
@@ -234,7 +234,7 @@ class WebPageQuestionGenerator(AbstractQuestionGenerator):
 
     @staticmethod
     def _generate_topic_description(webpage_text):
-        llm = ChatAnthropic(model="claude-3-opus-20240229", temperature=0)
+        llm = ChatOpenAI(model="gpt-4o", temperature=0)
         system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given text about a Jewish topic, wrapped in <text>, summarize the text in a small paragraph. Summary should be wrapped in <summary> tags.")
         human = HumanMessage(content=f"<text>{webpage_text}</text>")
         response = llm([system, human])
@@ -272,7 +272,7 @@ class WebPageQuestionGenerator(AbstractQuestionGenerator):
 
     def _generate_for_url(self, url: str) -> list[str]:
         webpage_text = self._get_webpage_text(url)
-        llm = ChatAnthropic(model="claude-3-opus-20240229", temperature=0)
+        llm = ChatOpenAI(model="gpt-4o", temperature=0)
         system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given text about a Jewish topic, wrapped in <text>, summary the text and output the most important bullet points the text discusses. Wrap each bullet point in a <bullet_point> tag.")
         human = HumanMessage(content=f"<text>{webpage_text}</text>")
         response = llm([system, human])
