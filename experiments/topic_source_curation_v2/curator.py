@@ -8,7 +8,10 @@ from sefaria.helper.llm.topic_prompt import _make_llm_topic
 from sefaria_llm_interface.common.topic import Topic
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from util.pipeline import Artifact
+from dataclasses import asdict
 import csv
+import random
+import json
 import django
 django.setup()
 from sefaria.model.topic import Topic as SefariaTopic
@@ -28,22 +31,34 @@ def get_topics_to_curate():
                 continue
     return topics
 
+def save_gathered_sources(sources: list[TopicPromptSource], topic: Topic) -> None:
+    with open(f"_cache/gathered_sources_{topic.slug}.json", "w") as fout:
+        json.dump([asdict(s) for s in sources], fout, indent=2, ensure_ascii=False)
+
+def load_gathered_sources(topic: Topic) -> list[TopicPromptSource]:
+    with open(f"_cache/gathered_sources_{topic.slug}.json", "r") as fin:
+        raw_sources = json.load(fin)
+        return [TopicPromptSource(**s) for s in raw_sources]
+
 def curate_topic(topic: Topic) -> list[TopicPromptSource]:
     return (Artifact(topic)
             .pipe(gather_sources_about_topic)
-            .pipe(get_clustered_sources_based_on_summaries, topic)
-            .pipe(choose_ideal_sources_for_clusters).data)
+            .pipe(save_gathered_sources, topic))
+            # .pipe(load_gathered_sources)
+            # .pipe(get_clustered_sources_based_on_summaries, topic)
+            # .pipe(choose_ideal_sources_for_clusters).data)
 
 if __name__ == '__main__':
-    slug = "ulla"
-    topic = _make_llm_topic(SefariaTopic.init(slug))
-    sources = curate_topic(topic)
-    print('---CURATION---')
-    print('num sources', len(sources))
-    for source in sources:
-        s = source.source
-        print('---')
-        print('\t-', s.ref)
-        print('\t-', s.text['en'])
+    topics = get_topics_to_curate()
+    for topic in random.sample(topics, 10):
+        print("CURATING", topic.slug)
+        sources = curate_topic(topic)
+    # print('---CURATION---')
+    # print('num sources', len(sources))
+    # for source in sources:
+    #     s = source.source
+    #     print('---')
+    #     print('\t-', s.ref)
+    #     print('\t-', s.text['en'])
 
 
