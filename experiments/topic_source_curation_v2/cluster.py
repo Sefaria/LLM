@@ -157,7 +157,7 @@ def cluster_items(items: list[Any], key: Callable[[Any], str], embedding_fn: Cal
     :param verbose:
     :return: list of Cluster objects
     """
-    embeddings = [embedding_fn(key(item)) for item in tqdm(items, desc="embedding items for clustering", disable=not verbose)]
+    embeddings = run_parallel([key(item) for item in items], embedding_fn, max_workers=40, desc="embedding items for clustering", disable=not verbose)
     kmeans = get_cluster_algo(embeddings).fit(embeddings)
     clusters = []
     for label in set(kmeans.labels_):
