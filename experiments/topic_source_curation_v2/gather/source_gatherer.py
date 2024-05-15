@@ -228,7 +228,7 @@ def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], to
     return filtered_items
 
 def _is_text_about_topic(topic_description, text):
-    llm = ChatOpenAI(model='gpt-4', temperature=0)
+    llm = ChatOpenAI(model='gpt-4o', temperature=0)
     system = SystemMessage(content="You are a Jewish scholar. Given a topic description wrapped in <topic> and a text, "
                                    "wrapped in <text>, output 'Yes' if <text> is about <topic> and 'No' if <text> is "
                                    "not about <topic>. Wrap output in <answer> tags.")
