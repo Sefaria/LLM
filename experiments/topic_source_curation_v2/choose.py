@@ -8,7 +8,7 @@ Given clusters tries to
 """
 import voyageai
 from tqdm import tqdm
-from experiments.topic_source_curation_v2.cluster import Cluster, embed_text, get_text_from_source
+from experiments.topic_source_curation_v2.cluster import Cluster, embed_text_openai, get_text_from_source
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sklearn.metrics import pairwise_distances
 from util.pipeline import Artifact
@@ -26,7 +26,7 @@ def choose_ideal_clusters(clusters: list[Cluster], max_clusters: int) -> list[Cl
     Also might want to use custom GPT sort to find "best" clusters based on various criteria
     """
     # sorted_clusters = _sort_by_highest_avg_pairwise_distance(clusters)
-    return clusters
+    return [c for c in clusters if len(clusters) > 1]
 
 def choose_ideal_sources(source_clusters: list[Cluster], verbose=True) -> list[TopicPromptSource]:
     """
@@ -43,6 +43,8 @@ def choose_ideal_sources(source_clusters: list[Cluster], verbose=True) -> list[T
 
 
 def choose_ideal_source_from_cluster(cluster: Cluster) -> TopicPromptSource:
+    if len(cluster) == 1:
+        return cluster.items[0]
     vo = voyageai.Client()
     output = vo.rerank(cluster.summary, [get_text_from_source(item) for item in cluster.items], "rerank-lite-1")
     best_idx = output.results[0].index
@@ -59,6 +61,6 @@ def _get_highest_avg_pairwise_distance_indices(embeddings: np.ndarray) -> np.nda
     return sorted_indices
 
 def _sort_by_highest_avg_pairwise_distance(clusters: list[Cluster]) -> list[Cluster]:
-    embeddings = np.array([embed_text(c.summary) for c in clusters])
+    embeddings = np.array([embed_text_openai(c.summary) for c in clusters])
     sorted_indices = _get_highest_avg_pairwise_distance_indices(embeddings)
     return [clusters[i] for i in sorted_indices]
