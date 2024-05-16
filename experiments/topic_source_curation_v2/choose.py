@@ -16,9 +16,11 @@ import numpy as np
 from basic_langchain.schema import HumanMessage, SystemMessage
 from basic_langchain.chat_models import ChatOpenAI
 from sefaria_llm_interface.common.topic import Topic
+from solver import solve_clusters
 
 def choose_ideal_sources_for_clusters(clusters: list[Cluster], topic: Topic) -> list[TopicPromptSource]:
-    return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(choose_ideal_sources).data
+    # return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(choose_ideal_sources).data
+    return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(solve_clusters).data
 
 
 def choose_ideal_clusters(clusters: list[Cluster], max_clusters: int) -> list[Cluster]:
