@@ -4,7 +4,7 @@ from tqdm import tqdm
 from basic_langchain.embeddings import VoyageAIEmbeddings
 from basic_langchain.embeddings import OpenAIEmbeddings
 import hdbscan
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, pairwise_distances
 from sklearn.cluster import KMeans
 import random
 from concurrent.futures import ThreadPoolExecutor
@@ -58,7 +58,7 @@ def get_clustered_sources_based_on_summaries(sources: list[TopicPromptSource], t
     :return:
     """
     key = lambda source: source.summary
-    return Artifact(sources).pipe(_summarize_sources_parallel, topic).pipe(_cluster_sources, key).pipe(summarize_source_clusters, topic).data
+    return Artifact(sources).pipe(_summarize_sources_parallel, topic).pipe(_cluster_sources, key, topic).pipe(summarize_source_clusters, topic).data
 
 
 def get_text_from_source(source: Union[TopicPromptSource, SummarizedSource]) -> str:
@@ -99,16 +99,47 @@ def embed_text_openai(text):
 def embed_text_voyageai(text):
     return np.array(VoyageAIEmbeddings(model="voyage-large-2-instruct").embed_query(text))
 
-def _make_kmeans_algo(embeddings: np.ndarray):
+def _make_kmeans_algo(embeddings: np.ndarray, items, topic):
     n_clusters = _guess_optimal_clustering(embeddings)
     return KMeans(n_clusters=n_clusters, n_init='auto', random_state=RANDOM_SEED)
 
-def _make_hdbscan_algo(embeddings: np.ndarray):
-    return hdbscan.HDBSCAN(min_samples=1, min_cluster_size=2, cluster_selection_method='eom', cluster_selection_epsilon=0.65)
+def _make_hdbscan_algo(embeddings: np.ndarray, items, topic, verbose=True):
+    IDEAL_NUM_CLUSTERS = 20
+    hdbscan_params = {
+        "min_samples": [1, 1],
+        "min_cluster_size": [2, 2],
+        "cluster_selection_method": ["eom", "leaf"],
+        "cluster_selection_epsilon": [0.65, 0.5],
+    }
+    best_hdbscan_obj = None
+    highest_clustering_score = 0
+    for i in range(len(hdbscan_params["min_samples"])):
+        curr_params = {}
+        for key, val in hdbscan_params.items():
+            curr_params[key] = val[i]
+        curr_hdbscan_obj = hdbscan.HDBSCAN(**curr_params)
+        results = curr_hdbscan_obj.fit(embeddings)
+        curr_clusters, _, _ = _build_clusters_from_cluster_results(results, embeddings, items)
+        summarized_clusters = summarize_source_clusters(curr_clusters, topic, verbose=False)
+        cluster_summary_embeddings = run_parallel([c.summary for c in summarized_clusters], embed_text_openai, max_workers=40, desc="embedding items for clustering", disable=not verbose)
+        distances = pairwise_distances(cluster_summary_embeddings, metric='cosine')
+        np.fill_diagonal(distances, np.inf)
+        min_distances = np.min(distances, axis=1)
+        num_clusters = len(set(results.labels_))
+        avg_min_distance = sum(min_distances)/len(min_distances)
+        closeness_to_ideal_score = (1 - (min(abs(num_clusters - IDEAL_NUM_CLUSTERS), 5*IDEAL_NUM_CLUSTERS)/(5*IDEAL_NUM_CLUSTERS))) * 0.7
+        clustering_score = closeness_to_ideal_score + avg_min_distance
+        print("CURR PARAMS", curr_params, avg_min_distance, num_clusters, closeness_to_ideal_score, clustering_score)
+        if clustering_score > highest_clustering_score:
+            highest_clustering_score = clustering_score
+            print("IDEAL PARAMS", curr_params)
+            best_hdbscan_obj = curr_hdbscan_obj
 
-def _cluster_sources(sources: list[SummarizedSource], key: Callable[[SummarizedSource], str]) -> list[Cluster]:
+    return best_hdbscan_obj
 
-    openai_clusters = cluster_items(sources, key, embed_text_openai, _make_hdbscan_algo)
+def _cluster_sources(sources: list[SummarizedSource], key: Callable[[SummarizedSource], str], topic) -> list[Cluster]:
+
+    openai_clusters = cluster_items(sources, key, embed_text_openai, _make_hdbscan_algo, topic)
     # openai_clusters = cluster_items(sources, key, embed_text_openai, _make_kmeans_algo)
     # voyageai_clusters = cluster_items(sources, key, embed_text_voyageai)
     return openai_clusters
@@ -151,7 +182,7 @@ def summarize_cluster(cluster: Cluster, context: str, key: Callable[[Any], str],
 
 
 def cluster_items(items: list[Any], key: Callable[[Any], str], embedding_fn: Callable[[str], ndarray],
-                  get_cluster_algo: Callable, verbose=True) -> list[Cluster]:
+                  get_cluster_algo: Callable, topic, verbose=True) -> list[Cluster]:
     """
     :param items: Generic list of items to cluster
     :param key: function that takes an item from `items` and returns a string to pass to `embedding_fn`
@@ -161,9 +192,9 @@ def cluster_items(items: list[Any], key: Callable[[Any], str], embedding_fn: Cal
     :return: list of Cluster objects
     """
     embeddings = run_parallel([key(item) for item in items], embedding_fn, max_workers=40, desc="embedding items for clustering", disable=not verbose)
-    cluster_results = get_cluster_algo(embeddings).fit(embeddings)
+    cluster_results = get_cluster_algo(embeddings, items, topic).fit(embeddings)
     clusters, noise_items, noise_embeddings = _build_clusters_from_cluster_results(cluster_results, embeddings, items, verbose)
-    noise_results = _make_kmeans_algo(noise_embeddings).fit(noise_embeddings)
+    noise_results = _make_kmeans_algo(noise_embeddings, items, topic).fit(noise_embeddings)
     noise_clusters, _, _ = _build_clusters_from_cluster_results(noise_results, noise_embeddings, noise_items, verbose)
     if verbose:
         print("LEN NOISE_CLUSTERS", len(noise_clusters))
@@ -190,8 +221,13 @@ def _build_clusters_from_cluster_results(cluster_results, embeddings, items, ver
 def _guess_optimal_clustering(embeddings, verbose=True):
     best_sil_coeff = -1
     best_num_clusters = 0
-    # n_clusters = range(max(min(len(embeddings)//5, 10), 2), len(embeddings)//2)
-    n_clusters = range(min(len(embeddings), 3), len(embeddings)//2)
+    MAX_MIN_CLUSTERS = 3  # the max start of the search for optimal cluster number.
+    n_cluster_start = min(len(embeddings), MAX_MIN_CLUSTERS)
+    n_cluster_end = len(embeddings)//2
+    if n_cluster_end < (n_cluster_start + 1):
+        n_cluster_start = 2
+        n_cluster_end = n_cluster_start + 1
+    n_clusters = range(n_cluster_start, n_cluster_end)
     for n_cluster in tqdm(n_clusters, total=len(n_clusters), desc='guess optimal clustering', disable=not verbose):
         kmeans = KMeans(n_clusters=n_cluster, n_init='auto', random_state=RANDOM_SEED).fit(embeddings)
         labels = kmeans.labels_
