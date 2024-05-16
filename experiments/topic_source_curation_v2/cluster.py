@@ -89,7 +89,7 @@ def _summarize_source(llm: object, topic_str: str, source: TopicPromptSource):
 
 def _summarize_sources_parallel(sources: list[TopicPromptSource], topic: Topic, verbose=True) -> list[SummarizedSource]:
     llm = ChatAnthropic(model='claude-3-haiku-20240307', temperature=0)
-    topic_str = f"Title: '{topic.title}'. Description: '{topic.description.get('en', 'N/A')}'."
+    topic_str = f"Title: '{topic.title}'. Description: '{_get_topic_desc_str(topic)}'."
     return run_parallel(sources, partial(_summarize_source, llm, topic_str), 2,
                         desc="summarize sources", disable=not verbose)
 
@@ -104,12 +104,12 @@ def _make_kmeans_algo(embeddings: np.ndarray):
     return KMeans(n_clusters=n_clusters, n_init='auto', random_state=RANDOM_SEED)
 
 def _make_hdbscan_algo(embeddings: np.ndarray):
-    return hdbscan.HDBSCAN(min_samples=1, min_cluster_size=2, cluster_selection_method='leaf', cluster_selection_epsilon=0.6)
+    return hdbscan.HDBSCAN(min_samples=1, min_cluster_size=2, cluster_selection_method='eom', cluster_selection_epsilon=0.65)
 
 def _cluster_sources(sources: list[SummarizedSource], key: Callable[[SummarizedSource], str]) -> list[Cluster]:
 
-    # openai_clusters = cluster_items(sources, key, embed_text_openai, _make_hdbscan_algo)
-    openai_clusters = cluster_items(sources, key, embed_text_openai, _make_kmeans_algo)
+    openai_clusters = cluster_items(sources, key, embed_text_openai, _make_hdbscan_algo)
+    # openai_clusters = cluster_items(sources, key, embed_text_openai, _make_kmeans_algo)
     # voyageai_clusters = cluster_items(sources, key, embed_text_voyageai)
     return openai_clusters
 
@@ -161,26 +161,37 @@ def cluster_items(items: list[Any], key: Callable[[Any], str], embedding_fn: Cal
     :return: list of Cluster objects
     """
     embeddings = run_parallel([key(item) for item in items], embedding_fn, max_workers=40, desc="embedding items for clustering", disable=not verbose)
-    kmeans = get_cluster_algo(embeddings).fit(embeddings)
+    cluster_results = get_cluster_algo(embeddings).fit(embeddings)
+    clusters, noise_items, noise_embeddings = _build_clusters_from_cluster_results(cluster_results, embeddings, items, verbose)
+    noise_results = _make_kmeans_algo(noise_embeddings).fit(noise_embeddings)
+    noise_clusters, _, _ = _build_clusters_from_cluster_results(noise_results, noise_embeddings, noise_items, verbose)
+    if verbose:
+        print("LEN NOISE_CLUSTERS", len(noise_clusters))
+    return clusters + noise_clusters
+
+
+def _build_clusters_from_cluster_results(cluster_results, embeddings, items, verbose=True):
     clusters = []
-    for label in set(kmeans.labels_):
-        indices = np.where(kmeans.labels_ == label)[0]
+    noise_items = []
+    noise_embeddings = []
+    for label in set(cluster_results.labels_):
+        indices = np.where(cluster_results.labels_ == label)[0]
         curr_embeddings = [embeddings[j] for j in indices]
         curr_items = [items[j] for j in indices]
         if label == -1:
+            noise_items += curr_items
+            noise_embeddings += curr_embeddings
             if verbose:
-                print('skipping noise cluster')
-                for item in curr_items:
-                    print(key(item))
+                print('noise cluster', len(curr_items))
             continue
         clusters += [Cluster(label, curr_embeddings, curr_items)]
-    return clusters
-
+    return clusters, noise_items, noise_embeddings
 
 def _guess_optimal_clustering(embeddings, verbose=True):
     best_sil_coeff = -1
     best_num_clusters = 0
-    n_clusters = range(4, len(embeddings)//2)
+    # n_clusters = range(max(min(len(embeddings)//5, 10), 2), len(embeddings)//2)
+    n_clusters = range(min(len(embeddings), 3), len(embeddings)//2)
     for n_cluster in tqdm(n_clusters, total=len(n_clusters), desc='guess optimal clustering', disable=not verbose):
         kmeans = KMeans(n_clusters=n_cluster, n_init='auto', random_state=RANDOM_SEED).fit(embeddings)
         labels = kmeans.labels_
