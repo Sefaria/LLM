@@ -9,8 +9,8 @@ from collections import defaultdict
 import csv
 
 
-def count_cats():
-    sources = load_sources(_make_llm_topic(SefariaTopic.init('cyrus')))
+def count_cats(slug):
+    sources = load_sources(_make_llm_topic(SefariaTopic.init(slug)))
     cat_counts = defaultdict(list)
     for source in sources:
         assert isinstance(source, TopicPromptSource)
@@ -21,8 +21,8 @@ def count_cats():
             print('\t', ref)
 
 
-def print_clusters():
-    clusters = load_clusters(_make_llm_topic(SefariaTopic.init('ants')))
+def print_clusters(slug):
+    clusters = load_clusters(_make_llm_topic(SefariaTopic.init(slug)))
     for cluster in clusters:
         print(f'{cluster.summary}: {len(cluster)}')
         for item in cluster.items:
@@ -50,10 +50,10 @@ def save_clusters_to_csv(slug):
 
 
 if __name__ == '__main__':
-    # count_cats()
-    # print_clusters()
+    count_cats('rabbinic-authority')
+    print_clusters('rabbinic-authority')
     # slugs = ['ants', 'ulla', 'achitofel', 'friendship', 'david-and-the-temple', 'cains-sacrifice', 'abraham-in-egypt']
-    slugs = ['war-with-midian', 'medicine']
-    for slug in slugs:
-        print(slug)
-        save_clusters_to_csv(slug)
+    # slugs = ['war-with-midian', 'medicine']
+    # for slug in slugs:
+    #     print(slug)
+    #     save_clusters_to_csv(slug)
