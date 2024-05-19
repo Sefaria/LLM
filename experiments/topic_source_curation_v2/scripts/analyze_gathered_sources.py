@@ -1,9 +1,11 @@
 from experiments.topic_source_curation_v2.cache import load_sources, load_clusters
+from experiments.topic_source_curation_v2.cluster import Cluster, SummarizedSource
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface.common.topic import Topic
 import django
 django.setup()
 from sefaria.model.topic import Topic as SefariaTopic
+from sefaria.model.text import Ref
 from sefaria.helper.llm.topic_prompt import _make_llm_topic
 from collections import defaultdict
 import csv
@@ -48,12 +50,89 @@ def save_clusters_to_csv(slug):
         cout.writerows(rows)
 
 
+def save_clusters_to_html(slug):
+    topic = _make_llm_topic(SefariaTopic.init(slug))
+    clusters = load_clusters(topic)
+    html = _make_cluster_html_wrapper(topic, ''.join(_make_cluster_html(cluster) for cluster in clusters))
+    with open("output/clusters_{}.html".format(slug), 'w') as fout:
+        fout.write(html)
+
+
+def _make_cluster_html(cluster: Cluster):
+    return f"""
+    <details class="cluster">
+        <summary>
+            <h2 class="clusterSummary">
+                {cluster.summary} ({len(cluster)})
+            </h2>
+        </summary>
+        <div class="clusterSources">
+        {''.join([_make_cluster_source_html(source) for source in cluster.items])}
+        </div>
+    </details>
+    """
+
+
+def _make_cluster_source_html(source: SummarizedSource):
+    return f"""
+    <details class="clusterSource">
+        <summary>
+        <h3><a target="_blank" href="https://www.sefaria.org/{Ref(source.source.ref).url()}">{source.source.ref}</a></h3>
+        {source.summary}
+        </summary>
+        <blockquote class="he">
+            {source.source.text['he']}
+        </blockquote>
+        <blockquote>
+            {source.source.text['en']}
+        </blockquote>
+    </details>
+    """
+
+
+def _make_cluster_html_wrapper(topic, content):
+    return f"""
+    <html>
+        <style>
+            body {{
+                max-width: 750px;
+                margin-left: auto;
+                margin-right: auto;
+            }}
+            .he {{
+                direction: rtl;
+                font-size: 120%;
+            }}
+            .cluster {{
+                margin-bottom: 30px;
+            }}
+            .clusterSummary {{
+                display: inline;
+            }}
+            .clusterSource {{
+                margin-left: 15px;
+                margin-bottom: 30px;
+            }}
+            .clusterSource h3 {{
+                display: inline;
+            }}
+        </style>
+        <body>
+            <h1>{topic.title['en']} Clusters</h1>
+            {content}
+        </body>
+    </html>
+    """
+
+
 
 if __name__ == '__main__':
-    count_cats('rabbinic-authority')
-    print_clusters('rabbinic-authority')
+    slugs = ['bina2', 'hesed', 'ein-sof1', 'shiur-koma', 'yetzira1']
+    # count_cats(slug)
+    # print_clusters(slug)
     # slugs = ['ants', 'ulla', 'achitofel', 'friendship', 'david-and-the-temple', 'cains-sacrifice', 'abraham-in-egypt']
     # slugs = ['war-with-midian', 'medicine']
-    # for slug in slugs:
-    #     print(slug)
-    #     save_clusters_to_csv(slug)
+    for slug in slugs:
+        print(slug)
+        save_clusters_to_csv(slug)
+        save_clusters_to_html(slug)
