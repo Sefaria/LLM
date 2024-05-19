@@ -219,6 +219,9 @@ def _build_clusters_from_cluster_results(cluster_results, embeddings, items, ver
     return clusters, noise_items, noise_embeddings
 
 def _guess_optimal_clustering(embeddings, verbose=True):
+    if len(embeddings) <= 1:
+        return len(embeddings)
+
     best_sil_coeff = -1
     best_num_clusters = 0
     MAX_MIN_CLUSTERS = 3  # the max start of the search for optimal cluster number.
