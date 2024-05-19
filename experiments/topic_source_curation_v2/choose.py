@@ -6,12 +6,19 @@ Given clusters tries to
     - Fundamental sources: funadmental sources from Tanakh and Talmud etc. should be chosen. These should be few, made 2-3
     - Interesting sources: the rest of the sources should represent interesting ideas for a newcomer to Sefaria
 """
+import django
+django.setup()
+from sefaria.pagesheetrank import pagerank_rank_ref_list
+from sefaria.model.text import Ref
+from sefaria.recommendation_engine import RecommendationEngine
 import voyageai
 from tqdm import tqdm
 from experiments.topic_source_curation_v2.cluster import Cluster, SummarizedSource, embed_text_openai, get_text_from_source
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sklearn.metrics import pairwise_distances
 from util.pipeline import Artifact
+from functools import reduce
+from statistics import mean, stdev
 import numpy as np
 from basic_langchain.schema import HumanMessage, SystemMessage
 from basic_langchain.chat_models import ChatOpenAI
@@ -25,6 +32,29 @@ def choose_ideal_sources_for_clusters(clusters: list[Cluster], topic: Topic) -> 
             if item.source.ref == "Genesis 12:18":
                 halt = True
     return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(solve_clusters).data
+
+
+def choose_primary_sources(clusters: list[Cluster]) -> tuple[list[TopicPromptSource], list[Cluster]]:
+    orefs, cluster_labels = zip(*reduce(lambda x, y: x + [(Ref(item.source.ref), y.label) for item in y.items], clusters, []))
+    ref_clusters = RecommendationEngine.cluster_close_refs(orefs, cluster_labels, 2)
+    orefs, cluster_labels = [], []
+    for ref_cluster in ref_clusters:
+        curr_refs = [data['ref'] for data in ref_cluster]
+        curr_labels = [data['data'] for data in ref_cluster]
+        if curr_refs[0].primary_category == "Commentary":
+            # don't combine commentary refs
+            orefs += curr_refs
+            cluster_labels += curr_labels
+        else:
+            orefs.append(curr_refs[0].to(curr_refs[-1]))
+            cluster_labels.append(curr_labels[0])  # assume they're all in the same cluster
+    trefs, pageranks = zip(*pagerank_rank_ref_list(orefs))
+    max_ref = trefs[0]
+    thresh = mean(pageranks) + 2 * stdev(pageranks)
+    is_big = pageranks[0] > thresh
+    print(max_ref, "IS BIG:", is_big, pageranks[0], thresh)
+    # TODO need to combine sources before PR
+    return [clusters[0].items[0]], [clusters[0]]
 
 
 def choose_ideal_clusters(clusters: list[Cluster], max_clusters: int) -> list[Cluster]:
@@ -53,8 +83,10 @@ def choose_ideal_sources(source_clusters: list[Cluster], verbose=True) -> list[T
         Fulfills category quota. Want to choose sources from different categories
     """
     ideal_sources = []
+    choose_primary_sources(source_clusters)
     for cluster in tqdm(source_clusters, desc='choose ideal sources', disable=not verbose):
-       ideal_sources += [choose_ideal_source_from_cluster(cluster)]
+        pass
+       # ideal_sources += [choose_ideal_source_from_cluster(cluster)]
     return ideal_sources
 
 
