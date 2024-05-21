@@ -31,6 +31,10 @@ def choose_ideal_sources_for_clusters(clusters: list[Cluster], topic: Topic) -> 
         for item in cluster.items:
             if item.source.ref == "Genesis 12:18":
                 halt = True
+    primary_trefs = choose_primary_sources(clusters)
+    print("PRIMARY SOURCES")
+    for primary_tref in primary_trefs:
+        print(primary_tref)
     return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(solve_clusters).data
 
 
@@ -44,9 +48,11 @@ def choose_primary_sources(clusters: list[Cluster]) -> list[str]:
     trefs, pageranks = zip(*pagerank_rank_ref_list(orefs))
     max_ref = trefs[0]
     thresh = mean(pageranks) + 2 * stdev(pageranks)
-    is_big = pageranks[0] > thresh
-    print(max_ref, "IS BIG:", is_big, pageranks[0], thresh)
-    return [max_ref]
+    is_primary = pageranks[0] > thresh
+    print(max_ref, "IS PRIMARY:", is_primary, round(pageranks[0], 3), round(thresh, 3))
+    if is_primary:
+        return [max_ref]
+    return []
 
 
 def choose_ideal_clusters(clusters: list[Cluster], max_clusters: int) -> list[Cluster]:
