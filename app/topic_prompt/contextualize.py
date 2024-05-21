@@ -33,7 +33,7 @@ def context_from_surrounding_text(source: TopicPromptSource) -> str:
     human_message = HumanMessage(content=f"<segment>{segment_text}</segment>\n"
                                          f"<context>{section_text}</context>\n"
                                          f"<hint>{source.context_hint}</hint>")
-    llm = ChatAnthropic(model="gpt-4o", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0)
     response = llm([system_message, human_message])
     context = get_by_xml_tag(response.content, "relevant_context").strip()
     if context is None:
