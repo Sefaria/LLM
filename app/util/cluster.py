@@ -14,14 +14,6 @@ from experiments.topic_source_curation_v2.common import run_parallel
 from util.general import get_by_xml_tag
 import numpy as np
 
-def _topic_summarize_cluster_prompt(context, strs_to_summarize):
-    system = SystemMessage(content="You are a Jewish scholar familiar with Torah. Given a few ideas (wrapped in <idea> "
-                                   "XML tags) about a given topic (wrapped in <topic> XML tags) output a summary of the"
-                                   "ideas as they related to the topic. Wrap the output in <summary> tags. Summary"
-                                   "should be no more than 10 words.")
-    human = HumanMessage(content=f"<topic>{context}</topic><idea>{'</idea><idea>'.join(strs_to_summarize)}</idea>")
-    return [system, human]
-
 RANDOM_SEED = 567454
 random.seed(RANDOM_SEED)
 
@@ -56,8 +48,37 @@ class AbstractClusterer(ABC):
         pass
 
 
+def _guess_optimal_kmeans_clustering(embeddings, verbose=True):
+    if len(embeddings) <= 1:
+        return len(embeddings)
 
-class Clusterer(AbstractClusterer):
+    best_sil_coeff = -1
+    best_num_clusters = 0
+    MAX_MIN_CLUSTERS = 3  # the max start of the search for optimal cluster number.
+    n_cluster_start = min(len(embeddings), MAX_MIN_CLUSTERS)
+    n_cluster_end = len(embeddings)//2
+    if n_cluster_end < (n_cluster_start + 1):
+        n_cluster_start = 2
+        n_cluster_end = n_cluster_start + 1
+    n_clusters = range(n_cluster_start, n_cluster_end)
+    for n_cluster in tqdm(n_clusters, total=len(n_clusters), desc='guess optimal clustering', disable=not verbose):
+        kmeans = KMeans(n_clusters=n_cluster, n_init='auto', random_state=RANDOM_SEED).fit(embeddings)
+        labels = kmeans.labels_
+        sil_coeff = silhouette_score(embeddings, labels, metric='cosine', random_state=RANDOM_SEED)
+        if sil_coeff > best_sil_coeff:
+            best_sil_coeff = sil_coeff
+            best_num_clusters = n_cluster
+    if verbose:
+        print("Best silhouette score", round(best_sil_coeff, 4))
+    return best_num_clusters
+
+
+def make_kmeans_algo_with_optimal_silhouette_score(embeddings: list[np.ndarray]):
+    n_clusters = _guess_optimal_kmeans_clustering(embeddings)
+    return KMeans(n_clusters=n_clusters, n_init='auto', random_state=RANDOM_SEED)
+
+
+class StandardClusterer(AbstractClusterer):
 
     def __init__(self, embedding_fn: Callable[[str], ndarray], 
                  get_cluster_algo: Callable[[list[ndarray]], Union[KMeans, HDBSCAN]],
@@ -75,16 +96,11 @@ class Clusterer(AbstractClusterer):
         self.get_cluster_summary = get_cluster_summary or self._default_get_cluster_summary
 
 
-    def clone(self, **kwargs) -> 'Clusterer':
+    def clone(self, **kwargs) -> 'StandardClusterer':
         """
         Return new object with all the same data except modifications specified in kwargs
         """
         return self.__class__(**{**self.__dict__, **kwargs})
-
-    @staticmethod
-    def _make_kmeans_algo(embeddings: list[np.ndarray]):
-        n_clusters = Clusterer._guess_optimal_kmeans_clustering(embeddings)
-        return KMeans(n_clusters=n_clusters, n_init='auto', random_state=RANDOM_SEED)
 
     @staticmethod
     def _default_get_cluster_summary(strs_to_summarize: list[str]) -> str:
@@ -98,7 +114,7 @@ class Clusterer(AbstractClusterer):
         return get_by_xml_tag(response.content, "summary")
 
 
-    def _summarize_cluster(self, cluster: Cluster, sample_size=5) -> Cluster:
+    def summarize_cluster(self, cluster: Cluster, sample_size=5) -> Cluster:
         """
 
         :param cluster: Cluster to summarize
@@ -119,11 +135,11 @@ class Clusterer(AbstractClusterer):
         :param cluster_noise:
         :return: list of Cluster objects
         """
-        embeddings = run_parallel([item.get_str_to_embed() for item in items], self.embedding_fn, max_workers=40, desc="embedding items for clustering", disable=not verbose)
-        cluster_results = self.get_cluster_algo(embeddings, items).fit(embeddings)
+        embeddings = run_parallel([item.get_str_to_embed() for item in items], self.embedding_fn, max_workers=40, desc="embedding items for clustering", disable=not self.verbose)
+        cluster_results = self.get_cluster_algo(embeddings).fit(embeddings)
         clusters, noise_items, noise_embeddings = self._build_clusters_from_cluster_results(cluster_results, embeddings, items)
         if cluster_noise:
-            noise_results = self._make_kmeans_algo(noise_embeddings, items).fit(noise_embeddings)
+            noise_results = make_kmeans_algo_with_optimal_silhouette_score(noise_embeddings).fit(noise_embeddings)
             noise_clusters, _, _ = self._build_clusters_from_cluster_results(noise_results, noise_embeddings, noise_items)
             if self.verbose:
                 print("LEN NOISE_CLUSTERS", len(noise_clusters))
@@ -132,7 +148,7 @@ class Clusterer(AbstractClusterer):
         return clusters + noise_clusters
 
     def cluster_and_summarize(self, items: list[AbstractClusterItem], **kwargs) -> list[Cluster]:
-        return [self._summarize_cluster(c, **kwargs) for c in self.cluster_items(items)]
+        return [self.summarize_cluster(c, **kwargs) for c in self.cluster_items(items)]
 
 
     def _build_clusters_from_cluster_results(self, cluster_results: Union[KMeans, HDBSCAN], embeddings, items):
@@ -152,30 +168,6 @@ class Clusterer(AbstractClusterer):
             clusters += [Cluster(label, curr_embeddings, curr_items)]
         return clusters, noise_items, noise_embeddings
 
-    @staticmethod
-    def _guess_optimal_kmeans_clustering(embeddings, verbose=True):
-        if len(embeddings) <= 1:
-            return len(embeddings)
-
-        best_sil_coeff = -1
-        best_num_clusters = 0
-        MAX_MIN_CLUSTERS = 3  # the max start of the search for optimal cluster number.
-        n_cluster_start = min(len(embeddings), MAX_MIN_CLUSTERS)
-        n_cluster_end = len(embeddings)//2
-        if n_cluster_end < (n_cluster_start + 1):
-            n_cluster_start = 2
-            n_cluster_end = n_cluster_start + 1
-        n_clusters = range(n_cluster_start, n_cluster_end)
-        for n_cluster in tqdm(n_clusters, total=len(n_clusters), desc='guess optimal clustering', disable=not verbose):
-            kmeans = KMeans(n_clusters=n_cluster, n_init='auto', random_state=RANDOM_SEED).fit(embeddings)
-            labels = kmeans.labels_
-            sil_coeff = silhouette_score(embeddings, labels, metric='cosine', random_state=RANDOM_SEED)
-            if sil_coeff > best_sil_coeff:
-                best_sil_coeff = sil_coeff
-                best_num_clusters = n_cluster
-        if verbose:
-            print("Best silhouette score", round(best_sil_coeff, 4))
-        return best_num_clusters
 
 
 class HDBSCANOptimizerClusterer(AbstractClusterer):
@@ -187,7 +179,7 @@ class HDBSCANOptimizerClusterer(AbstractClusterer):
         "cluster_selection_epsilon": [0.65, 0.5],
     }
 
-    def __init__(self, clusterer: Clusterer, verbose=True):
+    def __init__(self, clusterer: StandardClusterer, verbose=True):
         # TODO param to avoid clustering noise cluster which may mess up optimizer
         self.clusterer = clusterer
         self.param_search_len = len(self.HDBSCAN_PARAM_OPTS["min_samples"])
@@ -201,7 +193,8 @@ class HDBSCANOptimizerClusterer(AbstractClusterer):
         )
 
     def _calculate_clustering_score(self, summarized_clusters: list[Cluster], verbose=True) -> float:
-        distances = pairwise_distances(self._embed_cluster_summaries(summarized_clusters), metric='cosine')
+        embeddings = self._embed_cluster_summaries(summarized_clusters)
+        distances = pairwise_distances(embeddings, metric='cosine')
         np.fill_diagonal(distances, np.inf)
         min_distances = np.min(distances, axis=1)
         num_clusters = len(summarized_clusters)
@@ -220,11 +213,21 @@ class HDBSCANOptimizerClusterer(AbstractClusterer):
         for i in range(self.param_search_len):
             curr_hdbscan_obj = HDBSCAN(**self._get_ith_hdbscan_params(i))
             curr_clusterer = self.clusterer.clone(get_cluster_algo=lambda x: curr_hdbscan_obj)
-            curr_clusters = self.clusterer.cluster_items(items, cluster_noise=False)
+            curr_clusters = self.clusterer.cluster_items(items, cluster_noise=True)
             summarized_clusters = [self.clusterer.summarize_cluster(c) for c in curr_clusters]
             clustering_score = self._calculate_clustering_score(summarized_clusters)
             if clustering_score > highest_clustering_score:
                 highest_clustering_score = clustering_score
                 best_clusterer = curr_clusterer
         return best_clusterer.cluster_items(items, cluster_noise=cluster_noise)
+
+    def cluster_and_summarize(self, items: list[AbstractClusterItem]) -> list[Cluster]:
+        clusters = self.cluster_items(items, cluster_noise=True)
+        summarized_clusters = [self.clusterer.summarize_cluster(c) for c in clusters]
+        if self.verbose:
+            print(f'---SUMMARIES--- ({len(summarized_clusters)})')
+            for cluster in summarized_clusters:
+                print('\t-', len(cluster.items), cluster.summary.strip())
+        return summarized_clusters
+
 
