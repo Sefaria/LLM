@@ -34,27 +34,19 @@ def choose_ideal_sources_for_clusters(clusters: list[Cluster], topic: Topic) -> 
     return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(solve_clusters).data
 
 
-def choose_primary_sources(clusters: list[Cluster]) -> tuple[list[TopicPromptSource], list[Cluster]]:
-    orefs, cluster_labels = zip(*reduce(lambda x, y: x + [(Ref(item.source.ref), y.label) for item in y.items], clusters, []))
-    ref_clusters = RecommendationEngine.cluster_close_refs(orefs, cluster_labels, 2)
-    orefs, cluster_labels = [], []
-    for ref_cluster in ref_clusters:
-        curr_refs = [data['ref'] for data in ref_cluster]
-        curr_labels = [data['data'] for data in ref_cluster]
-        if curr_refs[0].primary_category == "Commentary":
-            # don't combine commentary refs
-            orefs += curr_refs
-            cluster_labels += curr_labels
-        else:
-            orefs.append(curr_refs[0].to(curr_refs[-1]))
-            cluster_labels.append(curr_labels[0])  # assume they're all in the same cluster
+def choose_primary_sources(clusters: list[Cluster]) -> list[str]:
+    """
+    Returns list of primary sources as trefs
+    :param clusters:
+    :return:
+    """
+    orefs = reduce(lambda x, y: x + [Ref(item.source.ref) for item in y.items], clusters, [])
     trefs, pageranks = zip(*pagerank_rank_ref_list(orefs))
     max_ref = trefs[0]
     thresh = mean(pageranks) + 2 * stdev(pageranks)
     is_big = pageranks[0] > thresh
     print(max_ref, "IS BIG:", is_big, pageranks[0], thresh)
-    # TODO need to combine sources before PR
-    return [clusters[0].items[0]], [clusters[0]]
+    return [max_ref]
 
 
 def choose_ideal_clusters(clusters: list[Cluster], max_clusters: int) -> list[Cluster]:
