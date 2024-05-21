@@ -37,10 +37,11 @@ def get_topics_to_curate():
 def curate_topic(topic: Topic) -> list[TopicPromptSource]:
     return (Artifact(topic)
             # .pipe(gather_sources_about_topic)
-            # .pipe(load_sources)
-            # .pipe(get_clustered_sources_based_on_summaries, topic)
-            .pipe(load_clusters)
-            .pipe(choose_ideal_sources_for_clusters, topic).data)
+            .pipe(load_sources)
+            .pipe(get_clustered_sources_based_on_summaries, topic)
+            .pipe(save_clusters, topic)
+            # .pipe(choose_ideal_sources_for_clusters, topic).data
+            )
 
 if __name__ == '__main__':
     slug = "cyrus"
