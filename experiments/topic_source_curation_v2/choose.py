@@ -27,10 +27,6 @@ from solver import solve_clusters
 
 def choose_ideal_sources_for_clusters(clusters: list[Cluster], topic: Topic) -> list[TopicPromptSource]:
     # return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(choose_ideal_sources).data
-    for cluster in clusters:
-        for item in cluster.items:
-            if item.source.ref == "Genesis 12:18":
-                halt = True
     return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(solve_clusters).data
 
 
