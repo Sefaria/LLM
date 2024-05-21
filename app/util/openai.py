@@ -2,7 +2,7 @@ import openai
 import tiktoken
 
 
-def count_tokens_openai(prompt, model="gpt-4o"):
+def count_tokens_openai(prompt, model="gpt-4"):
     encoding = tiktoken.encoding_for_model(model)
     num_tokens = len(encoding.encode(prompt))
     return num_tokens
