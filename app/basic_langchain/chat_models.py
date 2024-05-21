@@ -54,7 +54,7 @@ class ChatAnthropic(AbstractChatModel):
             # claude wants system messages as a kwarg
             system = messages[0].content
             messages.pop(0)
-        response = self.client.beta.messages.create(
+        response = self.client.messages.create(
             model=self.model,
             system=system,
             temperature=self.temperature,

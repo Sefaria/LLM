@@ -40,7 +40,7 @@ def get_uniqueness_of_source(source: TopicPromptSource, topic: Topic, other_sour
 
 def summarize_based_on_uniqueness(text: str, uniqueness: str) -> str:
 
-    llm = ChatOpenAI(model="gpt-4", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0)
     system_message = SystemMessage(content=
                                    "You are an intelligent Jewish scholar who is knowledgeable in all aspects of the Torah and Jewish texts.\n"
                                    "# Task\n"
@@ -90,7 +90,7 @@ def _get_uniqueness_of_source_as_compared_to_other_sources(source: TopicPromptSo
                                           '"hint": "{hint}"'
                                           '}}}}')
     human_message = HumanMessage(content=prompt.format(**prompt_inputs))
-    llm = ChatOpenAI(model="gpt-4", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0)
 
     response = llm([system_message, human_message])
     uniqueness = re.sub(fr'^"?{uniqueness_preamble}\s*', '', response.content)

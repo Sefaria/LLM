@@ -2,13 +2,13 @@ import openai
 import tiktoken
 
 
-def count_tokens_openai(prompt, model="gpt-4"):
+def count_tokens_openai(prompt, model="gpt-4o"):
     encoding = tiktoken.encoding_for_model(model)
     num_tokens = len(encoding.encode(prompt))
     return num_tokens
 
 
-def get_completion_openai(prompt, model="gpt-4"):
+def get_completion_openai(prompt, model="gpt-4o"):
     messages = [{"role": "user", "content": prompt}]
     response = openai.ChatCompletion.create(
         model=model,

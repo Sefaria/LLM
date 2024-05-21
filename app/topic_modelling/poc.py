@@ -78,7 +78,7 @@ def get_raw_topics(text, lang):
     user_prompt = PromptTemplate.from_template("# Input\n{text}")
     human_message = HumanMessage(content=user_prompt.format(text=text))
 
-    # llm = ChatOpenAI(model="gpt-4", temperature=0)
+    # llm = ChatOpenAI(model="gpt-4o", temperature=0)
     llm = ChatAnthropic(model="claude-2", temperature=0)
 
     response = llm([system_message, human_message])
