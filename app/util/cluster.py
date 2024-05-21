@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Union
-from functools import reduce
+from functools import reduce, partial
 from tqdm import tqdm
 from hdbscan import HDBSCAN
 from sklearn.metrics import silhouette_score, pairwise_distances
@@ -129,6 +129,10 @@ class StandardClusterer(AbstractClusterer):
         cluster.summary = self.get_cluster_summary(strs_to_summarize)
         return cluster
 
+    def summarize_clusters(self, clusters: list[Cluster], **kwargs) -> list[Cluster]:
+        return run_parallel(clusters, partial(self.summarize_cluster, **kwargs),
+                            max_workers=25, desc='summarize source clusters', disable=not self.verbose)
+
     def cluster_items(self, items: list[AbstractClusterItem], cluster_noise: bool = False) -> list[Cluster]:
         """
         :param items: Generic list of items to cluster
@@ -148,7 +152,8 @@ class StandardClusterer(AbstractClusterer):
         return clusters + noise_clusters
 
     def cluster_and_summarize(self, items: list[AbstractClusterItem], **kwargs) -> list[Cluster]:
-        return [self.summarize_cluster(c, **kwargs) for c in self.cluster_items(items)]
+        clusters = self.cluster_items(items)
+        return self.summarize_clusters(clusters, **kwargs)
 
 
     def _build_clusters_from_cluster_results(self, cluster_results: Union[KMeans, HDBSCAN], embeddings, items):
@@ -212,18 +217,19 @@ class HDBSCANOptimizerClusterer(AbstractClusterer):
         highest_clustering_score = 0
         for i in range(self.param_search_len):
             curr_hdbscan_obj = HDBSCAN(**self._get_ith_hdbscan_params(i))
-            curr_clusterer = self.clusterer.clone(get_cluster_algo=lambda x: curr_hdbscan_obj)
+            curr_clusterer = self.clusterer.clone(get_cluster_algo=lambda x: curr_hdbscan_obj, verbose=False)
             curr_clusters = self.clusterer.cluster_items(items, cluster_noise=True)
-            summarized_clusters = [self.clusterer.summarize_cluster(c) for c in curr_clusters]
+            summarized_clusters = self.clusterer.summarize_clusters(curr_clusters)
             clustering_score = self._calculate_clustering_score(summarized_clusters)
             if clustering_score > highest_clustering_score:
                 highest_clustering_score = clustering_score
                 best_clusterer = curr_clusterer
+                print("best hdbscan params", self._get_ith_hdbscan_params(i))
         return best_clusterer.cluster_items(items, cluster_noise=cluster_noise)
 
     def cluster_and_summarize(self, items: list[AbstractClusterItem]) -> list[Cluster]:
         clusters = self.cluster_items(items, cluster_noise=True)
-        summarized_clusters = [self.clusterer.summarize_cluster(c) for c in clusters]
+        summarized_clusters = self.clusterer.summarize_clusters(clusters)
         if self.verbose:
             print(f'---SUMMARIES--- ({len(summarized_clusters)})')
             for cluster in summarized_clusters:
