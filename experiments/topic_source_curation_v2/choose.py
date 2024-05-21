@@ -27,6 +27,10 @@ from solver import solve_clusters
 
 def choose_ideal_sources_for_clusters(clusters: list[Cluster], topic: Topic) -> list[TopicPromptSource]:
     # return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(choose_ideal_sources).data
+    for cluster in clusters:
+        for item in cluster.items:
+            if item.source.ref == "Genesis 12:18":
+                halt = True
     return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(solve_clusters).data
 
 
@@ -66,8 +70,8 @@ def choose_ideal_clusters(clusters: list[Cluster], max_clusters: int) -> list[Cl
 def sort_clusters(clusters: list[Cluster], max_clusters: int, topic:Topic) -> list[Cluster]:
     # sorted_clusters = _sort_by_highest_avg_pairwise_distance(clusters)
     sorted_clusters = _sort_clusters_by_instruction(clusters, topic)
-    for cluster in clusters:
-        _sort_within_cluster(cluster, topic)
+    for cluster in sorted_clusters:
+        cluster.items = _sort_within_cluster(cluster, topic)
     return sorted_clusters
 
 def choose_ideal_sources(source_clusters: list[Cluster], verbose=True) -> list[TopicPromptSource]:
@@ -127,7 +131,7 @@ def get_gpt_compare(system_prompt, human_prompt_generator, llm):
     return gpt_compare
 
 
-def sort_by_instruction(documents: list[str], comparison_instruction):
+def sort_by_instruction(documents,  comparison_instruction, key_extraction_func=lambda x:x):
     from functools import cmp_to_key
     message_suffix = " The only output should be either '1' or '2' or '0'"
     llm = ChatOpenAI(model="gpt-4", temperature=0)
@@ -135,7 +139,7 @@ def sort_by_instruction(documents: list[str], comparison_instruction):
         content=
         comparison_instruction
         +message_suffix)
-    human_generator = lambda a, b: HumanMessage(content=f"1) {a}\n2) {b}")
+    human_generator = lambda a, b: HumanMessage(content=f"1) {key_extraction_func(a)}\n2) {key_extraction_func(b)}")
     documents.sort(key=cmp_to_key(get_gpt_compare(system, human_generator, llm)))
     # for document in documents:
     #     print(document)
@@ -172,9 +176,8 @@ def _sort_clusters_by_instruction(clusters: list[Cluster], topic: Topic) -> list
     fundamentalness_instruction ="""You are an expert in Jewish laws, history and traditions, wishing to teach your student about the historical person of Cyrus in light of Jewish tradition.
     Given 2 topics related to king Cyrus, output the index of the one which presents a more fundamental and basic fact about Cyrus, one that your students should learn first before learning the other. If both are equally fundamental and no one is more important than the other, output 0.  
     """
-    interesting = sort_by_instruction(summaries[:], interestingness_instruction)
-    sorted_clusters = _apply_sorting_to_clusters(clusters, interesting)
-
+    # interesting = sort_by_instruction(summaries[:], interestingness_instruction)
+    interesting = sort_by_instruction(clusters, interestingness_instruction, lambda cluster: cluster.summary)
     # fundamental = sort_by_instruction(summaries[:], fundamentalness_instruction)
 
 
@@ -187,16 +190,13 @@ def _sort_clusters_by_instruction(clusters: list[Cluster], topic: Topic) -> list
     # pprint(interesting_voyageai)
     a = "halt"
 
-    return sorted_clusters
+    return interesting
 
 def _sort_within_cluster(cluster: Cluster, topic: Topic):
     if len(cluster.items) <= 1:
         return cluster
-    summaries = [summarized_source.summary for summarized_source in cluster.items]
-    # texts = [summarized_source.source.text['en'] for summarized_source in cluster.items]
     interestingness_instruction = f"""You are an expert in Jewish laws, history and traditions, wishing to teach your student about {topic.title} in light of Jewish tradition.
         Given 2 texts related to {topic.title}, output the index of the one which presents a more interesting, surprising, wild and/or non-trivial information regarding {topic.title}, which might be captivating and intriguing to your students. If both are equally non-trivial and interesting, output 0.  
         """
-    interesting = sort_by_instruction(summaries[:], interestingness_instruction)
-    cluster = _apply_sorting_to_sources_within_cluster(cluster, interesting)
-    return cluster
+    interesting = sort_by_instruction(cluster.items, interestingness_instruction, lambda item: item.summary)
+    return interesting
