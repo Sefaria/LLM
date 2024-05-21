@@ -57,9 +57,11 @@ def choose_primary_sources(clusters: list[Cluster]) -> list[str]:
     refs, pageranks = zip(*pagerank_rank_ref_list(orefs))
     max_ref = refs[0].orig_tref
     thresh = mean(pageranks) + 2 * stdev(pageranks)
-    is_big = pageranks[0] > thresh
-    print(max_ref, "IS BIG:", is_big, pageranks[0], thresh)
-    return [max_ref]
+    is_primary = pageranks[0] > thresh
+    print(max_ref, "IS PRIMARY:", is_primary, round(pageranks[0], 3), round(thresh, 3))
+    if is_primary:
+        return [max_ref]
+    return []
 
 
 def choose_ideal_clusters(clusters: list[Cluster], max_clusters: int) -> list[Cluster]:
