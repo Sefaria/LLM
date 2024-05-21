@@ -8,6 +8,7 @@ from functools import reduce, partial
 from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source, _make_llm_topic
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface.common.topic import Topic
+from sefaria.recommendation_engine import RecommendationEngine
 from basic_langchain.chat_models import ChatAnthropic
 from basic_langchain.chat_models import ChatOpenAI
 from basic_langchain.schema import HumanMessage, SystemMessage
@@ -32,8 +33,31 @@ def gather_sources_about_topic(topic: Topic) -> list[TopicPromptSource]:
     return (Artifact(topic)
             .pipe(source_gatherer.gather)
             .pipe(_make_sources_unique)
-            .pipe(_filter_sources_about_topic, topic).data
+            .pipe(_filter_sources_about_topic, topic)
+            .pipe(_combine_close_sources).data
            )
+
+def _combine_close_sources(sources: list[TopicPromptSource]) -> list[TopicPromptSource]:
+    """
+    Currently only combines sources in Tanakh because segments tend to be small and highly related
+    :param sources:
+    :return:
+    """
+    orefs = [Ref(source.ref) for source in sources]
+    ref_clusters = RecommendationEngine.cluster_close_refs(orefs, sources, 2)
+    clustered_sources = []
+    for ref_cluster in ref_clusters:
+        curr_refs = [data['ref'] for data in ref_cluster]
+        curr_sources = [data['data'] for data in ref_cluster]
+        if curr_refs[0].primary_category == "Tanakh":
+            ranged_oref = curr_refs[0].to(curr_refs[-1])
+            if len(curr_refs) > 1:
+                print("COMBINED", ranged_oref, " | ".join(r.normal() for r in curr_refs))
+            clustered_sources.append(_make_topic_prompt_source(ranged_oref, '', with_commentary=False))
+        else:
+            # don't combine commentary refs
+            clustered_sources += curr_sources
+    return clustered_sources
 
 def _make_sources_unique(sources: list[TopicPromptSource]) -> list[TopicPromptSource]:
     orefs = [Ref(source.ref) for source in sources]
