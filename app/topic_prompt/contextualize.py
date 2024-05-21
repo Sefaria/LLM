@@ -33,7 +33,7 @@ def context_from_surrounding_text(source: TopicPromptSource) -> str:
     human_message = HumanMessage(content=f"<segment>{segment_text}</segment>\n"
                                          f"<context>{section_text}</context>\n"
                                          f"<hint>{source.context_hint}</hint>")
-    llm = ChatAnthropic(model="claude-2.1", temperature=0)
+    llm = ChatAnthropic(model="gpt-4o", temperature=0)
     response = llm([system_message, human_message])
     context = get_by_xml_tag(response.content, "relevant_context").strip()
     if context is None:
@@ -44,7 +44,7 @@ def context_from_surrounding_text(source: TopicPromptSource) -> str:
 
 def general_context(source: TopicPromptSource):
     text = get_source_text_with_fallback(source, "en", auto_translate=True)
-    llm = ChatOpenAI(model="gpt-4", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0)
     system_message = SystemMessage(content=f"""
     Given a text from the Jewish cannon, add any relevant context that would help a user understand this text from a
     Jewish perspective. Relevant context may be:

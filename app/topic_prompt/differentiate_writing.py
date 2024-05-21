@@ -13,7 +13,7 @@ from basic_langchain.chat_models import ChatOpenAI
 
 
 def differentiate_writing(sentence, phrase_to_avoid):
-    llm = ChatOpenAI(model="gpt-4", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0)
     system_message = SystemMessage(content="Given a target sentence (wrapped in <target> tags) and a phrase to avoid "
                                            "using (wrapped in <phrase_to_avoid> tags), rewrite <target> so it doesn't "
                                            "use <phrase_to_avoid> but maintains the same meaning, tone and terminology."
@@ -30,7 +30,7 @@ def differentiate_writing(sentence, phrase_to_avoid):
 
 
 def remove_dependent_clause(sentence, phrase_to_avoid):
-    llm = ChatOpenAI(model="gpt-4", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0)
     system_message = SystemMessage(content="Given a target sentence (wrapped in <target> tags) and a phrase to avoid "
                                            "using (wrapped in <phrase_to_avoid> tags):\n"
                                            "1) Determine if <phrase_to_avoid> includes an explanation of a term\n"
@@ -55,7 +55,7 @@ def remove_dependent_clause(sentence, phrase_to_avoid):
 
 
 def repeated_phrase(sentence, comparison_sentences: list[str]):
-    llm = ChatOpenAI(model="gpt-4", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0)
     system_message = SystemMessage(content="Given a target sentence (wrapped in <target> tags) and a list of "
                                            "comparison sentences (each wrapped in <comparison> tags):\n"
                                            "1) Decide if there is a phrase shared between the target sentence and at least one comparison sentence\n"
