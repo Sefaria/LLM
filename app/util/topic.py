@@ -24,20 +24,24 @@ def get_urls_for_topic_from_topic_object(topic: Topic) -> list[str]:
     return urls
 
 
-def generate_topic_description(text):
+def generate_topic_description(topic: Topic, text: str) -> str:
     llm = ChatOpenAI(model="gpt-4o", temperature=0)
-    system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given text about a Jewish topic, wrapped in <text>, summarize the text in a small paragraph. Summary should be wrapped in <summary> tags.")
-    human = HumanMessage(content=f"<text>{text}</text>")
+    system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given text about a Jewish topic, wrapped in <text>, write a description for this topic for newcomers to Judaism. Topic is wrapped in <topic> tags. Output description should be no more than 2 sentences and wrapped in <description> tags.")
+    human = HumanMessage(content=f"<topic>{topic.title['en']}</topic>\n<text>{text}</text>")
     response = llm([system, human])
-    return get_by_xml_tag(response.content, "summary")
+    return get_by_xml_tag(response.content, "description")
 
 
 def get_or_generate_topic_description(topic: Topic) -> str:
     description = topic.description.get('en', '')
     if not description:
         description = get_topic_description_from_webpages(topic)
+        if description:
+            print('Generated desc from webpage:', description)
     if not description:
         description = get_topic_description_from_top_sources(topic)
+        if description:
+            print('Generated desc from sources:', description)
     return description
 
 
@@ -46,7 +50,7 @@ def get_topic_description_from_webpages(topic: Topic):
     if len(urls) == 0:
         return
     text = get_webpage_text(urls[0])
-    return generate_topic_description(text)
+    return generate_topic_description(topic, text)
 
 
 def get_topic_description_from_top_sources(topic: Topic, verbose=True):
@@ -59,7 +63,7 @@ def get_topic_description_from_top_sources(topic: Topic, verbose=True):
     bullet_point_str = f"{topic.title['en']} - Bullet Points:"
     for summary in summaries:
         bullet_point_str += f"- {summary.strip()}\n"
-    return generate_topic_description(bullet_point_str.strip())
+    return generate_topic_description(topic, bullet_point_str.strip())
 
 
 def get_top_trefs_from_slug(slug, top_n=10) -> list[str]:
