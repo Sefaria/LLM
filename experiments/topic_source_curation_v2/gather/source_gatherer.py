@@ -31,15 +31,16 @@ def gather_sources_about_topic(topic: Topic) -> list[TopicPromptSource]:
             .pipe(_combine_close_sources).data
            )
 
-def _does_text_add_information(text1, text2):
+def _does_text_add_information(texts):
+    text1, text2 = texts
     llm = ChatOpenAI(model="gpt-4o", temperature=0)
     system = SystemMessage(content="Given two texts from the Torah cannon, text1 and text2, output 'Yes' if text2 adds significant information not present in text1. Output 'No' if text2 has basically the same information as text. text1 is wrapped in <text1> tags. text2 is wrapped in <text2> tags. Output 'Yes' or 'No' wrapped in <answer> tags.")
     human = HumanMessage(content=f"<text1>{text1}</text1>\n<text2>{text2}</text2>")
     response = llm([system, human])
-    answer = get_by_xml_tag(response.content, 'answer')
-    return answer.lower().strip() == 'Yes'
+    adds_info = get_by_xml_tag(response.content, 'answer').lower().strip() == 'Yes'
+    return adds_info
 
-def _filter_targum_thats_redundant(sources: list[TopicPromptSource]) -> list[TopicPromptSource]:
+def _filter_targum_thats_redundant(sources: list[TopicPromptSource], verbose=True) -> list[TopicPromptSource]:
     """
     Many targum sources don't add any more information than the pasuk. Filter these out.
     :param sources:
@@ -47,6 +48,8 @@ def _filter_targum_thats_redundant(sources: list[TopicPromptSource]) -> list[Top
     """
     from sefaria.model.link import LinkSet
     out_sources = []
+    texts_to_check = []
+    sources_to_check = []
     for source in sources:
         if "|".join(source.categories).startswith("Tanakh|Targum"):
             links = LinkSet({"refs": source.ref, "type": "targum"})
@@ -56,13 +59,17 @@ def _filter_targum_thats_redundant(sources: list[TopicPromptSource]) -> list[Top
                 if tanakh_ref.primary_category == "Tanakh":
                     break
             tanakh_source = _make_topic_prompt_source(tanakh_ref, '', with_commentary=False)
-            if _does_text_add_information(tanakh_source.text['en'], source.text['en']):
-                print(f"Targum adds info! {source.ref}\n{source.text['en']}")
-                out_sources += [source]
-            else:
-                print(f"Targum adds NO info! {source.ref}\n{source.text['en']}")
+            texts_to_check.append((tanakh_source.text['en'], source.text['en']))
+            sources_to_check.append(source)
         else:
             out_sources += [source]
+    do_sources_add_info = run_parallel(texts_to_check, _does_text_add_information, max_workers=25, desc="checking if sources add info", disable=not verbose)
+    for does_add_info, source in zip(do_sources_add_info, sources_to_check):
+        if does_add_info:
+            out_sources += [source]
+            print(f"Targum adds info! {source.ref}\n{source.text['en']}")
+        else:
+            print(f"Targum adds NO info! {source.ref}\n{source.text['en']}")
     return out_sources
 
 def _combine_close_sources(sources: list[TopicPromptSource]) -> list[TopicPromptSource]:
