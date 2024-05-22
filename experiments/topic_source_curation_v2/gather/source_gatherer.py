@@ -12,6 +12,7 @@ from sefaria.recommendation_engine import RecommendationEngine
 from basic_langchain.chat_models import ChatOpenAI
 from basic_langchain.schema import HumanMessage, SystemMessage
 from util.general import get_by_xml_tag, run_parallel
+from util.topic import get_top_trefs_from_slug
 from util.pipeline import Artifact
 from experiments.topic_source_curation_v2.common import get_topic_str_for_prompts
 from experiments.topic_source_curation_v2.gather.source_querier import SourceQuerierFactory, AbstractSourceQuerier
@@ -26,8 +27,43 @@ def gather_sources_about_topic(topic: Topic) -> list[TopicPromptSource]:
             .pipe(source_gatherer.gather)
             .pipe(_make_sources_unique)
             .pipe(_filter_sources_about_topic, topic)
+            .pipe(_filter_targum_thats_redundant)
             .pipe(_combine_close_sources).data
            )
+
+def _does_text_add_information(text1, text2):
+    llm = ChatOpenAI(model="gpt-4o", temperature=0)
+    system = SystemMessage(content="Given two texts from the Torah cannon, text1 and text2, output 'Yes' if text2 adds significant information not present in text1. Output 'No' if text2 has basically the same information as text. text1 is wrapped in <text1> tags. text2 is wrapped in <text2> tags. Output 'Yes' or 'No' wrapped in <answer> tags.")
+    human = HumanMessage(content=f"<text1>{text1}</text1>\n<text2>{text2}</text2>")
+    response = llm([system, human])
+    answer = get_by_xml_tag(response.content, 'answer')
+    return answer.lower().strip() == 'Yes'
+
+def _filter_targum_thats_redundant(sources: list[TopicPromptSource]) -> list[TopicPromptSource]:
+    """
+    Many targum sources don't add any more information than the pasuk. Filter these out.
+    :param sources:
+    :return:
+    """
+    from sefaria.model.link import LinkSet
+    out_sources = []
+    for source in sources:
+        if "|".join(source.categories).startswith("Tanakh|Targum"):
+            links = LinkSet({"refs": source.ref, "type": "targum"})
+            tanakh_ref = None
+            for link in links:
+                tanakh_ref = link.ref_opposite(Ref(source.ref))
+                if tanakh_ref.primary_category == "Tanakh":
+                    break
+            tanakh_source = _make_topic_prompt_source(tanakh_ref, '', with_commentary=False)
+            if _does_text_add_information(tanakh_source.text['en'], source.text['en']):
+                print(f"Targum adds info! {source.ref}\n{source.text['en']}")
+                out_sources += [source]
+            else:
+                print(f"Targum adds NO info! {source.ref}\n{source.text['en']}")
+        else:
+            out_sources += [source]
+    return out_sources
 
 def _combine_close_sources(sources: list[TopicPromptSource]) -> list[TopicPromptSource]:
     """
@@ -178,7 +214,7 @@ class TopicPageSourceGetter:
 
     @staticmethod
     def get(topic: Topic) -> list[TopicPromptSource]:
-        return [_make_topic_prompt_source(Ref(tref), '', with_commentary=False) for tref in TopicPageSourceGetter._get_top_trefs_from_slug(topic.slug, None)]
+        return [_make_topic_prompt_source(Ref(tref), '', with_commentary=False) for tref in get_top_trefs_from_slug(topic.slug, None)]
 
 
 def filter_subset_refs(orefs: list[Ref]) -> list[Ref]:

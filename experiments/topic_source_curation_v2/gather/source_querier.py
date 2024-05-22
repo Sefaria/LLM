@@ -9,7 +9,7 @@ from langchain.vectorstores.chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from langchain_voyageai.embeddings import VoyageAIEmbeddings
-from experiments.topic_source_curation_v2.common import filter_invalid_refs
+from util.sefaria_specific import filter_invalid_refs
 
 
 class SourceQuerierFactory:
