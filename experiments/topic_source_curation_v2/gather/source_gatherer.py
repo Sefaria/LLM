@@ -9,25 +9,17 @@ from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source, _make_llm
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface.common.topic import Topic
 from sefaria.recommendation_engine import RecommendationEngine
-from basic_langchain.chat_models import ChatAnthropic
 from basic_langchain.chat_models import ChatOpenAI
 from basic_langchain.schema import HumanMessage, SystemMessage
-from util.general import get_by_xml_tag
-from sefaria.helper.topic import get_topic
+from util.general import get_by_xml_tag, run_parallel
+from util.pipeline import Artifact
+from experiments.topic_source_curation_v2.common import get_topic_str_for_prompts
 from experiments.topic_source_curation_v2.gather.source_querier import SourceQuerierFactory, AbstractSourceQuerier
 from experiments.topic_source_curation_v2.gather.question_generator import create_multi_source_question_generator, AbstractQuestionGenerator, WebPageQuestionGenerator
 from experiments.topic_source_curation_v2.cluster import get_text_from_source, Cluster
-from experiments.topic_source_curation_v2.common import filter_invalid_refs, run_parallel
-from util.pipeline import Artifact
 from sefaria.model.topic import Topic as SefariaTopic
 
 
-def jaccard_similarity(list1, list2):
-    set1 = set(list1)
-    set2 = set(list2)
-    intersection = len(set1.intersection(set2))
-    union = len(set1.union(set2))
-    return intersection / union
 def gather_sources_about_topic(topic: Topic) -> list[TopicPromptSource]:
     source_gatherer = _create_source_gatherer()
     return (Artifact(topic)
@@ -188,17 +180,6 @@ class TopicPageSourceGetter:
     def get(topic: Topic) -> list[TopicPromptSource]:
         return [_make_topic_prompt_source(Ref(tref), '', with_commentary=False) for tref in TopicPageSourceGetter._get_top_trefs_from_slug(topic.slug, None)]
 
-    @staticmethod
-    def _get_top_trefs_from_slug(slug, top_n=10) -> list[str]:
-        out = get_topic(True, slug, with_refs=True, ref_link_type_filters=['about', 'popular-writing-of'])
-        try:
-            trefs = [d['ref'] for d in out['refs']['about']['refs'] if not d['is_sheet']]
-            trefs = filter_invalid_refs(trefs[:top_n])
-            return trefs
-        except KeyError:
-            print('No refs found for {}'.format(slug))
-            return []
-
 
 def filter_subset_refs(orefs: list[Ref]) -> list[Ref]:
     orefs.sort(key=lambda x: x.order_id())
@@ -227,12 +208,9 @@ def filter_subset_refs(orefs: list[Ref]) -> list[Ref]:
         deduped_orefs += [orefs[-1]]
     return deduped_orefs
 
-def _get_topic_description(topic: Topic):
-    return f"{topic.title['en']}\nDescription: {topic.description.get('en', WebPageQuestionGenerator.get_topic_description(topic)) or 'N/A'}"
-
 
 def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], topic: Topic, verbose=True):
-    topic_description = _get_topic_description(topic)
+    topic_description = get_topic_str_for_prompts(topic)
     unit_func = partial(_is_text_about_topic, topic_description)
     is_about_topic_list = run_parallel([key(item) for item in items], unit_func, 20,
                                        desc="filter irrelevant sources", disable=not verbose)

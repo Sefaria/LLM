@@ -10,8 +10,7 @@ from dataclasses import dataclass
 from numpy import ndarray
 from basic_langchain.chat_models import ChatOpenAI
 from basic_langchain.schema import HumanMessage, SystemMessage, AbstractMessage
-from experiments.topic_source_curation_v2.common import run_parallel
-from util.general import get_by_xml_tag
+from util.general import get_by_xml_tag, run_parallel
 import numpy as np
 
 RANDOM_SEED = 567454
