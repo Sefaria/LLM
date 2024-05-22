@@ -7,14 +7,12 @@ from tqdm import tqdm
 import django
 django.setup()
 from functools import reduce
-from sefaria.model.topic import Topic as SefariaTopic
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from basic_langchain.schema import SystemMessage, HumanMessage
 from basic_langchain.chat_models import ChatOpenAI
-from util.general import get_by_xml_tag
-import requests
-from readability import Document
+from util.topic import get_urls_for_topic_from_topic_object
+from util.webpage import get_webpage_text
 import re
 import csv
 from experiments.topic_source_curation_v2.common import run_parallel
@@ -222,41 +220,8 @@ class WebPageQuestionGenerator(AbstractQuestionGenerator):
     def _get_urls_for_topic_from_mapping(self, topic: Topic) -> list[str]:
         return self._topic_url_mapping[topic.slug]
 
-    @staticmethod
-    def get_topic_description(topic: Topic):
-        urls = WebPageQuestionGenerator._get_urls_for_topic_from_topic_object(topic)
-        if len(urls) == 0:
-            return
-        text = WebPageQuestionGenerator._get_webpage_text(urls[0])
-        desc = WebPageQuestionGenerator._generate_topic_description(text)
-        print("Generated topic desc", desc)
-        return desc
-
-    @staticmethod
-    def _generate_topic_description(webpage_text):
-        llm = ChatOpenAI(model="gpt-4o", temperature=0)
-        system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given text about a Jewish topic, wrapped in <text>, summarize the text in a small paragraph. Summary should be wrapped in <summary> tags.")
-        human = HumanMessage(content=f"<text>{webpage_text}</text>")
-        response = llm([system, human])
-        return get_by_xml_tag(response.content, "summary")
-
-    @staticmethod
-    def _get_urls_for_topic_from_topic_object(topic: Topic) -> list[str]:
-        sefaria_topic = SefariaTopic.init(topic.slug)
-        assert isinstance(sefaria_topic, SefariaTopic)
-        url_fields = [["enWikiLink", "heWikiLink"], ["enNliLink", "heNliLink"], ["jeLink"]]
-        urls = []
-        for fields_by_priority in url_fields:
-            for field in fields_by_priority:
-                value = sefaria_topic.get_property(field)
-                if value is not None:
-                    urls.append(value)
-                    break
-        return urls
-
     def _get_urls_for_topic(self, topic: Topic) -> list[str]:
-        return self._get_urls_for_topic_from_mapping(topic) + self._get_urls_for_topic_from_topic_object(topic)
-
+        return self._get_urls_for_topic_from_mapping(topic) + get_urls_for_topic_from_topic_object(topic)
 
     def generate(self, topic: Topic, verbose=True) -> list[str]:
         urls = self._get_urls_for_topic(topic)
@@ -270,8 +235,9 @@ class WebPageQuestionGenerator(AbstractQuestionGenerator):
 
         return questions
 
-    def _generate_for_url(self, url: str) -> list[str]:
-        webpage_text = self._get_webpage_text(url)
+    @staticmethod
+    def _generate_for_url(url: str) -> list[str]:
+        webpage_text = get_webpage_text(url)
         llm = ChatOpenAI(model="gpt-4o", temperature=0)
         system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given text about a Jewish topic, wrapped in <text>, summary the text and output the most important bullet points the text discusses. Wrap each bullet point in a <bullet_point> tag.")
         human = HumanMessage(content=f"<text>{webpage_text}</text>")
@@ -280,10 +246,3 @@ class WebPageQuestionGenerator(AbstractQuestionGenerator):
         for match in re.finditer(r"<bullet_point>(.*?)</bullet_point>", response.content):
             questions += [match.group(1)]
         return questions
-
-    @staticmethod
-    def _get_webpage_text(url: str) -> str:
-        response = requests.get(url)
-        doc = Document(response.content)
-        return f"{doc.title()}\n{doc.summary()}"
-
