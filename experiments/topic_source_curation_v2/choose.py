@@ -25,9 +25,26 @@ from basic_langchain.chat_models import ChatOpenAI
 from sefaria_llm_interface.common.topic import Topic
 from solver import solve_clusters
 
-def choose_ideal_sources_for_clusters(clusters: list[Cluster], topic: Topic) -> list[TopicPromptSource]:
-    # return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(choose_ideal_sources).data
-    return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(solve_clusters).data
+# def choose_ideal_sources_for_clusters(clusters: list[Cluster], topic: Topic) -> list[TopicPromptSource]:
+#     # return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(choose_ideal_sources).data
+#     return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(solve_clusters).data
+
+def choose(clusters: list[Cluster], topic: Topic):
+    # return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(solve_clusters).data
+    ##ugly fix vectordatabase index inconsistencies:
+    for cluster in clusters:
+        for item in cluster.items[:]:
+            try:
+                Ref(item.source.ref)
+            except:
+                cluster.items.remove(item)
+    primary_sources_trefs = choose_primary_sources(clusters)
+    sorted_clusters = sort_clusters(clusters, topic, 0)
+    for cluster in sorted_clusters:
+        print("CLUSTER")
+        for item in cluster.items:
+            print(item.source.ref)
+    solve_clusters(sorted_clusters, primary_sources_trefs)
 
 
 def choose_primary_sources(clusters: list[Cluster]) -> list[str]:
@@ -37,8 +54,8 @@ def choose_primary_sources(clusters: list[Cluster]) -> list[str]:
     :return:
     """
     orefs = reduce(lambda x, y: x + [Ref(item.source.ref) for item in y.items], clusters, [])
-    trefs, pageranks = zip(*pagerank_rank_ref_list(orefs))
-    max_ref = trefs[0]
+    refs, pageranks = zip(*pagerank_rank_ref_list(orefs))
+    max_ref = refs[0].orig_tref
     thresh = mean(pageranks) + 2 * stdev(pageranks)
     is_primary = pageranks[0] > thresh
     print(max_ref, "IS PRIMARY:", is_primary, round(pageranks[0], 3), round(thresh, 3))
@@ -57,7 +74,7 @@ def choose_ideal_clusters(clusters: list[Cluster], max_clusters: int) -> list[Cl
     # sorted_clusters = _sort_clusters_by_instruction(clusters)
     return [c for c in clusters if len(clusters) > 1]
 
-def sort_clusters(clusters: list[Cluster], max_clusters: int, topic:Topic) -> list[Cluster]:
+def sort_clusters(clusters: list[Cluster], topic:Topic, max_clusters: int) -> list[Cluster]:
     # sorted_clusters = _sort_by_highest_avg_pairwise_distance(clusters)
     sorted_clusters = _sort_clusters_by_instruction(clusters, topic)
     for cluster in sorted_clusters:
@@ -184,7 +201,7 @@ def _sort_clusters_by_instruction(clusters: list[Cluster], topic: Topic) -> list
 
 def _sort_within_cluster(cluster: Cluster, topic: Topic):
     if len(cluster.items) <= 1:
-        return cluster
+        return cluster.items
     interestingness_instruction = f"""You are an expert in Jewish laws, history and traditions, wishing to teach your student about {topic.title} in light of Jewish tradition.
         Given 2 texts related to {topic.title}, output the index of the one which presents a more interesting, surprising, wild and/or non-trivial information regarding {topic.title}, which might be captivating and intriguing to your students. If both are equally non-trivial and interesting, output 0.  
         """

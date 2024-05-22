@@ -19,63 +19,89 @@ from sefaria_llm_interface.common.topic import Topic
 from pulp import LpProblem, LpMaximize, LpVariable, lpSum, LpStatus, LpSolverDefault
 from sefaria.model.text import Ref
 from functools import reduce
+from sefaria.model import library
 
 
 
-def solve_clusters(clusters: list[Cluster]) -> list[SummarizedSource]:
-    ##ugly fix vectordatabase index inconsistencies:
-    for cluster in clusters:
-        for item in cluster.items:
-            try:
-                Ref(item.source.ref)
-            except:
-                cluster.items.remove(item)
-
-
+def solve_clusters(clusters: list[Cluster], primary_trefs: list[str]) -> list[SummarizedSource]:
     num_of_sources = sum(len(c.items) for c in clusters)
     flattened_summarized_sources = reduce(lambda x, y: x + y.items, clusters, [])
     prob = LpProblem("Choose_Sources", LpMaximize)
-    source_vars = []
-    category_dict = {}
-    penalty_vars = []
 
-    # Define binary decision variables for sources
+    ref_var_map = {}
+    var_ref_map = {}
+    ordered_sources_vars = []
     for cluster in clusters:
-        cluster_vars = []
         for item in cluster.items:
             var = LpVariable(f'{item.source.ref}', lowBound=0, upBound=1, cat='Binary')
-            cluster_vars.append(var)
-            # Organize by category
-            category = Ref(item.source.ref).primary_category
-            if category not in category_dict:
-                category_dict[category] = []
-            category_dict[category].append(var)
-        source_vars.append(cluster_vars)
+            ref_var_map[item.source.ref] = var
+            var_ref_map[var] = item.source.ref
+            ordered_sources_vars.append(var)
+
 
     # Add the constraints that sum of all sources from the same cluster must be equal to 1
-    for cluster_vars in source_vars:
-        # penalty_var = LpVariable(f'penalty_cluster_{len(penalty_vars)}', lowBound=0, upBound=1, cat='Binary')
+    for cluster in clusters:
+        cluster_vars = [ref_var_map[item.source.ref] for item in cluster.items]
         prob += lpSum(cluster_vars) <= 1
-        # penalty_vars.append(penalty_var)
+
 
     # Add the constraints that the sum of sources with the same category must be >= 1
-    for category, vars_in_category in category_dict.items():
-        penalty_var = LpVariable(f'penalty_category_{category}', lowBound=0, upBound=1, cat='Binary')
-        prob += lpSum(vars_in_category) + penalty_var >= 1
-        # prob += lpSum(vars_in_category) >= 1
-        penalty_vars.append(penalty_var)
+    category_vars_map = {}
+    for ref, var in ref_var_map.items():
+        category = Ref(ref).primary_category
+        if category not in category_vars_map:
+            category_vars_map[category] = []
+        category_vars_map[category].append(var)
 
-    all_source_vars = [var for inner_list in source_vars for var in inner_list]
+    missing_category_penalty_vars = []
+    for category, vars_in_category in category_vars_map.items():
+        missing_category_penalty_var = LpVariable(f'penalty_missing_category_{category}', lowBound=0, upBound=1, cat='Binary')
+        prob += lpSum(vars_in_category) + missing_category_penalty_var >= 1
+        missing_category_penalty_vars.append(missing_category_penalty_var)
+
+    # primary sources must be chosen
+    primary_vars = [ref_var_map[primary_ref] for primary_ref in primary_trefs]
+    for primary_sources_var in primary_vars:
+        prob += primary_sources_var == 1
+
+    # don't choose sources from the same book
+    book_vars_map = {}
+    for ref, var in ref_var_map.items():
+        book = Ref(ref).index.title
+        if book not in book_vars_map:
+            book_vars_map[book] = []
+        book_vars_map[book].append(var)
+    same_book_penalty_vars = []
+    for book, vars in book_vars_map.items():
+        same_book_penalty_var = LpVariable(f'penalty_same_book_{book}', lowBound=0, cat='Integer')
+        prob += lpSum(vars) - same_book_penalty_var <= 1
+        same_book_penalty_vars.append(same_book_penalty_var)
+
+    # don't choose sources from the same author
+    author_vars_map = {}
+    for ref, var in ref_var_map.items():
+        book = Ref(ref).index.title
+        authors = getattr(library.get_index(book), 'authors', [])
+        for author in authors:
+            if author not in author_vars_map:
+                author_vars_map[author] = []
+            author_vars_map[author].append(var)
+    same_author_penalty_vars = []
+    for author, vars in author_vars_map.items():
+        if len(vars) < 2:
+            continue
+        same_author_penalty_var = LpVariable(f'penalty_same_author_{author}', lowBound=0, cat='Integer')
+        prob += lpSum(vars) - same_book_penalty_var <= 1
+        same_author_penalty_vars.append(same_author_penalty_var)
+
 
     # Add constraint that number of chosen sources should not exceed 20
-    # penalty_var = LpVariable('penalty_total_sources', lowBound=0, upBound=1, cat='Binary')
-    prob += lpSum(all_source_vars) == min(20, len(clusters))
-    # penalty_vars.append(penalty_var)
+    prob += lpSum(ordered_sources_vars) == min(20, len(clusters))
 
-    # Objective function: Maximize weight of selected sources and minimize penalties
-    weight = num_of_sources
-    objective_function = lpSum([(weight - i) * var for i, var in enumerate(all_source_vars)]) - num_of_sources*lpSum(penalty_vars)
-    # objective_function = lpSum([(weight - i) * var for i, var in enumerate(all_source_vars)])
+    weights = [num_of_sources - i for i in range(len(ordered_sources_vars))]
+    weighted_sources = [weights[i] * ordered_sources_vars[i] for i in range(len(ordered_sources_vars))]
+    mean_weight = int(sum(weights) / len(weights))
+    objective_function = lpSum(weighted_sources) - num_of_sources*lpSum(missing_category_penalty_vars) - 5*num_of_sources*lpSum(same_book_penalty_vars) -num_of_sources*(same_author_penalty_vars)
     prob += objective_function
 
     # Solve the problem
@@ -85,28 +111,23 @@ def solve_clusters(clusters: list[Cluster]) -> list[SummarizedSource]:
     # Print the results
     print("Status:", LpStatus[prob.status])
     print("Selected sources:")
-    for var in all_source_vars:
+    for var in ordered_sources_vars:
         if var.varValue > 0:
-            print(f"{var.name.replace('_', ' ')} value={var.varValue}")
+            ref = var_ref_map[var]
+            print(f"https://www.sefaria.org/{Ref(ref).url()} value={var.varValue}")
 
     print("Penalties:")
-    for penalty in penalty_vars:
+    for penalty in missing_category_penalty_vars:
+        if penalty.varValue and penalty.varValue > 0:
+            print(f"{penalty.name} = {penalty.varValue}")
+    for penalty in same_book_penalty_vars:
         if penalty.varValue and penalty.varValue > 0:
             print(f"{penalty.name} = {penalty.varValue}")
 
-    print(f"Status: {LpStatus[prob.status]}")
+    result = [item for item in flattened_summarized_sources if ref_var_map[item.source.ref].varValue > 0]
 
-    # print("Selected Sources:")
-    #
-    # curated_sources = []
-    # sorted_vars = sorted(all_vars, key=lambda var: var.varValue, reverse=True)
-    # for var in sorted_vars:
-    #     # if var.varValue < 0:
-    #     ref = var.name.replace("_", " ")
-    #     print(f"Source: {ref}", f"Value: {var.varValue}")
-    #     ref = var.name.replace("_", " ")
-    #     # source = [source for source in flattened_summarized_sources if source.]
-    print("hi")
+    return result
+
 
 
 
