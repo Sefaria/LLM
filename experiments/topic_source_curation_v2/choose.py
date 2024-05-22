@@ -24,6 +24,7 @@ from basic_langchain.schema import HumanMessage, SystemMessage
 from basic_langchain.chat_models import ChatOpenAI
 from sefaria_llm_interface.common.topic import Topic
 from solver import solve_clusters
+from scripts.analyze_gathered_sources import save_clusters_and_chosen_sources_to_html
 
 # def choose_ideal_sources_for_clusters(clusters: list[Cluster], topic: Topic) -> list[TopicPromptSource]:
 #     # return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(choose_ideal_sources).data
@@ -40,11 +41,8 @@ def choose(clusters: list[Cluster], topic: Topic):
                 cluster.items.remove(item)
     primary_sources_trefs = choose_primary_sources(clusters)
     sorted_clusters = sort_clusters(clusters, topic, 0)
-    for cluster in sorted_clusters:
-        print("CLUSTER")
-        for item in cluster.items:
-            print(item.source.ref)
-    solve_clusters(sorted_clusters, primary_sources_trefs)
+    chosen_sources, chosen_penalties = solve_clusters(sorted_clusters, primary_sources_trefs)
+    save_clusters_and_chosen_sources_to_html(topic, sorted_clusters, chosen_sources, chosen_penalties, primary_sources_trefs)
 
 
 def choose_primary_sources(clusters: list[Cluster]) -> list[str]:

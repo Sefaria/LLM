@@ -23,7 +23,7 @@ from sefaria.model import library
 
 
 
-def solve_clusters(clusters: list[Cluster], primary_trefs: list[str]) -> list[SummarizedSource]:
+def solve_clusters(clusters: list[Cluster], primary_trefs: list[str]) -> (list[SummarizedSource], list[str]):
     num_of_sources = sum(len(c.items) for c in clusters)
     flattened_summarized_sources = reduce(lambda x, y: x + y.items, clusters, [])
     prob = LpProblem("Choose_Sources", LpMaximize)
@@ -117,16 +117,19 @@ def solve_clusters(clusters: list[Cluster], primary_trefs: list[str]) -> list[Su
             print(f"https://www.sefaria.org/{Ref(ref).url()} value={var.varValue}")
 
     print("Penalties:")
+    chosen_penalties = []
     for penalty in missing_category_penalty_vars:
         if penalty.varValue and penalty.varValue > 0:
             print(f"{penalty.name} = {penalty.varValue}")
+            chosen_penalties.append(penalty.name)
     for penalty in same_book_penalty_vars:
         if penalty.varValue and penalty.varValue > 0:
             print(f"{penalty.name} = {penalty.varValue}")
+            chosen_penalties.append(penalty.name)
 
-    result = [item for item in flattened_summarized_sources if ref_var_map[item.source.ref].varValue > 0]
+    chosen_sources = [item for item in flattened_summarized_sources if ref_var_map[item.source.ref].varValue > 0]
 
-    return result
+    return chosen_sources, chosen_penalties
 
 
 
