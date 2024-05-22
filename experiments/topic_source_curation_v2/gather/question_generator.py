@@ -6,7 +6,7 @@ which will be used to gather many sources about a topic to curate
 from tqdm import tqdm
 import django
 django.setup()
-from functools import reduce
+from functools import reduce, partial
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from basic_langchain.schema import SystemMessage, HumanMessage
@@ -17,6 +17,7 @@ from util.general import run_parallel
 import re
 import csv
 from sefaria_llm_interface.common.topic import Topic
+from experiments.topic_source_curation_v2.common import get_topic_str_for_prompts
 
 
 def create_multi_source_question_generator() -> 'AbstractQuestionGenerator':
@@ -165,10 +166,10 @@ class LlmExpandedTemplatedQuestionGenerator(AbstractQuestionGenerator):
                 questions_by_type[row['Type']] += [row['Question']]
         return questions_by_type
 
-    def _expand_question(self, seed_question: str):
+    def _expand_question(self, topic_str: str, seed_question: str):
         llm = ChatOpenAI(model="gpt-4o", temperature=0)
-        system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given a general question about a topic in Judasim wrapped in <text> tag, produce a multiple answers to the question that are specific. wrap each answer in an <answer> tag")
-        human = HumanMessage(content=f"<text>{seed_question}</text>")
+        system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given a general question about a topic in Judaism,  produce a multiple answers to the question that are specific. Topic is wrapped in <topic> tags and text is wrapped in <text> tags. Wrap each answer in an <answer> tag")
+        human = HumanMessage(content=f"<topic>{topic_str}</topic>\n<text>{seed_question}</text>")
         response = llm([system, human])
         questions = []
         for match in re.finditer(r"<answer>(.*?)</answer>", response.content.replace('\n', ' ')):
@@ -183,8 +184,9 @@ class LlmExpandedTemplatedQuestionGenerator(AbstractQuestionGenerator):
     def generate(self, topic: Topic, verbose=True) -> list[str]:
         if verbose:
             print('---LLM QUESTION EXPANDER---')
+        topic_str = get_topic_str_for_prompts(topic)
         original_questions = [q.format(topic.title['en']) for q in self.templated_questions_by_type[self.__get_type_for_topic(topic)]]
-        expanded_questions = run_parallel(original_questions, self._expand_question, max_workers=20, desc="llm question expander", disable=not verbose)
+        expanded_questions = run_parallel(original_questions, partial(self._expand_question, topic_str), max_workers=20, desc="llm question expander", disable=not verbose)
         if verbose:
             for original_q, expanded_qs in zip(original_questions, expanded_questions):
                 print('----')
@@ -227,7 +229,7 @@ class WebPageQuestionGenerator(AbstractQuestionGenerator):
         urls = self._get_urls_for_topic(topic)
         questions = []
         for url in tqdm(urls, desc="Generating questions from urls", disable=not verbose):
-            questions += self._generate_for_url(url)
+            questions += self._generate_for_url(topic, url)
         if verbose:
             print('---WEB-DERIVED QUESTIONS---')
             for question in questions:
@@ -236,11 +238,11 @@ class WebPageQuestionGenerator(AbstractQuestionGenerator):
         return questions
 
     @staticmethod
-    def _generate_for_url(url: str) -> list[str]:
+    def _generate_for_url(topic: Topic, url: str) -> list[str]:
         webpage_text = get_webpage_text(url)
         llm = ChatOpenAI(model="gpt-4o", temperature=0)
-        system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given text about a Jewish topic, wrapped in <text>, summary the text and output the most important bullet points the text discusses. Wrap each bullet point in a <bullet_point> tag.")
-        human = HumanMessage(content=f"<text>{webpage_text}</text>")
+        system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given text about a Jewish topic, summary the text and output the most important bullet points the text discusses. Topic is wrapped in <topic> tags and text is wrapped in <text> tags. Wrap each bullet point in a <bullet_point> tag.")
+        human = HumanMessage(content=f"<topic>{get_topic_str_for_prompts(topic)}</topic>\n<text>{webpage_text}</text>")
         response = llm([system, human])
         questions = []
         for match in re.finditer(r"<bullet_point>(.*?)</bullet_point>", response.content):

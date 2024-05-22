@@ -14,6 +14,7 @@ from basic_langchain.embeddings import VoyageAIEmbeddings, OpenAIEmbeddings
 from util.pipeline import Artifact
 from util.general import get_by_xml_tag, run_parallel
 from util.cluster import Cluster, HDBSCANOptimizerClusterer, StandardClusterer, AbstractClusterItem
+from experiments.topic_source_curation_v2.common import get_topic_str_for_prompts
 import numpy as np
 
 RANDOM_SEED = 567454
@@ -81,7 +82,7 @@ def _summarize_source(llm: object, topic_str: str, source: TopicPromptSource):
 
 def _summarize_sources_parallel(sources: list[TopicPromptSource], topic: Topic, verbose=True) -> list[SummarizedSource]:
     llm = ChatAnthropic(model='claude-3-haiku-20240307', temperature=0)
-    topic_str = f"Title: '{topic.title}'. Description: '{_get_topic_desc_str(topic)}'."
+    topic_str = get_topic_str_for_prompts(topic)
     return run_parallel(sources, partial(_summarize_source, llm, topic_str), 2,
                         desc="summarize sources", disable=not verbose)
 
@@ -102,15 +103,9 @@ def _get_cluster_summary_based_on_topic(topic_desc, strs_to_summarize):
     return get_by_xml_tag(response.content, "summary")
 
 def _cluster_sources(sources: list[SummarizedSource], topic) -> list[Cluster]:
-    topic_desc = _get_topic_desc_str(topic)
+    topic_desc = get_topic_str_for_prompts(topic)
     # get_cluster_algo will be optimized by HDBSCANOptimizerClusterer
     clusterer = StandardClusterer(embed_text_openai, lambda x: HDBSCAN(),
                                   partial(_get_cluster_summary_based_on_topic, topic_desc))
     clusterer_optimizer = HDBSCANOptimizerClusterer(clusterer)
     return clusterer_optimizer.cluster_and_summarize(sources)
-
-def _get_topic_desc_str(topic: Topic) -> str:
-    topic_desc = f'{topic.title["en"]}'
-    if topic.description.get('en', False) and False:
-        topic_desc += f': {topic.description["en"]}'
-    return topic_desc
