@@ -7,6 +7,20 @@ django.setup()
 from db_manager import MongoProdigyDBManager
 from sefaria.model.text import Ref
 from sefaria.helper.normalization import NormalizerComposer
+from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source
+from sefaria_llm_interface.topic_prompt import TopicPromptSource
+
+
+def filter_invalid_refs(trefs, key=None):
+    key = key or (lambda x: x)
+    out = []
+    for tref in trefs:
+        try:
+            Ref(key(tref))
+        except:
+            continue
+        out += [tref]
+    return out
 
 
 def get_normalizer():
@@ -42,3 +56,5 @@ def get_ref_text_with_fallback(oref: Ref, lang: str, auto_translate=False) -> st
     return normalizer.normalize(raw_text)
 
 
+def convert_trefs_to_sources(trefs) -> list[TopicPromptSource]:
+    return [_make_topic_prompt_source(Ref(tref), '', with_commentary=False) for tref in trefs]

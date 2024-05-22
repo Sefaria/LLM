@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass
 import random
 
-from util.openai import count_tokens_openai
+from util.openai_utils import count_tokens_openai
 from topic_prompt.uniqueness_of_source import get_uniqueness_of_source
 from topic_prompt.contextualize import get_context
 from typing import List

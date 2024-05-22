@@ -5,6 +5,7 @@ import numpy as np
 from typing import Any, Callable
 from tqdm import tqdm
 from concurrent.futures import ThreadPoolExecutor
+from basic_langchain.schema import SystemMessage, HumanMessage
 
 
 def get_source_text_with_fallback(source: TopicPromptSource, lang: str, auto_translate=False) -> str:
@@ -85,3 +86,11 @@ def run_parallel(items: list[Any], unit_func: Callable, max_workers: int, **tqdm
 
     output = [future.result() for future in futures if future.result() is not None]
     return output
+
+
+def summarize_text(text, llm, max_words: int):
+    system = SystemMessage(content=f"Given text wrapped in <text> tags, output a summary of text that is no more than "
+                                   f"{max_words} words long. Summary should be wrapped in <summary> tags.")
+    human = HumanMessage(content=f"<text>{text}</text>")
+    response = llm([system, human])
+    return get_by_xml_tag(response.content, 'summary')
