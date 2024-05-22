@@ -37,7 +37,7 @@ def _does_text_add_information(texts):
     system = SystemMessage(content="Given two texts from the Torah cannon, text1 and text2, output 'Yes' if text2 adds significant information not present in text1. Output 'No' if text2 has basically the same information as text. text1 is wrapped in <text1> tags. text2 is wrapped in <text2> tags. Output 'Yes' or 'No' wrapped in <answer> tags.")
     human = HumanMessage(content=f"<text1>{text1}</text1>\n<text2>{text2}</text2>")
     response = llm([system, human])
-    adds_info = get_by_xml_tag(response.content, 'answer').lower().strip() == 'Yes'
+    adds_info = get_by_xml_tag(response.content, 'answer').lower().strip() == 'yes'
     return adds_info
 
 def _filter_targum_thats_redundant(sources: list[TopicPromptSource], verbose=True) -> list[TopicPromptSource]:
@@ -255,7 +255,7 @@ def filter_subset_refs(orefs: list[Ref]) -> list[Ref]:
 def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], topic: Topic, verbose=True):
     topic_description = get_topic_str_for_prompts(topic)
     unit_func = partial(_is_text_about_topic, topic_description)
-    is_about_topic_list = run_parallel([key(item) for item in items], unit_func, 20,
+    is_about_topic_list = run_parallel([key(item) for item in items], unit_func, 25,
                                        desc="filter irrelevant sources", disable=not verbose)
     filtered_items = []
     if verbose:
@@ -283,7 +283,7 @@ def _is_text_about_topic(topic_description, text):
     except BadRequestError:
         return False
     answer = get_by_xml_tag(response.content, 'answer').strip()
-    if answer not in {'Yes', 'No'}:
+    if answer.strip().lower() not in {'yes', 'no'}:
         print(f"Answer not in Yes or No: {answer}")
         return False
     return answer == 'Yes'
