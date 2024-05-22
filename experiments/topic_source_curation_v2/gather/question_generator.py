@@ -13,9 +13,9 @@ from basic_langchain.schema import SystemMessage, HumanMessage
 from basic_langchain.chat_models import ChatOpenAI
 from util.topic import get_urls_for_topic_from_topic_object
 from util.webpage import get_webpage_text
+from util.general import run_parallel
 import re
 import csv
-from experiments.topic_source_curation_v2.common import run_parallel
 from sefaria_llm_interface.common.topic import Topic
 
 

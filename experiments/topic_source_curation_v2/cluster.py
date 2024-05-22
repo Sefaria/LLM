@@ -11,9 +11,8 @@ from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface.common.topic import Topic
 from basic_langchain.chat_models import ChatAnthropic
 from basic_langchain.embeddings import VoyageAIEmbeddings, OpenAIEmbeddings
-from experiments.topic_source_curation_v2.common import run_parallel
 from util.pipeline import Artifact
-from util.general import get_by_xml_tag
+from util.general import get_by_xml_tag, run_parallel
 from util.cluster import Cluster, HDBSCANOptimizerClusterer, StandardClusterer, AbstractClusterItem
 import numpy as np
 

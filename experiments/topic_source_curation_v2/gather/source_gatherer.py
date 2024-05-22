@@ -13,21 +13,14 @@ from basic_langchain.chat_models import ChatAnthropic
 from basic_langchain.chat_models import ChatOpenAI
 from basic_langchain.schema import HumanMessage, SystemMessage
 from util.general import get_by_xml_tag
-from sefaria.helper.topic import get_topic
 from experiments.topic_source_curation_v2.gather.source_querier import SourceQuerierFactory, AbstractSourceQuerier
 from experiments.topic_source_curation_v2.gather.question_generator import create_multi_source_question_generator, AbstractQuestionGenerator, WebPageQuestionGenerator
 from experiments.topic_source_curation_v2.cluster import get_text_from_source, Cluster
-from experiments.topic_source_curation_v2.common import filter_invalid_refs, run_parallel
 from util.pipeline import Artifact
+from util.general import run_parallel
 from sefaria.model.topic import Topic as SefariaTopic
 
 
-def jaccard_similarity(list1, list2):
-    set1 = set(list1)
-    set2 = set(list2)
-    intersection = len(set1.intersection(set2))
-    union = len(set1.union(set2))
-    return intersection / union
 def gather_sources_about_topic(topic: Topic) -> list[TopicPromptSource]:
     source_gatherer = _create_source_gatherer()
     return (Artifact(topic)
@@ -187,17 +180,6 @@ class TopicPageSourceGetter:
     @staticmethod
     def get(topic: Topic) -> list[TopicPromptSource]:
         return [_make_topic_prompt_source(Ref(tref), '', with_commentary=False) for tref in TopicPageSourceGetter._get_top_trefs_from_slug(topic.slug, None)]
-
-    @staticmethod
-    def _get_top_trefs_from_slug(slug, top_n=10) -> list[str]:
-        out = get_topic(True, slug, with_refs=True, ref_link_type_filters=['about', 'popular-writing-of'])
-        try:
-            trefs = [d['ref'] for d in out['refs']['about']['refs'] if not d['is_sheet']]
-            trefs = filter_invalid_refs(trefs[:top_n])
-            return trefs
-        except KeyError:
-            print('No refs found for {}'.format(slug))
-            return []
 
 
 def filter_subset_refs(orefs: list[Ref]) -> list[Ref]:
