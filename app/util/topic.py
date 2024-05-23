@@ -1,12 +1,13 @@
 import django
 django.setup()
 from sefaria.model.topic import Topic as SefariaTopic
+from sefaria.model.text import Ref
 from functools import partial
 from basic_langchain.schema import SystemMessage, HumanMessage
 from basic_langchain.chat_models import ChatOpenAI, ChatAnthropic
 from util.general import get_by_xml_tag, run_parallel, summarize_text
 from util.webpage import get_webpage_text
-from util.sefaria_specific import filter_invalid_refs, convert_trefs_to_sources
+from util.sefaria_specific import filter_invalid_refs, convert_trefs_to_sources, remove_refs_from_same_category
 from sefaria_llm_interface.common.topic import Topic
 from sefaria.helper.topic import get_topic
 
@@ -54,7 +55,8 @@ def get_topic_description_from_webpages(topic: Topic):
 
 
 def get_topic_description_from_top_sources(topic: Topic, verbose=True):
-    top_trefs = get_top_trefs_from_slug(topic.slug, top_n=5)
+    top_trefs = get_top_trefs_from_slug(topic.slug, top_n=15)
+    top_trefs = [r.normal() for r in remove_refs_from_same_category([Ref(tref) for tref in top_trefs], 2)][:6]
     top_sources = convert_trefs_to_sources(top_trefs)
     llm = ChatAnthropic(model='claude-3-haiku-20240307', temperature=0)
     summaries = run_parallel([source.text['en'] for source in top_sources],

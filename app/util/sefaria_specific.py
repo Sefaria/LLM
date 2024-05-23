@@ -58,3 +58,15 @@ def get_ref_text_with_fallback(oref: Ref, lang: str, auto_translate=False) -> st
 
 def convert_trefs_to_sources(trefs) -> list[TopicPromptSource]:
     return [_make_topic_prompt_source(Ref(tref), '', with_commentary=False) for tref in trefs]
+
+
+def remove_refs_from_same_category(refs: list[Ref], max_category_count: int) -> list[Ref]:
+    from collections import defaultdict
+    cat_counts = defaultdict(int)
+    out_refs = []
+    for ref in refs:
+        cat_counts[ref.primary_category] += 1
+        if cat_counts[ref.primary_category] > max_category_count:
+            continue
+        out_refs.append(ref)
+    return out_refs

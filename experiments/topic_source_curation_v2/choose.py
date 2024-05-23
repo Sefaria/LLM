@@ -75,6 +75,7 @@ def choose_ideal_clusters(clusters: list[Cluster], max_clusters: int) -> list[Cl
 
 def sort_clusters(clusters: list[Cluster], topic:Topic, max_clusters: int) -> list[Cluster]:
     # sorted_clusters = _sort_by_highest_avg_pairwise_distance(clusters)
+    print(f"Sorting {len(clusters)} clusters by interestingness...")
     sorted_clusters = _sort_clusters_by_instruction(clusters, topic)
     sorted_cluster_items = run_parallel(sorted_clusters, partial(_sort_within_cluster, topic=topic), max_workers=100, desc="Sorting for interestingness within cluster")
     for cluster, sorted_items in zip(sorted_clusters, sorted_cluster_items):
@@ -141,7 +142,7 @@ def get_gpt_compare(system_prompt, human_prompt_generator, llm):
 def sort_by_instruction(documents,  comparison_instruction, key_extraction_func=lambda x:x):
     from functools import cmp_to_key
     message_suffix = " The only output should be either '1' or '2' or '0'"
-    llm = ChatOpenAI(model="gpt-4o", temperature=0)
+    llm = ChatOpenAI(model='gpt-3.5-turbo-0125', temperature=0)
     system = SystemMessage(
         content=
         comparison_instruction
