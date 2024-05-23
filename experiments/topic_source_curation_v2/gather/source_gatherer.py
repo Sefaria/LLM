@@ -14,10 +14,12 @@ from basic_langchain.schema import HumanMessage, SystemMessage
 from util.general import get_by_xml_tag, run_parallel
 from util.topic import get_top_trefs_from_slug
 from util.pipeline import Artifact
+from topic_prompt.uniqueness_of_source import summarize_based_on_uniqueness
 from experiments.topic_source_curation_v2.common import get_topic_str_for_prompts
 from experiments.topic_source_curation_v2.gather.source_querier import SourceQuerierFactory, AbstractSourceQuerier
 from experiments.topic_source_curation_v2.gather.question_generator import create_multi_source_question_generator, AbstractQuestionGenerator, WebPageQuestionGenerator
-from experiments.topic_source_curation_v2.cluster import get_text_from_source, Cluster
+from experiments.topic_source_curation_v2.cluster import get_text_from_source
+from experiments.topic_source_curation_v2.summarized_source import SummarizedSource
 from sefaria.model.topic import Topic as SefariaTopic
 
 
@@ -26,7 +28,9 @@ def gather_sources_about_topic(topic: Topic) -> list[TopicPromptSource]:
     return (Artifact(topic)
             .pipe(source_gatherer.gather)
             .pipe(_make_sources_unique)
-            .pipe(_filter_sources_about_topic, topic)
+            .pipe(_summarize_sources_parallel, topic)
+            .pipe(_filter_sources_about_topic, topic, _get_summary_from_source)
+            .pipe(_filter_sources_about_topic, topic, get_text_from_source)
             .pipe(_filter_targum_thats_redundant)
             .pipe(_combine_close_sources).data
            )
@@ -40,7 +44,7 @@ def _does_text_add_information(texts):
     adds_info = get_by_xml_tag(response.content, 'answer').lower().strip() == 'yes'
     return adds_info
 
-def _filter_targum_thats_redundant(sources: list[TopicPromptSource], verbose=True) -> list[TopicPromptSource]:
+def _filter_targum_thats_redundant(sources: list[SummarizedSource], verbose=True) -> list[SummarizedSource]:
     """
     Many targum sources don't add any more information than the pasuk. Filter these out.
     :param sources:
@@ -51,34 +55,35 @@ def _filter_targum_thats_redundant(sources: list[TopicPromptSource], verbose=Tru
     texts_to_check = []
     sources_to_check = []
     for source in sources:
-        if "|".join(source.categories).startswith("Tanakh|Targum"):
-            links = LinkSet({"refs": source.ref, "type": "targum"})
+        s = source.source
+        if "|".join(s.categories).startswith("Tanakh|Targum"):
+            links = LinkSet({"refs": s.ref, "type": "targum"})
             tanakh_ref = None
             for link in links:
-                tanakh_ref = link.ref_opposite(Ref(source.ref))
+                tanakh_ref = link.ref_opposite(Ref(s.ref))
                 if tanakh_ref.primary_category == "Tanakh":
                     break
             tanakh_source = _make_topic_prompt_source(tanakh_ref, '', with_commentary=False)
-            texts_to_check.append((tanakh_source.text['en'], source.text['en']))
+            texts_to_check.append((tanakh_source.text['en'], s.text['en']))
             sources_to_check.append(source)
         else:
             out_sources += [source]
-    do_sources_add_info = run_parallel(texts_to_check, _does_text_add_information, max_workers=25, desc="checking if sources add info", disable=not verbose)
+    do_sources_add_info = run_parallel(texts_to_check, _does_text_add_information, max_workers=100, desc="checking if sources add info", disable=not verbose)
     for does_add_info, source in zip(do_sources_add_info, sources_to_check):
         if does_add_info:
             out_sources += [source]
-            print(f"Targum adds info! {source.ref}\n{source.text['en']}")
-        else:
-            print(f"Targum adds NO info! {source.ref}\n{source.text['en']}")
+            print(f"Targum adds info! {source.source.ref}\n{source.source.text['en']}")
+        # else:
+        #     print(f"Targum adds NO info! {source.source.ref}\n{source.source.text['en']}")
     return out_sources
 
-def _combine_close_sources(sources: list[TopicPromptSource]) -> list[TopicPromptSource]:
+def _combine_close_sources(sources: list[SummarizedSource]) -> list[SummarizedSource]:
     """
     Currently only combines sources in Tanakh because segments tend to be small and highly related
     :param sources:
     :return:
     """
-    orefs = [Ref(source.ref) for source in sources]
+    orefs = [Ref(source.source.ref) for source in sources]
     ref_clusters = RecommendationEngine.cluster_close_refs(orefs, sources, 2)
     clustered_sources = []
     for ref_cluster in ref_clusters:
@@ -88,7 +93,8 @@ def _combine_close_sources(sources: list[TopicPromptSource]) -> list[TopicPrompt
             ranged_oref = curr_refs[0].to(curr_refs[-1])
             if len(curr_refs) > 1:
                 print("COMBINED", ranged_oref, " | ".join(r.normal() for r in curr_refs))
-            clustered_sources.append(_make_topic_prompt_source(ranged_oref, '', with_commentary=False))
+            new_source = _make_topic_prompt_source(ranged_oref, '', with_commentary=False)
+            clustered_sources.append(SummarizedSource(new_source, ". ".join([s.summary for s in curr_sources])))
         else:
             # don't combine commentary refs
             clustered_sources += curr_sources
@@ -100,8 +106,13 @@ def _make_sources_unique(sources: list[TopicPromptSource]) -> list[TopicPromptSo
     unique_trefs = [oref.normal() for oref in filter_subset_refs(orefs)]
     return [sources_by_tref[tref] for tref in unique_trefs]
 
-def _filter_sources_about_topic(sources: list[TopicPromptSource], topic: Topic) -> list[TopicPromptSource]:
-    return _get_items_relevant_to_topic(sources, get_text_from_source, topic)
+
+def _get_summary_from_source(source: SummarizedSource) -> str:
+    return source.summary
+
+
+def _filter_sources_about_topic(sources: list[SummarizedSource], topic: Topic, key) -> list[SummarizedSource]:
+    return _get_items_relevant_to_topic(sources, key, topic)
 
 def _create_source_gatherer() -> 'SourceGatherer':
     return (
@@ -125,13 +136,14 @@ class SourceGatherer:
         self.question_generator = question_generator
 
     def gather(self, topic: Topic, verbose=True) -> list[TopicPromptSource]:
-        questions = self.question_generator.generate(topic)
+        questions = self.question_generator.generate(topic, verbose=False)
         topic_page_sources: list[TopicPromptSource] = self.topic_page_source_getter.get(topic)
         retrieved_sources = []
         for question in tqdm(questions, desc='gather sources', disable=not verbose):
             temp_sources, _ = self.source_querier.query(question, 100, 0.5)
             retrieved_sources.extend(temp_sources)
-        print(f'RECALL', self._calculate_recall_of_sources(topic_page_sources, retrieved_sources))
+        if verbose:
+            print(f'RECALL', self._calculate_recall_of_sources(topic_page_sources, retrieved_sources))
         return topic_page_sources + retrieved_sources
 
     @staticmethod
@@ -163,7 +175,6 @@ class SourceGatherer:
                     recalled = True
                     break
             if not recalled:
-                print('NOT RECALLED', source.ref)
                 not_recalled_trefs.add(source.ref)
 
         return num_recalled / len(topic_page_sources)
@@ -251,11 +262,27 @@ def filter_subset_refs(orefs: list[Ref]) -> list[Ref]:
         deduped_orefs += [orefs[-1]]
     return deduped_orefs
 
+def _summarize_source(llm: object, topic_str: str, source: TopicPromptSource):
+    source_text = source.text['en'] if len(source.text['en']) > 0 else source.text['he']
+    if len(source_text) == 0:
+        return None
+    summary = summarize_based_on_uniqueness(source_text, topic_str, llm, "English")
+    if summary is None:
+        return None
+    return SummarizedSource(source, summary)
+
+
+def _summarize_sources_parallel(sources: list[TopicPromptSource], topic: Topic, verbose=True) -> list[SummarizedSource]:
+    llm = ChatOpenAI(model='gpt-3.5-turbo-0125', temperature=0)
+    topic_str = get_topic_str_for_prompts(topic)
+    return run_parallel(sources, partial(_summarize_source, llm, topic_str), 100,
+                        desc="summarize sources", disable=not verbose)
+
 
 def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], topic: Topic, verbose=True):
     topic_description = get_topic_str_for_prompts(topic)
     unit_func = partial(_is_text_about_topic, topic_description)
-    is_about_topic_list = run_parallel([key(item) for item in items], unit_func, 25,
+    is_about_topic_list = run_parallel([key(item) for item in items], unit_func, 100,
                                        desc="filter irrelevant sources", disable=not verbose)
     filtered_items = []
     if verbose:
