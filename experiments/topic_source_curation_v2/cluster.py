@@ -59,7 +59,7 @@ def _get_cluster_summary_based_on_topic(topic_desc, strs_to_summarize):
     response = llm([system, human])
     summary = get_by_xml_tag(response.content, "summary")
     if not summary and '<summary>' in response.content:
-        summary = response.content
+        summary = response.content.replace('<summary>', '').replace('</summary>', '')
     return summary or 'N/A'
 
 def _cluster_sources(sources: list[SummarizedSource], topic) -> list[Cluster]:
