@@ -38,6 +38,8 @@ def _get_loader_and_saver(file_prefix, serializer, deserializer):
     def saver(data: Any, topic: Topic) -> None:
         with open(f"_cache/{file_prefix}_{topic.slug}.json", "w") as fout:
             json.dump(serializer(data), fout, indent=2, ensure_ascii=False)
+        # return input so that pipeline can continue
+        return data
 
     def loader(topic: Topic) -> Any:
         with open(f"_cache/{file_prefix}_{topic.slug}.json", "r") as fin:
