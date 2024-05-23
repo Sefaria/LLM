@@ -32,15 +32,15 @@ def generate_topic_description(topic: Topic, text: str) -> str:
     return get_by_xml_tag(response.content, "description")
 
 
-def get_or_generate_topic_description(topic: Topic) -> str:
+def get_or_generate_topic_description(topic: Topic, verbose=True) -> str:
     description = topic.description.get('en', '')
     if not description:
         description = get_topic_description_from_webpages(topic)
-        if description:
+        if description and verbose:
             print('Generated desc from webpage:', description)
     if not description:
         description = get_topic_description_from_top_sources(topic)
-        if description:
+        if description and verbose:
             print('Generated desc from sources:', description)
     return description
 

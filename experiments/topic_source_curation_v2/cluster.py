@@ -52,18 +52,18 @@ def embed_text_voyageai(text):
 def _get_cluster_summary_based_on_topic(topic_desc, strs_to_summarize):
     llm = ChatOpenAI("gpt-4o", 0)
     system = SystemMessage(content="You are a Jewish scholar familiar with Torah. Given a few ideas (wrapped in <idea> "
-                                   "XML tags) about a given topic (wrapped in <topic> XML tags) output a summary of the"
-                                   "ideas as they related to the topic. Wrap the output in <summary> tags. Summary"
+                                   "XML tags) about a given topic (wrapped in <topic> XML tags) output a summary of the "
+                                   "ideas as they related to the topic. Wrap the output in <summary> tags. Summary "
                                    "should be no more than 10 words.")
     human = HumanMessage(content=f"<topic>{topic_desc}</topic><idea>{'</idea><idea>'.join(strs_to_summarize)}</idea>")
     response = llm([system, human])
     summary = get_by_xml_tag(response.content, "summary")
-    if not summary:
-        print("NO CLUSTER SUMMARY", topic_desc, strs_to_summarize, response.content)
+    if not summary and '<summary>' in response.content:
+        summary = response.content
     return summary or 'N/A'
 
 def _cluster_sources(sources: list[SummarizedSource], topic) -> list[Cluster]:
-    topic_desc = get_topic_str_for_prompts(topic)
+    topic_desc = get_topic_str_for_prompts(topic, verbose=False)
     # get_cluster_algo will be optimized by HDBSCANOptimizerClusterer
     clusterer = StandardClusterer(embed_text_openai, lambda x: HDBSCAN(),
                                   partial(_get_cluster_summary_based_on_topic, topic_desc))

@@ -274,13 +274,13 @@ def _summarize_source(llm: object, topic_str: str, source: TopicPromptSource):
 
 def _summarize_sources_parallel(sources: list[TopicPromptSource], topic: Topic, verbose=True) -> list[SummarizedSource]:
     llm = ChatOpenAI(model='gpt-3.5-turbo-0125', temperature=0)
-    topic_str = get_topic_str_for_prompts(topic)
+    topic_str = get_topic_str_for_prompts(topic, verbose=False)
     return run_parallel(sources, partial(_summarize_source, llm, topic_str), 100,
                         desc="summarize sources", disable=not verbose)
 
 
 def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], topic: Topic, verbose=True):
-    topic_description = get_topic_str_for_prompts(topic)
+    topic_description = get_topic_str_for_prompts(topic, verbose=False)
     unit_func = partial(_is_text_about_topic, topic_description)
     is_about_topic_list = run_parallel([key(item) for item in items], unit_func, 100,
                                        desc="filter irrelevant sources", disable=not verbose)

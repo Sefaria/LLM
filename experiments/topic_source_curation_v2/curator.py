@@ -50,7 +50,7 @@ def curate_topic(topic: Topic) -> list[TopicPromptSource]:
 if __name__ == '__main__':
     topics = random.sample(get_topics_to_curate(), 50)
     # topics = [_make_llm_topic(SefariaTopic.init('abraham-in-egypt'))]
-    for topic in topics:
+    for topic in topics[1:]:
         print("CURATING", topic.slug)
         sources = curate_topic(topic)
     # print('---CURATION---')
