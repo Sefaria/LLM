@@ -39,7 +39,7 @@ def create_multi_source_question_generator() -> 'AbstractQuestionGenerator':
 
 class AbstractQuestionGenerator(ABC):
     @abstractmethod
-    def generate(self, topic: Topic) -> list[str]:
+    def generate(self, topic: Topic, verbose=True) -> list[str]:
         pass
 
 
@@ -49,10 +49,10 @@ class MultiSourceQuestionGenerator(AbstractQuestionGenerator):
     def __init__(self, question_generators: list[AbstractQuestionGenerator]):
         self._question_generators = question_generators
 
-    def generate(self, topic: Topic) -> list[str]:
+    def generate(self, topic: Topic, verbose=True) -> list[str]:
         questions = []
         for generator in self._question_generators:
-            questions.extend(generator.generate(topic))
+            questions.extend(generator.generate(topic, verbose=verbose))
         return questions
 
 
@@ -92,7 +92,7 @@ class TemplatedQuestionGenerator(AbstractQuestionGenerator):
         return(naive_map[topic.slug])
 
 
-    def generate(self, topic: Topic) -> list[str]:
+    def generate(self, topic: Topic, verbose=True) -> list[str]:
         return [q.format(topic.title['en']) for q in self.templated_questions_by_type[self.__get_type_for_topic(topic)]]
 class TemplatedQuestionCategoryAwareGenerator(AbstractQuestionGenerator):
     """
@@ -133,7 +133,7 @@ class TemplatedQuestionCategoryAwareGenerator(AbstractQuestionGenerator):
         return(naive_map[topic.slug])
 
 
-    def generate(self, topic: Topic) -> list[str]:
+    def generate(self, topic: Topic, verbose=True) -> list[str]:
         return [(q[0].format(topic.title['en']), q[1]) for q in self.templated_questions_and_categories_by_type[self.__get_type_for_topic(topic)]]
 
 class LlmExpandedTemplatedQuestionGenerator(AbstractQuestionGenerator):
