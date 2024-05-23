@@ -18,6 +18,7 @@ import django
 django.setup()
 from sefaria.model.topic import Topic as SefariaTopic
 
+random.seed(45612)
 TOPICS_TO_CURATE_CSV_PATH = 'input/Topic project plan - 1000 topics pages product - list of all topic slugs.csv'
 
 def get_topics_to_curate():
@@ -25,6 +26,8 @@ def get_topics_to_curate():
     with open(TOPICS_TO_CURATE_CSV_PATH, "r") as fin:
         cin = csv.DictReader(fin)
         for row in cin:
+            if len(row['curated']) > 0:
+                continue
             slug = row['slug'].strip()
             try:
                 topics += [_make_llm_topic(SefariaTopic.init(slug))]
@@ -36,19 +39,20 @@ def get_topics_to_curate():
 
 def curate_topic(topic: Topic) -> list[TopicPromptSource]:
     return (Artifact(topic)
-            # .pipe(gather_sources_about_topic)
+            .pipe(gather_sources_about_topic)
             # .pipe(load_sources)
-            # .pipe(get_clustered_sources_based_on_summaries, topic)
-            # .pipe(save_clusters, topic)
-            .pipe(load_clusters)
+            .pipe(get_clustered_sources_based_on_summaries, topic)
+            .pipe(save_clusters, topic)
+            # .pipe(load_clusters)
             .pipe(choose, topic).data
             )
 
 if __name__ == '__main__':
-    slug = "friendship"
-    topic = _make_llm_topic(SefariaTopic.init(slug))
-    print("CURATING", topic.slug)
-    sources = curate_topic(topic)
+    topics = random.sample(get_topics_to_curate(), 50)
+    # topics = [_make_llm_topic(SefariaTopic.init('abraham-in-egypt'))]
+    for topic in topics:
+        print("CURATING", topic.slug)
+        sources = curate_topic(topic)
     # print('---CURATION---')
     # print('num sources', len(sources))
     # for source in sources:
