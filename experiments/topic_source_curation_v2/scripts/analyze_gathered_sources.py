@@ -217,7 +217,7 @@ def _make_cluster_and_penalties_html_wrapper(topic, num_of_chosen_sources, penal
 
 
 if __name__ == '__main__':
-    slugs = ['bina2', 'hesed', 'ein-sof1', 'shiur-koma', 'yetzira1']
+    slugs = ['abraham-in-egypt']
     # count_cats(slug)
     # print_clusters(slug)
     # slugs = ['ants', 'ulla', 'achitofel', 'friendship', 'david-and-the-temple', 'cains-sacrifice', 'abraham-in-egypt']
