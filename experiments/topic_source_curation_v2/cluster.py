@@ -1,47 +1,21 @@
-from typing import Callable, Union
+from typing import Union
 from functools import partial
-from tqdm import tqdm
 from basic_langchain.chat_models import ChatOpenAI
 from basic_langchain.schema import HumanMessage, SystemMessage
 import random
 from hdbscan import HDBSCAN
-from dataclasses import dataclass, asdict
-from topic_prompt.uniqueness_of_source import summarize_based_on_uniqueness
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface.common.topic import Topic
-from basic_langchain.chat_models import ChatAnthropic
 from basic_langchain.embeddings import VoyageAIEmbeddings, OpenAIEmbeddings
 from util.pipeline import Artifact
-from util.general import get_by_xml_tag, run_parallel
+from util.general import get_by_xml_tag
 from util.cluster import Cluster, HDBSCANOptimizerClusterer, StandardClusterer, AbstractClusterItem
 from experiments.topic_source_curation_v2.common import get_topic_str_for_prompts
+from experiments.topic_source_curation_v2.summarized_source import SummarizedSource
 import numpy as np
 
 RANDOM_SEED = 567454
 random.seed(RANDOM_SEED)
-
-
-@dataclass
-class SummarizedSource(AbstractClusterItem):
-    source: TopicPromptSource
-    summary: str
-
-    def __init__(self, source: Union[TopicPromptSource, dict], summary: str, embedding: np.ndarray = None):
-        self.source = source if isinstance(source, TopicPromptSource) else TopicPromptSource(**source)
-        self.summary = summary
-        self.embedding = np.array(embedding) if embedding is not None else None
-
-    def serialize(self) -> dict:
-        serial = asdict(self)
-        serial['embedding'] = self.embedding.tolist() if self.embedding is not None else None
-        return serial
-
-    def get_str_to_summarize(self) -> str:
-        return self.summary
-
-    def get_str_to_embed(self) -> str:
-        return self.summary
-
 
 
 def get_clustered_sources_based_on_summaries(sources: list[TopicPromptSource], topic: Topic) -> list[Cluster]:
@@ -51,7 +25,7 @@ def get_clustered_sources_based_on_summaries(sources: list[TopicPromptSource], t
     :param topic:
     :return:
     """
-    return Artifact(sources).pipe(_summarize_sources_parallel, topic).pipe(_cluster_sources, topic).data
+    return Artifact(sources).pipe(_cluster_sources, topic).data
 
 
 def get_text_from_source(source: Union[TopicPromptSource, SummarizedSource]) -> str:
@@ -69,23 +43,6 @@ def get_clustered_sources(sources: list[TopicPromptSource]) -> list[Cluster]:
     """
     return Artifact(sources).pipe(_cluster_sources, get_text_from_source).data
 
-
-def _summarize_source(llm: object, topic_str: str, source: TopicPromptSource):
-    source_text = source.text['en'] if len(source.text['en']) > 0 else source.text['he']
-    if len(source_text) == 0:
-        return None
-    summary = summarize_based_on_uniqueness(source_text, topic_str, llm, "English")
-    if summary is None:
-        return None
-    return SummarizedSource(source, summary)
-
-
-def _summarize_sources_parallel(sources: list[TopicPromptSource], topic: Topic, verbose=True) -> list[SummarizedSource]:
-    llm = ChatAnthropic(model='claude-3-haiku-20240307', temperature=0)
-    topic_str = get_topic_str_for_prompts(topic)
-    return run_parallel(sources, partial(_summarize_source, llm, topic_str), 2,
-                        desc="summarize sources", disable=not verbose)
-
 def embed_text_openai(text):
     return np.array(OpenAIEmbeddings(model="text-embedding-3-large").embed_query(text))
 
@@ -100,7 +57,10 @@ def _get_cluster_summary_based_on_topic(topic_desc, strs_to_summarize):
                                    "should be no more than 10 words.")
     human = HumanMessage(content=f"<topic>{topic_desc}</topic><idea>{'</idea><idea>'.join(strs_to_summarize)}</idea>")
     response = llm([system, human])
-    return get_by_xml_tag(response.content, "summary")
+    summary = get_by_xml_tag(response.content, "summary")
+    if not summary:
+        print("NO CLUSTER SUMMARY", topic_desc, strs_to_summarize, response.content)
+    return summary or 'N/A'
 
 def _cluster_sources(sources: list[SummarizedSource], topic) -> list[Cluster]:
     topic_desc = get_topic_str_for_prompts(topic)
