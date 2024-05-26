@@ -4,8 +4,8 @@ django.setup()
 from typing import Union
 from sefaria.model.text import Ref
 from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source
-from langchain.vectorstores.neo4j_vector import Neo4jVector
-from langchain.vectorstores.chroma import Chroma
+from langchain_community.vectorstores.neo4j_vector import Neo4jVector
+from langchain_community.vectorstores.chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from langchain_voyageai.embeddings import VoyageAIEmbeddings
@@ -22,13 +22,15 @@ class SourceQuerierFactory:
             return VoyageAIChromaSourceQuerier()
         if typ == "chroma_openai":
             return OpenAIChromaSourceQuerier()
+        if typ == "chroma_openai_he":
+            # currently produces very poor results
+            return OpenAIHeChromaSourceQuerier()
         if typ == "chroma_all":
             return SourceQuerierComposer([
                 SourceQuerierFactory.create('chroma_voyageai'),
                 SourceQuerierFactory.create('chroma_openai')
             ])
         raise Exception("Type not found", typ)
-
 
 
 class AbstractSourceQuerier(ABC):
@@ -51,7 +53,6 @@ class AbstractSourceQuerier(ABC):
         return sources, scores
 
 
-
 class AbstractChromaSourceQuerier(AbstractSourceQuerier):
     persist_directory = None
     embedding_function = None
@@ -65,8 +66,14 @@ class VoyageAIChromaSourceQuerier(AbstractChromaSourceQuerier):
     persist_directory = '../embedding/.chromadb'
     embedding_function = VoyageAIEmbeddings(model="voyage-large-2-instruct")
 
+
 class OpenAIChromaSourceQuerier(AbstractChromaSourceQuerier):
     persist_directory = '../embedding/.chromadb_openai'
+    embedding_function = OpenAIEmbeddings(model="text-embedding-3-large")
+
+
+class OpenAIHeChromaSourceQuerier(AbstractChromaSourceQuerier):
+    persist_directory = '../embedding/.chromadb_openai_he'
     embedding_function = OpenAIEmbeddings(model="text-embedding-3-large")
 
 
@@ -79,7 +86,6 @@ class Neo4jSourceQuerier(AbstractSourceQuerier):
         'db_username': 'neo4j',
         'db_password': 'password',
     }
-
 
     @classmethod
     def _get_vector_db(cls):
@@ -96,7 +102,6 @@ class SourceQuerierComposer:
 
     def __init__(self, queriers: list[AbstractSourceQuerier]):
         self.queriers = queriers
-
 
     def query(self, query: str, top_k: int, score_threshold: float) -> tuple[list[TopicPromptSource], list[float]]:
         sources = []
