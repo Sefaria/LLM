@@ -10,10 +10,10 @@ from functools import reduce, partial
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from basic_langchain.schema import SystemMessage, HumanMessage
-from basic_langchain.chat_models import ChatOpenAI
+from basic_langchain.chat_models import ChatOpenAI, ChatAnthropic
 from util.topic import get_urls_for_topic_from_topic_object
 from util.webpage import get_webpage_text
-from util.general import run_parallel
+from util.general import run_parallel, get_by_xml_tag
 import re
 import csv
 from sefaria_llm_interface.common.topic import Topic
@@ -54,6 +54,19 @@ class MultiSourceQuestionGenerator(AbstractQuestionGenerator):
         for generator in self._question_generators:
             questions.extend(generator.generate(topic, verbose=verbose))
         return questions
+
+    @staticmethod
+    def _translate_questions_parallel(questions: list[str], lang: str, verbose=True) -> list[str]:
+        return run_parallel(questions, partial(MultiSourceQuestionGenerator._translate_question, lang=lang), max_workers=2, desc="translation questions", disable=not verbose)
+
+
+    @staticmethod
+    def _translate_question(question: str, lang: str) -> str:
+        llm = ChatAnthropic(model='claude-3-haiku-20240307', temperature=0)
+        system = SystemMessage(content=f"Given text about a Jewish topic output the translation of the text into {lang}. Question is wrapped in <text> tags. Output translation in <translation> tags.")
+        human = HumanMessage(content=f"<text>{question}</text>")
+        response = llm([system, human])
+        return get_by_xml_tag(response.content, "translation")
 
 
 class TemplatedQuestionGenerator(AbstractQuestionGenerator):
@@ -248,3 +261,6 @@ class WebPageQuestionGenerator(AbstractQuestionGenerator):
         for match in re.finditer(r"<bullet_point>(.*?)</bullet_point>", response.content):
             questions += [match.group(1)]
         return questions
+
+
+
