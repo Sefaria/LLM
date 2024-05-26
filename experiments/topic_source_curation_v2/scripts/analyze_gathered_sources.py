@@ -62,7 +62,7 @@ def save_custom_clusters_to_html(topic, clusters):
     with open("scripts/output/clusters_{}.html".format(topic.slug), 'w') as fout:
         fout.write(html)
 def save_clusters_and_chosen_sources_to_html(topic, clusters, chosen_sources, chosen_penalties, primary_sources_trefs):
-    html = _make_cluster_and_penalties_html_wrapper(topic, len(chosen_sources), chosen_penalties, primary_sources_trefs, ''.join(_make_cluster_with_chosen_sources_html(cluster, chosen_sources) for cluster in clusters))
+    html = _make_cluster_and_penalties_html_wrapper(topic, chosen_sources, chosen_penalties, primary_sources_trefs, ''.join(_make_cluster_with_chosen_sources_html(cluster, chosen_sources) for cluster in clusters))
     with open("output/clusters_and_chosen_sources_{}.html".format(topic.slug), 'w') as fout:
         fout.write(html)
 
@@ -177,7 +177,7 @@ def _make_cluster_html_wrapper(topic, content):
         </body>
     </html>
     """
-def _make_cluster_and_penalties_html_wrapper(topic, num_of_chosen_sources, penalties, primary_sources_trefs, content):
+def _make_cluster_and_penalties_html_wrapper(topic, chosen_sources, penalties, primary_sources_trefs, content):
     return f"""
     <html>
         <style>
@@ -205,9 +205,11 @@ def _make_cluster_and_penalties_html_wrapper(topic, num_of_chosen_sources, penal
             }}
         </style>
         <body>
-            <h1>{topic.title['en']} Clusters and Chosen Sources (chose {num_of_chosen_sources})</h1>
-            <h2>Primary Sources<h2>
+            <h1>{topic.title['en']} Clusters and Chosen Sources (chose {len(chosen_sources)})</h1>
+            <h2>Primary Sources</h2>
             {convert_list_to_html(primary_sources_trefs)}
+            <h2>Chosen Sources (including primary source)</h2>
+            {''.join(_make_cluster_source_html(source) for source in chosen_sources)}
             <h2>Penalties</h2>
             {convert_list_to_html(penalties)}
             {content}
