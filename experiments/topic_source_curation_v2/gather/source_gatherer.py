@@ -97,7 +97,9 @@ def _combine_close_sources(sources: list[SummarizedSource]) -> list[SummarizedSo
             clustered_sources.append(SummarizedSource(new_source, ". ".join([s.summary for s in curr_sources])))
         else:
             # don't combine commentary refs
-            clustered_sources += curr_sources
+            # make sure they're unique by ref
+            by_ref = {s.source.ref: s for s in curr_sources}
+            clustered_sources += list(by_ref.values())
     return clustered_sources
 
 def _make_sources_unique(sources: list[TopicPromptSource]) -> list[TopicPromptSource]:
@@ -177,7 +179,10 @@ class SourceGatherer:
             if not recalled:
                 not_recalled_trefs.add(source.ref)
 
-        return num_recalled / len(topic_page_sources)
+        try:
+            return num_recalled / len(topic_page_sources)
+        except ZeroDivisionError:
+            return 0
 
 
 class CategoryAwareSourceGatherer:
@@ -266,7 +271,10 @@ def _summarize_source(llm: object, topic_str: str, source: TopicPromptSource):
     source_text = source.text['en'] if len(source.text['en']) > 0 else source.text['he']
     if len(source_text) == 0:
         return None
-    summary = summarize_based_on_uniqueness(source_text, topic_str, llm, "English")
+    try:
+        summary = summarize_based_on_uniqueness(source_text, topic_str, llm, "English")
+    except BadRequestError:
+        return None
     if summary is None:
         return None
     return SummarizedSource(source, summary)
