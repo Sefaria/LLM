@@ -45,7 +45,7 @@ def get_or_generate_topic_description(topic: Topic, verbose=True) -> str:
         if description and verbose:
             print('Generated desc from webpage:', description)
     if not description:
-        description = get_topic_description_from_top_sources(topic)
+        description = get_topic_description_from_top_sources(topic, verbose=verbose)
         if description and verbose:
             print('Generated desc from sources:', description)
     return description
