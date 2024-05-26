@@ -23,16 +23,15 @@ from sefaria.model import library
 
 
 
-def solve_clusters(clusters: list[Cluster], sorted_items: list[SummarizedSource], primary_trefs: list[str]) -> (list[SummarizedSource], list[str]):
-    num_of_sources = sum(len(c.items) for c in clusters)
+def solve_clusters(clusters: list[Cluster], sorted_sources: list[SummarizedSource], primary_trefs: list[str], black_listed_trefs: set[str]) -> (list[SummarizedSource], list[str]):
+    num_sources = sum(len(c.items) for c in clusters)
     flattened_summarized_sources = reduce(lambda x, y: x + y.items, clusters, [])
     prob = LpProblem("Choose_Sources", LpMaximize)
 
     ref_var_map = {}
     var_ref_map = {}
     ordered_sources_vars = []
-    # for cluster in clusters:
-    for item in sorted_items:
+    for item in sorted_sources:
         var = LpVariable(f'{item.source.ref}', lowBound=0, upBound=1, cat='Binary')
         ref_var_map[item.source.ref] = var
         var_ref_map[var] = item.source.ref
@@ -47,8 +46,11 @@ def solve_clusters(clusters: list[Cluster], sorted_items: list[SummarizedSource]
 
     # Add the constraints that the sum of sources with the same category must be >= 1
     category_vars_map = {}
-    for ref, var in ref_var_map.items():
-        category = Ref(ref).primary_category
+    for tref, var in ref_var_map.items():
+        oref = Ref(tref)
+        category = oref.primary_category
+        if category == "Commentary":
+            category = f"{oref.index.categories[0]} Commentary"
         if category not in category_vars_map:
             category_vars_map[category] = []
         category_vars_map[category].append(var)
@@ -98,33 +100,32 @@ def solve_clusters(clusters: list[Cluster], sorted_items: list[SummarizedSource]
     # Add constraint that number of chosen sources should not exceed 20
     prob += lpSum(ordered_sources_vars) == min(20, len(clusters))
 
-    weights = [num_of_sources - i for i in range(len(ordered_sources_vars))]
+    weights = _get_source_weights(sorted_sources, black_listed_trefs)
     weighted_sources = [weights[i] * ordered_sources_vars[i] for i in range(len(ordered_sources_vars))]
     mean_weight = int(sum(weights) / len(weights))
-    objective_function = lpSum(weighted_sources) - num_of_sources*lpSum(missing_category_penalty_vars) - 5*num_of_sources*lpSum(same_book_penalty_vars) -num_of_sources*(same_author_penalty_vars)
+    objective_function = lpSum(weighted_sources) - num_sources*lpSum(missing_category_penalty_vars) - 5*num_sources*lpSum(same_book_penalty_vars) -num_sources*(same_author_penalty_vars)
     prob += objective_function
 
     # Solve the problem
-    LpSolverDefault.msg = 1
+    LpSolverDefault.msg = 0
     prob.solve()
 
     # Print the results
-    print("Status:", LpStatus[prob.status])
-    print("Selected sources:")
-    for var in ordered_sources_vars:
-        if var.varValue > 0:
-            ref = var_ref_map[var]
-            print(f"https://www.sefaria.org/{Ref(ref).url()} value={var.varValue}")
-
-    print("Penalties:")
+    # print("Status:", LpStatus[prob.status])
+    # print("Selected sources:")
+    # for var in ordered_sources_vars:
+    #     if var.varValue > 0:
+    #         ref = var_ref_map[var]
+    #         print(f"https://www.sefaria.org/{Ref(ref).url()} value={var.varValue}")
+    #
+    # print("Penalties:")
+    # for penalty in missing_category_penalty_vars:
+    #     if penalty.varValue and penalty.varValue > 0:
+    #         print(f"{penalty.name} = {penalty.varValue}")
+    #         chosen_penalties.append(penalty.name)
     chosen_penalties = []
-    for penalty in missing_category_penalty_vars:
-        if penalty.varValue and penalty.varValue > 0:
-            print(f"{penalty.name} = {penalty.varValue}")
-            chosen_penalties.append(penalty.name)
     for penalty in same_book_penalty_vars:
         if penalty.varValue and penalty.varValue > 0:
-            print(f"{penalty.name} = {penalty.varValue}")
             chosen_penalties.append(penalty.name)
 
     chosen_sources = [item for item in flattened_summarized_sources if ref_var_map[item.source.ref].varValue > 0]
@@ -132,8 +133,13 @@ def solve_clusters(clusters: list[Cluster], sorted_items: list[SummarizedSource]
     return chosen_sources, chosen_penalties
 
 
+def _get_source_weights(sorted_sources: list[SummarizedSource], black_listed_trefs: set[str]) -> list[int]:
+    weights = []
+    for i, source in enumerate(sorted_sources):
+        weight = (-10*len(sorted_sources)) if source.source.ref in black_listed_trefs else (len(sorted_sources) - i)
+        weights.append(weight)
 
-
+    return weights
 
 
 if __name__ == "__main__":

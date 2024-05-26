@@ -15,8 +15,9 @@ from sefaria.recommendation_engine import RecommendationEngine
 import voyageai
 from tqdm import tqdm
 from experiments.topic_source_curation_v2.cluster import Cluster, SummarizedSource, embed_text_openai, get_text_from_source
+from experiments.topic_source_curation_v2.common import get_topic_str_for_prompts
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
-from util.general import run_parallel
+from util.general import run_parallel, get_by_xml_tag
 from sklearn.metrics import pairwise_distances
 from util.pipeline import Artifact
 from functools import reduce, partial
@@ -46,9 +47,57 @@ def choose(clusters: list[Cluster], topic: Topic):
     primary_sources_trefs = choose_primary_sources(clusters)
     sorted_clusters = sort_clusters(clusters, topic, 0)
     sorted_items = _sort_by_highest_avg_pairwise_distance(reduce(lambda x, y: x + y.items, clusters, []), lambda x: x.summary)
-    chosen_sources, chosen_penalties = solve_clusters(sorted_clusters, sorted_items, primary_sources_trefs)
+    chosen_sources, chosen_penalties = solve_clusters_iteratively(clusters, topic, sorted_items, primary_sources_trefs)
     chosen_sources = _sort_sources_by_gpt_instruction(chosen_sources, topic)
     save_clusters_and_chosen_sources_to_html(topic, sorted_clusters, chosen_sources, chosen_penalties, primary_sources_trefs)
+
+
+def solve_clusters_iteratively(clusters: list[Cluster], topic: Topic, sorted_sources: list[SummarizedSource], primary_sources_trefs: list[str], verbose=True) -> (list[SummarizedSource], list[str]):
+    """
+    Run solve_clusters in a loop, trying to remove sources that aren't interesting
+    :param clusters:
+    :param topic:
+    :param sorted_sources:
+    :param primary_sources_trefs:
+    :return:
+    """
+    max_iter = 10
+    most_interesting_sources_found = 0
+    chosen_sources = []
+    chosen_penalties = []
+    chosen_not_interesting = []
+    not_interesting_trefs: set[str] = set()
+    for _ in tqdm(range(max_iter), desc="Recursively solving clusters", disable=not verbose):
+        curr_chosen_sources, curr_chosen_penalties = solve_clusters(clusters, sorted_sources, primary_sources_trefs, not_interesting_trefs)
+        interesting, curr_not_interesting = _bisect_sources_by_if_interesting(curr_chosen_sources, topic, verbose=False)
+        if len(interesting) > most_interesting_sources_found:
+            most_interesting_sources_found = len(interesting)
+            chosen_sources = curr_chosen_sources
+            chosen_penalties = curr_chosen_penalties
+            chosen_not_interesting = curr_not_interesting
+        if len(curr_not_interesting) == 0:
+            if verbose:
+                print("--------------------")
+                print("Found solution with all interesting sources!")
+                print("--------------------")
+            break
+        chosen_not_interesting_trefs = {source.source.ref for source in curr_not_interesting} & not_interesting_trefs
+        if len(chosen_not_interesting_trefs) > 0:
+            # LP was forced to choose a known not interesting source
+            # there is no reason to keep on trying
+            if verbose:
+                print("--------------------")
+                print("Was forced into solution with non-interesting sources")
+                print("--------------------")
+            break
+        not_interesting_trefs |= {source.source.ref for source in curr_not_interesting}
+    print("All not interesting trefs")
+    for tref in not_interesting_trefs:
+        print('-', tref)
+    print("Chosen not interesting trefs")
+    for source in chosen_not_interesting:
+        print('-', source.source.ref)
+    return chosen_sources, chosen_penalties
 
 
 def choose_primary_sources(clusters: list[Cluster]) -> list[str]:
@@ -124,6 +173,8 @@ def _sort_by_query_voayageai(documents: list[str], query:str):
 
 
 def _get_highest_avg_pairwise_distance_indices(embeddings: np.ndarray) -> np.ndarray:
+    if len(embeddings) == 1:
+        return np.array([0])
     distances = pairwise_distances(embeddings, metric='cosine')
     sum_distances = np.sum(distances, axis=1)
     avg_distances = sum_distances / (len(embeddings) - 1)
@@ -216,3 +267,29 @@ def _sort_sources_by_gpt_instruction(sources: list[SummarizedSource], topic: Top
         """
     interesting = sort_by_instruction(sources, interestingness_instruction, lambda item: item.summary)
     return interesting
+
+
+def _determine_if_source_is_interesting(source: SummarizedSource, topic: Topic):
+    topic_str = get_topic_str_for_prompts(topic, verbose=False)
+    interestingness_instruction = f"""You are an expert in Jewish laws, history and traditions, wishing to teach your 
+     en a text related to {topic_str}. Output if you think the input text will be captivating and intriguing to your 
+     students. The source should be highly relevant to {topic.title}. Text will be wrapped in <text> tags. Output should 
+     be either 'Yes' or 'No' wrapped in <is_interesting> tags
+     """
+    system = SystemMessage(content=interestingness_instruction)
+    text = source.source.text
+    human = HumanMessage(content=f"<text>{text.get('en', text['he'])}</text>")
+    llm = ChatOpenAI(model='gpt-4o', temperature=0)
+    response = llm([system, human])
+    answer = get_by_xml_tag(response.content, "is_interesting")
+    return answer.lower().strip() == "yes"
+
+
+def _bisect_sources_by_if_interesting(sources: list[SummarizedSource], topic: Topic, verbose=True) -> tuple[list[SummarizedSource], list[SummarizedSource]]:
+    is_interesting_list = run_parallel(sources, partial(_determine_if_source_is_interesting, topic=topic),
+                                       max_workers=100, desc="Bisect sources by if interesting", disable=not verbose)
+    interesting, boring = [], []
+    for is_interesting, source in zip(is_interesting_list, sources):
+        temp_list = interesting if is_interesting else boring
+        temp_list.append(source)
+    return interesting, boring
