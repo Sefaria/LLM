@@ -13,10 +13,13 @@ import os
 import json
 import django
 django.setup()
-from sefaria.model import *
-os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"]="python"
+from sefaria.model.passage import Passage, PassageSet
+from sefaria.model.text import Ref, TextChunk, Version
+from sefaria.model.ref_data import RefDataSet
+# os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"]="python"
 
-export_filename = "/Users/nss/Downloads/en_library.jsonl"
+en_export_filename = "/Users/nss/Downloads/en_library.jsonl"
+he_only_export_filename = "/Users/nss/Downloads/he_only_library.jsonl"
 
 def add_herzog_tanakh_passages():
     PassageSet({"type": {"$in": ["Herzog Level 2", "Herzog Level 3"]}}).delete()
@@ -85,42 +88,35 @@ def ingest_passages():
         docs.append(doc)
     ingest_docs(docs)
 
-def ingest_export(start=0):
+def ingest_export(export_filename, start=0, end=None):
     export = read_jsonl(export_filename)
     docs = [make_doc_from_export_item(item) for item in export]
-    ingest_docs(docs, start)
+    ingest_docs(docs, start, end)
 
 
-def ingest_docs(docs, start=0):
+def ingest_docs(docs, start=0, end=None):
     embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
     if start == 0:
         chroma_db = Chroma.from_documents(
-            documents=[docs[0]], embedding=embeddings, persist_directory="embedding/.chromadb_openai"
+            documents=[docs[0]], embedding=embeddings, persist_directory="embedding/.chromadb_openai_he"
         )
     else:
-        chroma_db = Chroma(persist_directory="embedding/.chromadb_openai", embedding_function=embeddings)
+        chroma_db = Chroma(persist_directory="embedding/.chromadb_openai_he", embedding_function=embeddings)
 
     with tqdm(total=len(docs)-1, desc="Ingesting documents") as pbar:
         pbar.update(start)
-        with ThreadPoolExecutor(max_workers=40) as executor:  # Adjust max_workers as needed
+        with ThreadPoolExecutor(max_workers=50) as executor:  # Adjust max_workers as needed
             futures = []
-            for d in docs[start:]:
+            for d in docs[start:end]:
                 future = executor.submit(ingest_document, d, chroma_db, pbar)
                 futures.append(future)
             for future in futures:
                 future.result()
 
-def query():
-    query = "Abraham our forefather"
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-    db = Chroma(persist_directory="embedding/.chromadb_openai", embedding_function=embeddings)
-    ret = db.similarity_search_with_relevance_scores(query)
-    for yo in ret:
-        print(yo)
-    print("DB size", len(db.get()["ids"]))
 
 if __name__ == '__main__':
-    # ingest_export(49446)
+    # 1307026
+    ingest_export(he_only_export_filename, start=round(2515456*0.25))
     # ingest_passages()
-    query()
+    # query()
     # add_herzog_tanakh_passages()
