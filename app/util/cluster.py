@@ -141,7 +141,7 @@ class StandardClusterer(AbstractClusterer):
         embeddings = run_parallel([item.get_str_to_embed() for item in items], self.embedding_fn, max_workers=40, desc="embedding items for clustering", disable=not self.verbose)
         cluster_results = self.get_cluster_algo(embeddings).fit(embeddings)
         clusters, noise_items, noise_embeddings = self._build_clusters_from_cluster_results(cluster_results, embeddings, items)
-        if cluster_noise:
+        if cluster_noise and len(noise_items) > 0:
             noise_results = make_kmeans_algo_with_optimal_silhouette_score(noise_embeddings).fit(noise_embeddings)
             noise_clusters, _, _ = self._build_clusters_from_cluster_results(noise_results, noise_embeddings, noise_items)
             if self.verbose:
