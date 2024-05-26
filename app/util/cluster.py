@@ -212,19 +212,19 @@ class HDBSCANOptimizerClusterer(AbstractClusterer):
         return reduce(lambda x, y: {**x, y[0]: y[1][i]}, self.HDBSCAN_PARAM_OPTS.items(), {})
 
     def cluster_items(self, items: list[AbstractClusterItem], cluster_noise: bool = False) -> list[Cluster]:
-        best_clusterer = None
+        best_clusters = None
         highest_clustering_score = 0
         for i in range(self.param_search_len):
             curr_hdbscan_obj = HDBSCAN(**self._get_ith_hdbscan_params(i))
             curr_clusterer = self.clusterer.clone(get_cluster_algo=lambda x: curr_hdbscan_obj, verbose=False)
-            curr_clusters = self.clusterer.cluster_items(items, cluster_noise=True)
-            summarized_clusters = self.clusterer.summarize_clusters(curr_clusters)
+            curr_clusters = curr_clusterer.cluster_items(items, cluster_noise=cluster_noise)
+            summarized_clusters = curr_clusterer.summarize_clusters(curr_clusters)
             clustering_score = self._calculate_clustering_score(summarized_clusters)
             if clustering_score > highest_clustering_score:
                 highest_clustering_score = clustering_score
-                best_clusterer = curr_clusterer
+                best_clusters = curr_clusters
                 print("best hdbscan params", self._get_ith_hdbscan_params(i))
-        return best_clusterer.cluster_items(items, cluster_noise=cluster_noise)
+        return best_clusters
 
     def cluster_and_summarize(self, items: list[AbstractClusterItem]) -> list[Cluster]:
         clusters = self.cluster_items(items, cluster_noise=True)
