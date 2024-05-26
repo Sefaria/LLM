@@ -63,6 +63,10 @@ def _filter_targum_thats_redundant(sources: list[SummarizedSource], verbose=True
                 tanakh_ref = link.ref_opposite(Ref(s.ref))
                 if tanakh_ref.primary_category == "Tanakh":
                     break
+            if tanakh_ref is None:
+                # in rare case where targum isn't connected to tanakh, assume it adds info
+                sources_to_check.append(source)
+                continue
             tanakh_source = _make_topic_prompt_source(tanakh_ref, '', with_commentary=False)
             texts_to_check.append((tanakh_source.text['en'], s.text['en']))
             sources_to_check.append(source)
@@ -144,8 +148,8 @@ class SourceGatherer:
         for question in tqdm(questions, desc='gather sources', disable=not verbose):
             temp_sources, _ = self.source_querier.query(question, 100, 0.5)
             retrieved_sources.extend(temp_sources)
-        if verbose:
-            print(f'RECALL', self._calculate_recall_of_sources(topic_page_sources, retrieved_sources))
+        # if verbose:
+        #     print(f'RECALL', self._calculate_recall_of_sources(topic_page_sources, retrieved_sources))
         return topic_page_sources + retrieved_sources
 
     @staticmethod
