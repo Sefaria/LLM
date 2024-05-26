@@ -6,6 +6,7 @@ Given clusters tries to
     - Fundamental sources: funadmental sources from Tanakh and Talmud etc. should be chosen. These should be few, made 2-3
     - Interesting sources: the rest of the sources should represent interesting ideas for a newcomer to Sefaria
 """
+from typing import TypeVar, Callable
 import django
 django.setup()
 from sefaria.pagesheetrank import pagerank_rank_ref_list
@@ -27,6 +28,8 @@ from sefaria_llm_interface.common.topic import Topic
 from solver import solve_clusters
 from scripts.analyze_gathered_sources import save_clusters_and_chosen_sources_to_html
 
+T = TypeVar('T')
+
 # def choose_ideal_sources_for_clusters(clusters: list[Cluster], topic: Topic) -> list[TopicPromptSource]:
 #     # return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(choose_ideal_sources).data
 #     return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(solve_clusters).data
@@ -42,7 +45,9 @@ def choose(clusters: list[Cluster], topic: Topic):
                 cluster.items.remove(item)
     primary_sources_trefs = choose_primary_sources(clusters)
     sorted_clusters = sort_clusters(clusters, topic, 0)
-    chosen_sources, chosen_penalties = solve_clusters(sorted_clusters, primary_sources_trefs)
+    sorted_items = _sort_by_highest_avg_pairwise_distance(reduce(lambda x, y: x + y.items, clusters, []), lambda x: x.summary)
+    chosen_sources, chosen_penalties = solve_clusters(sorted_clusters, sorted_items, primary_sources_trefs)
+    chosen_sources = _sort_sources_by_gpt_instruction(chosen_sources, topic)
     save_clusters_and_chosen_sources_to_html(topic, sorted_clusters, chosen_sources, chosen_penalties, primary_sources_trefs)
 
 
@@ -74,12 +79,14 @@ def choose_ideal_clusters(clusters: list[Cluster], max_clusters: int) -> list[Cl
     return [c for c in clusters if len(clusters) > 1]
 
 def sort_clusters(clusters: list[Cluster], topic:Topic, max_clusters: int) -> list[Cluster]:
-    # sorted_clusters = _sort_by_highest_avg_pairwise_distance(clusters)
     print(f"Sorting {len(clusters)} clusters by interestingness...")
-    sorted_clusters = _sort_clusters_by_instruction(clusters, topic)
-    sorted_cluster_items = run_parallel(sorted_clusters, partial(_sort_within_cluster, topic=topic), max_workers=100, desc="Sorting for interestingness within cluster")
-    for cluster, sorted_items in zip(sorted_clusters, sorted_cluster_items):
-        cluster.items = sorted_items
+    # sorted_clusters = _sort_clusters_by_instruction(clusters, topic)
+    # sorted_cluster_items = run_parallel(sorted_clusters, partial(_sort_within_cluster, topic=topic), max_workers=100, desc="Sorting for interestingness within cluster")
+    # for cluster, sorted_items in zip(sorted_clusters, sorted_cluster_items):
+    #     cluster.items = sorted_items
+    sorted_clusters = _sort_by_highest_avg_pairwise_distance(clusters, lambda x: x.summary)
+    for cluster in clusters:
+        cluster.items = _sort_by_highest_avg_pairwise_distance(cluster.items, lambda x: x.summary, verbose=False)
     return sorted_clusters
 
 def choose_ideal_sources(source_clusters: list[Cluster], verbose=True) -> list[TopicPromptSource]:
@@ -123,10 +130,11 @@ def _get_highest_avg_pairwise_distance_indices(embeddings: np.ndarray) -> np.nda
     sorted_indices = np.argsort(avg_distances)[::-1]  # Sort in descending order
     return sorted_indices
 
-def _sort_by_highest_avg_pairwise_distance(clusters: list[Cluster]) -> list[Cluster]:
-    embeddings = np.array([embed_text_openai(c.summary) for c in clusters])
+def _sort_by_highest_avg_pairwise_distance(items: list[T], key: Callable[[T], str], verbose=True) -> list[T]:
+    embeddings = np.array(run_parallel([key(x) for x in items], embed_text_openai, max_workers=100, desc="Embedding summaries for interestingness sort", disable=not verbose))
     sorted_indices = _get_highest_avg_pairwise_distance_indices(embeddings)
-    return [clusters[i] for i in sorted_indices]
+    return [items[i] for i in sorted_indices]
+
 def get_gpt_compare(system_prompt, human_prompt_generator, llm):
     content_to_val = {"1":-1, "2":1, "0":0}
     def gpt_compare(a, b) -> int:
@@ -142,7 +150,7 @@ def get_gpt_compare(system_prompt, human_prompt_generator, llm):
 def sort_by_instruction(documents,  comparison_instruction, key_extraction_func=lambda x:x):
     from functools import cmp_to_key
     message_suffix = " The only output should be either '1' or '2' or '0'"
-    llm = ChatOpenAI(model='gpt-3.5-turbo-0125', temperature=0)
+    llm = ChatOpenAI(model='gpt-4o', temperature=0)
     system = SystemMessage(
         content=
         comparison_instruction
@@ -200,11 +208,11 @@ def _sort_clusters_by_instruction(clusters: list[Cluster], topic: Topic) -> list
 
     return interesting
 
-def _sort_within_cluster(cluster: Cluster, topic: Topic):
-    if len(cluster.items) <= 1:
-        return cluster.items
+def _sort_sources_by_gpt_instruction(sources: list[SummarizedSource], topic: Topic):
+    if len(sources) <= 1:
+        return sources
     interestingness_instruction = f"""You are an expert in Jewish laws, history and traditions, wishing to teach your student about {topic.title} in light of Jewish tradition.
         Given 2 texts related to {topic.title}, output the index of the one which presents a more interesting, surprising, wild and/or non-trivial information regarding {topic.title}, which might be captivating and intriguing to your students. If both are equally non-trivial and interesting, output 0.  
         """
-    interesting = sort_by_instruction(cluster.items, interestingness_instruction, lambda item: item.summary)
+    interesting = sort_by_instruction(sources, interestingness_instruction, lambda item: item.summary)
     return interesting

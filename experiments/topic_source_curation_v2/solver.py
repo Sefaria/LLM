@@ -23,7 +23,7 @@ from sefaria.model import library
 
 
 
-def solve_clusters(clusters: list[Cluster], primary_trefs: list[str]) -> (list[SummarizedSource], list[str]):
+def solve_clusters(clusters: list[Cluster], sorted_items: list[SummarizedSource], primary_trefs: list[str]) -> (list[SummarizedSource], list[str]):
     num_of_sources = sum(len(c.items) for c in clusters)
     flattened_summarized_sources = reduce(lambda x, y: x + y.items, clusters, [])
     prob = LpProblem("Choose_Sources", LpMaximize)
@@ -31,12 +31,12 @@ def solve_clusters(clusters: list[Cluster], primary_trefs: list[str]) -> (list[S
     ref_var_map = {}
     var_ref_map = {}
     ordered_sources_vars = []
-    for cluster in clusters:
-        for item in cluster.items:
-            var = LpVariable(f'{item.source.ref}', lowBound=0, upBound=1, cat='Binary')
-            ref_var_map[item.source.ref] = var
-            var_ref_map[var] = item.source.ref
-            ordered_sources_vars.append(var)
+    # for cluster in clusters:
+    for item in sorted_items:
+        var = LpVariable(f'{item.source.ref}', lowBound=0, upBound=1, cat='Binary')
+        ref_var_map[item.source.ref] = var
+        var_ref_map[var] = item.source.ref
+        ordered_sources_vars.append(var)
 
 
     # Add the constraints that sum of all sources from the same cluster must be equal to 1
