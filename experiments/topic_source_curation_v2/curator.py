@@ -1,16 +1,17 @@
 """
 Main
 """
-from experiments.topic_source_curation_v2.gather.source_gatherer import gather_sources_about_topic
-from experiments.topic_source_curation_v2.cluster import get_clustered_sources_based_on_summaries, Cluster, SummarizedSource
+from tqdm import tqdm
+from functools import partial
+from experiments.topic_source_curation_v2.cluster import SummarizedSource
 from experiments.topic_source_curation_v2.choose import choose
 from experiments.topic_source_curation_v2.cache import load_sources, save_sources, load_clusters, save_clusters
+from experiments.topic_source_curation_v2.curation_context import get_context_for_source
 from sefaria.helper.llm.topic_prompt import _make_llm_topic
 from sefaria_llm_interface.common.topic import Topic
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from util.pipeline import Artifact
-from dataclasses import asdict
-import numpy as np
+from util.general import run_parallel
 import csv
 import random
 import json
@@ -20,6 +21,7 @@ from sefaria.model.topic import Topic as SefariaTopic
 
 random.seed(45612)
 TOPICS_TO_CURATE_CSV_PATH = 'input/Topic project plan - 1000 topics pages product - list of all topic slugs.csv'
+
 
 def get_topics_to_curate():
     topics = []
@@ -37,22 +39,36 @@ def get_topics_to_curate():
     return topics
 
 
+def save_curation(data, topic: Topic) -> list[SummarizedSource]:
+    sources, clusters = data
+    contexts = run_parallel(sources, partial(get_context_for_source, topic=topic, clusters=clusters), max_workers=40, desc="Get source context")
+    out = [{
+        "ref": source.source.ref,
+        "context": contexts[isource]
+    } for (isource, source) in enumerate(sources)]
+    with open(f"output/curation_{topic.slug}.json", "w") as fout:
+        json.dump(out, fout, ensure_ascii=False, indent=2)
+    return sources
+
+
 def curate_topic(topic: Topic) -> list[TopicPromptSource]:
     return (Artifact(topic)
-            .pipe(gather_sources_about_topic)
+            # .pipe(gather_sources_about_topic)
             # .pipe(load_sources)
-            .pipe(get_clustered_sources_based_on_summaries, topic)
-            .pipe(save_clusters, topic)
-            # .pipe(load_clusters)
-            .pipe(choose, topic).data
+            # .pipe(get_clustered_sources_based_on_summaries, topic)
+            # .pipe(save_clusters, topic)
+            .pipe(load_clusters)
+            .pipe(choose, topic)
+            .pipe(save_curation, topic).data
             )
+
 
 if __name__ == '__main__':
     topics = random.sample(get_topics_to_curate(), 50)
-    # topics = [_make_llm_topic(SefariaTopic.init('abraham-in-egypt'))]
-    for topic in topics[1:]:
-        print("CURATING", topic.slug)
-        sources = curate_topic(topic)
+    # topics = [_make_llm_topic(SefariaTopic.init('psychology'))]
+    for t in topics:
+        print("CURATING", t.slug)
+        curated_sources = curate_topic(t)
     # print('---CURATION---')
     # print('num sources', len(sources))
     # for source in sources:
