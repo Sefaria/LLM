@@ -26,8 +26,8 @@ import numpy as np
 from basic_langchain.schema import HumanMessage, SystemMessage
 from basic_langchain.chat_models import ChatOpenAI
 from sefaria_llm_interface.common.topic import Topic
-from solver import solve_clusters
-from scripts.analyze_gathered_sources import save_clusters_and_chosen_sources_to_html
+from experiments.topic_source_curation_v2.solver import solve_clusters
+from experiments.topic_source_curation_v2.scripts.analyze_gathered_sources import save_clusters_and_chosen_sources_to_html
 
 T = TypeVar('T')
 
@@ -35,7 +35,8 @@ T = TypeVar('T')
 #     # return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(choose_ideal_sources).data
 #     return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(solve_clusters).data
 
-def choose(clusters: list[Cluster], topic: Topic):
+
+def choose(clusters: list[Cluster], topic: Topic) -> (list[SummarizedSource], list[Cluster]):
     # return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(solve_clusters).data
     ##ugly fix vectordatabase index inconsistencies:
     for cluster in clusters:
@@ -49,7 +50,15 @@ def choose(clusters: list[Cluster], topic: Topic):
     sorted_items = _sort_by_highest_avg_pairwise_distance(reduce(lambda x, y: x + y.items, clusters, []), lambda x: x.summary)
     chosen_sources, chosen_penalties = solve_clusters_iteratively(clusters, topic, sorted_items, primary_sources_trefs)
     chosen_sources = _sort_sources_by_gpt_instruction(chosen_sources, topic)
+    chosen_sources = _put_primary_sources_first(chosen_sources, primary_sources_trefs)
     save_clusters_and_chosen_sources_to_html(topic, sorted_clusters, chosen_sources, chosen_penalties, primary_sources_trefs)
+    return chosen_sources, clusters
+
+
+def _put_primary_sources_first(sources: list[SummarizedSource], primary_sources_trefs: list[str]) -> list[SummarizedSource]:
+    primary_sources = [s for s in sources if s.source.ref in primary_sources_trefs]
+    other_sources = [s for s in sources if s.source.ref not in primary_sources_trefs]
+    return primary_sources + other_sources
 
 
 def solve_clusters_iteratively(clusters: list[Cluster], topic: Topic, sorted_sources: list[SummarizedSource], primary_sources_trefs: list[str], verbose=True) -> (list[SummarizedSource], list[str]):
@@ -128,14 +137,14 @@ def choose_ideal_clusters(clusters: list[Cluster], max_clusters: int) -> list[Cl
     return [c for c in clusters if len(clusters) > 1]
 
 def sort_clusters(clusters: list[Cluster], topic:Topic, max_clusters: int) -> list[Cluster]:
-    print(f"Sorting {len(clusters)} clusters by interestingness...")
+    # print(f"Sorting {len(clusters)} clusters by interestingness...")
     # sorted_clusters = _sort_clusters_by_instruction(clusters, topic)
     # sorted_cluster_items = run_parallel(sorted_clusters, partial(_sort_within_cluster, topic=topic), max_workers=100, desc="Sorting for interestingness within cluster")
     # for cluster, sorted_items in zip(sorted_clusters, sorted_cluster_items):
     #     cluster.items = sorted_items
     sorted_clusters = _sort_by_highest_avg_pairwise_distance(clusters, lambda x: x.summary)
-    for cluster in clusters:
-        cluster.items = _sort_by_highest_avg_pairwise_distance(cluster.items, lambda x: x.summary, verbose=False)
+    # for cluster in clusters:
+    #     cluster.items = _sort_by_highest_avg_pairwise_distance(cluster.items, lambda x: x.summary, verbose=False)
     return sorted_clusters
 
 def choose_ideal_sources(source_clusters: list[Cluster], verbose=True) -> list[TopicPromptSource]:
@@ -272,7 +281,7 @@ def _sort_sources_by_gpt_instruction(sources: list[SummarizedSource], topic: Top
 def _determine_if_source_is_interesting(source: SummarizedSource, topic: Topic):
     topic_str = get_topic_str_for_prompts(topic, verbose=False)
     interestingness_instruction = f"""You are an expert in Jewish laws, history and traditions, wishing to teach your 
-     en a text related to {topic_str}. Output if you think the input text will be captivating and intriguing to your 
+     students a text related to {topic_str}. Output if you think the input text will be captivating and intriguing to your 
      students. The source should be highly relevant to {topic.title}. Text will be wrapped in <text> tags. Output should 
      be either 'Yes' or 'No' wrapped in <is_interesting> tags
      """
@@ -285,7 +294,7 @@ def _determine_if_source_is_interesting(source: SummarizedSource, topic: Topic):
     return answer.lower().strip() == "yes"
 
 
-def _bisect_sources_by_if_interesting(sources: list[SummarizedSource], topic: Topic, verbose=True) -> tuple[list[SummarizedSource], list[SummarizedSource]]:
+def _bisect_sources_by_if_interesting(sources: list[SummarizedSource], topic: Topic, verbose=True) -> (list[SummarizedSource], list[SummarizedSource]):
     is_interesting_list = run_parallel(sources, partial(_determine_if_source_is_interesting, topic=topic),
                                        max_workers=100, desc="Bisect sources by if interesting", disable=not verbose)
     interesting, boring = [], []
