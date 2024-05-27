@@ -5,13 +5,14 @@ import re
 
 def get_source_text_with_fallback(source: TopicPromptSource, lang: str, auto_translate=False) -> str:
     text = source.text.get(lang, "")
+    other_lang = "en" if lang == "he" else "he"
+    other_lang_text = source.text.get(other_lang, "")
     if len(text) == 0:
         if auto_translate and lang == "en":
             from translation.poc import translate_text
-            text = translate_text(text)
+            text = translate_text(other_lang_text)
         else:
-            other_lang = "en" if lang == "he" else "he"
-            text = source.text.get(other_lang, "")
+            text = other_lang_text
 
     return text
 
