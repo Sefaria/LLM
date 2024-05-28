@@ -7,11 +7,14 @@ from sefaria_llm_interface.topic_prompt import TopicPromptSource
 
 from experiments.topic_source_curation.cluster import Cluster, SummarizedSource
 
+
 def _serialize_sources(sources: list[TopicPromptSource]) -> list[dict]:
     return [asdict(s) for s in sources]
 
-def _deserialize_sources(raw_sources: list[dict]) -> list[TopicPromptSource]:
-    return [TopicPromptSource(**s) for s in raw_sources]
+
+def _deserialize_sources(raw_sources: list[dict]) -> list[SummarizedSource]:
+    return [SummarizedSource(**s) for s in raw_sources]
+
 
 def _serialize_clusters(clusters: list[Cluster]) -> list[dict]:
     serial = []
