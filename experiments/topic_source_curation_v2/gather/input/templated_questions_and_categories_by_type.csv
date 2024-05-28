@@ -1,9 +1,0 @@
-Type,Question,Categories
-holiday,Give me interesting texts about {}.
-neutral-object,What are the most important Biblical verses that mention {}?,"Tanakh,Reference"
-neutral-object,What usages does {} have in Jewish law?,"Talmud,Mishnah,Tosefta,Halakhah"
-neutral-object,"Observance of Time: The Jewish calendar is lunar-based, and the sighting of the new moon determines the beginning of each month. While stars themselves might not be directly involved, the positioning of stars and the night sky play a role in determining the passage of time and thus the timing of various Jewish rituals and observances.","Talmud,Mishnah,Tosefta,Halakhah"
-neutral-object,"Astrology and Divination: While astrology is generally discouraged in Judaism, there are historical references to Jewish practices of astrology and divination, particularly during the medieval period. However, these practices are generally considered to be outside the realm of mainstream Jewish Halacha."
-neutral-object,Give me an interesting story where {} has a central role.,Midrash
-neutral-object,What are interesting Halachik discussion that involve {}?
-
