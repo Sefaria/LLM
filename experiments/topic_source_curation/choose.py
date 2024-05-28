@@ -31,6 +31,44 @@ from experiments.topic_source_curation.scripts.analyze_gathered_sources import s
 
 T = TypeVar('T')
 
+
+class CurationOption:
+    """
+    Represents a set of sources that is an option for curating a certain topic
+    """
+    def __init__(self, interesting_sources: list[SummarizedSource], not_interesting_sources: list[SummarizedSource], penalties: list[str]):
+        self._interesting_sources = interesting_sources
+        self._not_interesting_sources = not_interesting_sources
+        self._penalties = penalties
+
+    @property
+    def sources(self) -> list[SummarizedSource]:
+        return self._interesting_sources + self._not_interesting_sources
+
+    @property
+    def not_interesting_sources(self) -> list[SummarizedSource]:
+        return self._not_interesting_sources
+
+    @property
+    def interesting_sources(self) -> list[SummarizedSource]:
+        return self._interesting_sources
+
+    @property
+    def penalties(self) -> list[str]:
+        return self._penalties
+
+    def score(self, ranked_trefs: list[str]) -> float:
+        """
+        Score between 0 and 1 for how good this curation is
+        Interesting sources are all considered to have equal weight
+        Not interesting sources are ranked by `ranked_trefs` with a max weight 0.5 * interesting source weight
+        :param ranked_trefs:
+        :return:
+        """
+        not_interesting_ranks = [(len(ranked_trefs) - ranked_trefs.index(s.source.ref)) for s in self._not_interesting_sources]
+        not_interesting_scores = [0.5 * (rank/len(ranked_trefs)) for rank in not_interesting_ranks]
+        return (len(self._interesting_sources) + sum(not_interesting_scores))/len(self.sources)
+
 # def choose_ideal_sources_for_clusters(clusters: list[Cluster], topic: Topic) -> list[TopicPromptSource]:
 #     # return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(choose_ideal_sources).data
 #     return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(solve_clusters).data
@@ -71,26 +109,19 @@ def solve_clusters_iteratively(clusters: list[Cluster], topic: Topic, sorted_sou
     :return:
     """
     max_iter = 10
-    most_interesting_sources_found = 0
-    chosen_sources = []
-    chosen_penalties = []
-    chosen_not_interesting = []
+    curation_options: list[CurationOption] = []
     not_interesting_trefs: set[str] = set()
     for _ in tqdm(range(max_iter), desc="Recursively solving clusters", disable=not verbose):
         curr_chosen_sources, curr_chosen_penalties = solve_clusters(clusters, sorted_sources, primary_sources_trefs, not_interesting_trefs)
-        interesting, curr_not_interesting = _bisect_sources_by_if_interesting(curr_chosen_sources, topic, verbose=False)
-        if len(interesting) > most_interesting_sources_found:
-            most_interesting_sources_found = len(interesting)
-            chosen_sources = curr_chosen_sources
-            chosen_penalties = curr_chosen_penalties
-            chosen_not_interesting = curr_not_interesting
-        if len(curr_not_interesting) == 0:
+        interesting, not_interesting = _bisect_sources_by_if_interesting(curr_chosen_sources, topic, verbose=False)
+        curation_options.append(CurationOption(interesting, not_interesting, curr_chosen_penalties))
+        if len(not_interesting) == 0:
             if verbose:
                 print("--------------------")
                 print("Found solution with all interesting sources!")
                 print("--------------------")
             break
-        chosen_not_interesting_trefs = {source.source.ref for source in curr_not_interesting} & not_interesting_trefs
+        chosen_not_interesting_trefs = {source.source.ref for source in not_interesting} & not_interesting_trefs
         if len(chosen_not_interesting_trefs) > 0:
             # LP was forced to choose a known not interesting source
             # there is no reason to keep on trying
@@ -98,15 +129,38 @@ def solve_clusters_iteratively(clusters: list[Cluster], topic: Topic, sorted_sou
                 print("--------------------")
                 print("Was forced into solution with non-interesting sources")
                 print("--------------------")
+            not_interesting_trefs |= {source.source.ref for source in not_interesting}
             break
-        not_interesting_trefs |= {source.source.ref for source in curr_not_interesting}
+        not_interesting_trefs |= {source.source.ref for source in not_interesting}
+
+    print("Choosing best curation...")
+    sorted_not_interesting_trefs = _get_sorted_not_interesting_trefs(curation_options, not_interesting_trefs, topic)
+    best_curation = _choose_best_curation(curation_options, sorted_not_interesting_trefs)
+
     print("All not interesting trefs")
     for tref in not_interesting_trefs:
         print('-', tref)
     print("Chosen not interesting trefs")
-    for source in chosen_not_interesting:
+    for source in best_curation.not_interesting_sources:
         print('-', source.source.ref)
-    return chosen_sources, chosen_penalties, [s.source.ref for s in chosen_not_interesting]
+    return best_curation.sources, best_curation.penalties, [s.source.ref for s in best_curation.not_interesting_sources]
+
+
+def _choose_best_curation(curation_options: list[CurationOption], sorted_not_interesting_trefs: list[str]) -> CurationOption:
+    return max(curation_options, key=lambda c: c.score(sorted_not_interesting_trefs))
+
+
+def _get_sorted_not_interesting_trefs(curation_options: list[CurationOption], not_interesting_trefs: set[str], topic: Topic) -> list[str]:
+    all_not_interesting_sources = []
+    found_not_interesting_trefs = set()
+    for option in curation_options:
+        for source in option.sources:
+            tref = source.source.ref
+            if tref in not_interesting_trefs and tref not in found_not_interesting_trefs:
+                all_not_interesting_sources.append(source)
+                found_not_interesting_trefs.add(tref)
+    return [s.source.ref for s in _sort_sources_by_gpt_instruction(all_not_interesting_sources, topic)]
+
 
 
 def choose_primary_sources(clusters: list[Cluster]) -> list[str]:
