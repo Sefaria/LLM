@@ -48,10 +48,10 @@ def choose(clusters: list[Cluster], topic: Topic) -> (list[SummarizedSource], li
     primary_sources_trefs = choose_primary_sources(clusters)
     sorted_clusters = sort_clusters(clusters, topic, 0)
     sorted_items = _sort_by_highest_avg_pairwise_distance(reduce(lambda x, y: x + y.items, clusters, []), lambda x: x.summary)
-    chosen_sources, chosen_penalties = solve_clusters_iteratively(clusters, topic, sorted_items, primary_sources_trefs)
+    chosen_sources, chosen_penalties, not_interesting_trefs = solve_clusters_iteratively(clusters, topic, sorted_items, primary_sources_trefs)
     chosen_sources = _sort_sources_by_gpt_instruction(chosen_sources, topic)
     chosen_sources = _put_primary_sources_first(chosen_sources, primary_sources_trefs)
-    save_clusters_and_chosen_sources_to_html(topic, sorted_clusters, chosen_sources, chosen_penalties, primary_sources_trefs)
+    save_clusters_and_chosen_sources_to_html(topic, sorted_clusters, chosen_sources, chosen_penalties, primary_sources_trefs, not_interesting_trefs)
     return chosen_sources, clusters
 
 
@@ -61,7 +61,7 @@ def _put_primary_sources_first(sources: list[SummarizedSource], primary_sources_
     return primary_sources + other_sources
 
 
-def solve_clusters_iteratively(clusters: list[Cluster], topic: Topic, sorted_sources: list[SummarizedSource], primary_sources_trefs: list[str], verbose=True) -> (list[SummarizedSource], list[str]):
+def solve_clusters_iteratively(clusters: list[Cluster], topic: Topic, sorted_sources: list[SummarizedSource], primary_sources_trefs: list[str], verbose=True) -> (list[SummarizedSource], list[str], list[str]):
     """
     Run solve_clusters in a loop, trying to remove sources that aren't interesting
     :param clusters:
@@ -106,7 +106,7 @@ def solve_clusters_iteratively(clusters: list[Cluster], topic: Topic, sorted_sou
     print("Chosen not interesting trefs")
     for source in chosen_not_interesting:
         print('-', source.source.ref)
-    return chosen_sources, chosen_penalties
+    return chosen_sources, chosen_penalties, [s.source.ref for s in chosen_not_interesting]
 
 
 def choose_primary_sources(clusters: list[Cluster]) -> list[str]:
