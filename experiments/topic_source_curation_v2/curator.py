@@ -7,7 +7,7 @@ from experiments.topic_source_curation_v2.cluster import SummarizedSource
 from experiments.topic_source_curation_v2.choose import choose
 from experiments.topic_source_curation_v2.cache import load_sources, save_sources, load_clusters, save_clusters
 from experiments.topic_source_curation_v2.curation_context import get_context_for_source
-from sefaria.helper.llm.topic_prompt import _make_llm_topic
+from sefaria.helper.llm.topic_prompt import make_llm_topic
 from sefaria_llm_interface.common.topic import Topic
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from util.pipeline import Artifact
@@ -32,7 +32,7 @@ def get_topics_to_curate():
                 continue
             slug = row['slug'].strip()
             try:
-                topics += [_make_llm_topic(SefariaTopic.init(slug))]
+                topics += [make_llm_topic(SefariaTopic.init(slug))]
             except:
                 print("Slug doesn't exist", row['slug'])
                 continue
@@ -65,7 +65,7 @@ def curate_topic(topic: Topic) -> list[TopicPromptSource]:
 
 if __name__ == '__main__':
     topics = random.sample(get_topics_to_curate(), 50)
-    # topics = [_make_llm_topic(SefariaTopic.init('psychology'))]
+    topics = [make_llm_topic(SefariaTopic.init('tov'))]
     for t in topics:
         print("CURATING", t.slug)
         curated_sources = curate_topic(t)

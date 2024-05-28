@@ -7,7 +7,7 @@ django.setup()
 from db_manager import MongoProdigyDBManager
 from sefaria.model.text import Ref
 from sefaria.helper.normalization import NormalizerComposer
-from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source
+from sefaria.helper.llm.topic_prompt import make_topic_prompt_source
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 
 
@@ -57,7 +57,7 @@ def get_ref_text_with_fallback(oref: Ref, lang: str, auto_translate=False) -> st
 
 
 def convert_trefs_to_sources(trefs) -> list[TopicPromptSource]:
-    return [_make_topic_prompt_source(Ref(tref), '', with_commentary=False) for tref in trefs]
+    return [make_topic_prompt_source(Ref(tref), '', with_commentary=False) for tref in trefs]
 
 
 def remove_refs_from_same_category(refs: list[Ref], max_category_count: int) -> list[Ref]:

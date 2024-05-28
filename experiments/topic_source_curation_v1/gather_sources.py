@@ -6,7 +6,7 @@ import re
 import django
 django.setup()
 from sefaria.model.topic import Topic
-from sefaria.helper.llm.topic_prompt import _make_llm_topic
+from sefaria.helper.llm.topic_prompt import make_llm_topic
 from experiments.topic_source_curation_v1.generate_questions import get_urls_for_slug, generate_questions_from_url_list
 from experiments.topic_source_curation_v1.query_sources import SourceQuerier
 from experiments.topic_source_curation_v1.common import is_text_about_topic
@@ -31,7 +31,7 @@ def bisect_right_with_key(a, x, lo=0, hi=None, key=None):
 
 def get_topic_description(topic_slug):
     topic = Topic.init(topic_slug)
-    llm_topic = _make_llm_topic(topic)
+    llm_topic = make_llm_topic(topic)
     return f"{llm_topic.title['en']}\nDescription: {llm_topic.description.get('en', 'N/A')}"
 
 def get_sources_relevant_to_topic_by_sliding_window(topic_slug, window_size, min_relevant, docs):

@@ -5,7 +5,7 @@ from sefaria.model.text import Ref
 from sefaria.model.topic import Topic
 from dataclasses import asdict
 from sefaria.helper.topic import get_topic
-from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source, _make_llm_topic
+from sefaria.helper.llm.topic_prompt import make_topic_prompt_source, make_llm_topic
 from sefaria_llm_interface.topic_source_curation import CuratedTopic
 
 def filter_subset_refs(orefs: list[Ref]) -> list[Ref]:
@@ -48,8 +48,8 @@ def convert_dataset_to_curated_topics(dataset: dict[str, list[str]]) -> list[dic
     annotated_dataset = []
     for slug, trefs in tqdm(dataset.items(), total=len(dataset), desc='annotate_dataset'):
         annotated_dataset.append(CuratedTopic(
-            _make_llm_topic(Topic.init(slug)),
-            [_make_topic_prompt_source(Ref(tref), '', with_commentary=False) for tref in trefs]
+            make_llm_topic(Topic.init(slug)),
+            [make_topic_prompt_source(Ref(tref), '', with_commentary=False) for tref in trefs]
         ))
     return [asdict(curated_topic) for curated_topic in annotated_dataset]
 

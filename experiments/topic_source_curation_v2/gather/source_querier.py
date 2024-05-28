@@ -3,7 +3,7 @@ import django
 django.setup()
 from typing import Union
 from sefaria.model.text import Ref
-from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source
+from sefaria.helper.llm.topic_prompt import make_topic_prompt_source
 from langchain_community.vectorstores.neo4j_vector import Neo4jVector
 from langchain_community.vectorstores.chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
@@ -49,7 +49,7 @@ class AbstractSourceQuerier(ABC):
         )
         retrieved_docs = filter_invalid_refs(retrieved_docs, key=lambda x: x[0].metadata['ref'])
         docs, scores = list(zip(*retrieved_docs)) if len(retrieved_docs) > 0 else ([], [])
-        sources = [_make_topic_prompt_source(Ref(doc.metadata['ref']), '', with_commentary=False) for doc in docs]
+        sources = [make_topic_prompt_source(Ref(doc.metadata['ref']), '', with_commentary=False) for doc in docs]
         return sources, scores
 
 

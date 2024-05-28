@@ -5,7 +5,7 @@ from sefaria.model.text import Ref
 from openai import BadRequestError
 from tqdm import tqdm
 from functools import reduce, partial
-from sefaria.helper.llm.topic_prompt import _make_topic_prompt_source, _make_llm_topic
+from sefaria.helper.llm.topic_prompt import make_topic_prompt_source, make_llm_topic
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface.common.topic import Topic
 from sefaria.recommendation_engine import RecommendationEngine
@@ -67,7 +67,7 @@ def _filter_targum_thats_redundant(sources: list[SummarizedSource], verbose=True
                 # in rare case where targum isn't connected to tanakh, assume it adds info
                 sources_to_check.append(source)
                 continue
-            tanakh_source = _make_topic_prompt_source(tanakh_ref, '', with_commentary=False)
+            tanakh_source = make_topic_prompt_source(tanakh_ref, '', with_commentary=False)
             texts_to_check.append((tanakh_source.text['en'], s.text['en']))
             sources_to_check.append(source)
         else:
@@ -97,7 +97,7 @@ def _combine_close_sources(sources: list[SummarizedSource]) -> list[SummarizedSo
             ranged_oref = curr_refs[0].to(curr_refs[-1])
             if len(curr_refs) > 1:
                 print("COMBINED", ranged_oref, " | ".join(r.normal() for r in curr_refs))
-            new_source = _make_topic_prompt_source(ranged_oref, '', with_commentary=False)
+            new_source = make_topic_prompt_source(ranged_oref, '', with_commentary=False)
             clustered_sources.append(SummarizedSource(new_source, ". ".join([s.summary for s in curr_sources])))
         else:
             # don't combine commentary refs
@@ -224,7 +224,7 @@ class CategoryAwareSourceGatherer:
                 return None
             linked_refs = commentary_links[0].refs
             base_text_ref = linked_refs[0] if Ref(linked_refs[0]).book != sefaria_commentary_ref.book else linked_refs[1]
-            return _make_topic_prompt_source(Ref(base_text_ref), '', with_commentary=False)
+            return make_topic_prompt_source(Ref(base_text_ref), '', with_commentary=False)
         else:
             return None
     def _add_base_text_sources(self, sources: list[TopicPromptSource]):
@@ -241,7 +241,7 @@ class TopicPageSourceGetter:
 
     @staticmethod
     def get(topic: Topic) -> list[TopicPromptSource]:
-        return [_make_topic_prompt_source(Ref(tref), '', with_commentary=False) for tref in get_top_trefs_from_slug(topic.slug, None)]
+        return [make_topic_prompt_source(Ref(tref), '', with_commentary=False) for tref in get_top_trefs_from_slug(topic.slug, None)]
 
 
 def filter_subset_refs(orefs: list[Ref]) -> list[Ref]:
@@ -328,5 +328,5 @@ def _is_text_about_topic(topic_description, text):
     return answer == 'Yes'
 
 if __name__ == "__main__":
-    topic = _make_llm_topic(SefariaTopic.init('jesse'))
+    topic = make_llm_topic(SefariaTopic.init('jesse'))
     gather_sources_about_topic(topic)

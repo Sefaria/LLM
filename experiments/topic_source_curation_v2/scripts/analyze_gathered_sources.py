@@ -6,13 +6,13 @@ import django
 django.setup()
 from sefaria.model.topic import Topic as SefariaTopic
 from sefaria.model.text import Ref
-from sefaria.helper.llm.topic_prompt import _make_llm_topic
+from sefaria.helper.llm.topic_prompt import make_llm_topic
 from collections import defaultdict
 import csv
 
 
 def count_cats(slug):
-    sources = load_sources(_make_llm_topic(SefariaTopic.init(slug)))
+    sources = load_sources(make_llm_topic(SefariaTopic.init(slug)))
     cat_counts = defaultdict(list)
     for source in sources:
         assert isinstance(source, TopicPromptSource)
@@ -24,7 +24,7 @@ def count_cats(slug):
 
 
 def print_clusters(slug):
-    clusters = load_clusters(_make_llm_topic(SefariaTopic.init(slug)))
+    clusters = load_clusters(make_llm_topic(SefariaTopic.init(slug)))
     for cluster in clusters:
         print(f'{cluster.summary}: {len(cluster)}')
         for item in cluster.items:
@@ -33,7 +33,7 @@ def print_clusters(slug):
 
 
 def save_clusters_to_csv(slug):
-    clusters = load_clusters(_make_llm_topic(SefariaTopic.init(slug)))
+    clusters = load_clusters(make_llm_topic(SefariaTopic.init(slug)))
     rows = []
     for cluster in clusters:
         for item in cluster.items:
@@ -51,7 +51,7 @@ def save_clusters_to_csv(slug):
 
 
 def save_clusters_to_html(slug):
-    topic = _make_llm_topic(SefariaTopic.init(slug))
+    topic = make_llm_topic(SefariaTopic.init(slug))
     clusters = load_clusters(topic)
     html = _make_cluster_html_wrapper(topic, ''.join(_make_cluster_html(cluster) for cluster in clusters))
     with open("output/clusters_{}.html".format(slug), 'w') as fout:
@@ -61,8 +61,8 @@ def save_custom_clusters_to_html(topic, clusters):
     html = _make_cluster_html_wrapper(topic, ''.join(_make_cluster_html(cluster) for cluster in clusters))
     with open("scripts/output/clusters_{}.html".format(topic.slug), 'w') as fout:
         fout.write(html)
-def save_clusters_and_chosen_sources_to_html(topic, clusters, chosen_sources, chosen_penalties, primary_sources_trefs):
-    html = _make_cluster_and_penalties_html_wrapper(topic, chosen_sources, chosen_penalties, primary_sources_trefs, ''.join(_make_cluster_with_chosen_sources_html(cluster, chosen_sources) for cluster in clusters))
+def save_clusters_and_chosen_sources_to_html(topic, clusters, chosen_sources, chosen_penalties, primary_sources_trefs, not_interesting_trefs):
+    html = _make_cluster_and_penalties_html_wrapper(topic, chosen_sources, chosen_penalties, primary_sources_trefs, not_interesting_trefs, ''.join(_make_cluster_with_chosen_sources_html(cluster, chosen_sources) for cluster in clusters))
     with open("output/clusters_and_chosen_sources_{}.html".format(topic.slug), 'w') as fout:
         fout.write(html)
 
@@ -84,7 +84,7 @@ def _make_source_for_chosen_sources_html(source: SummarizedSource, chosen_source
     if source in chosen_sources:
         return _make_cluster_chosen_source_html(source)
     else:
-        return _make_cluster_source_html(source)
+        return _make_cluster_source_html(source, "")
 
 def _make_cluster_with_chosen_sources_html(cluster: Cluster, chosen_sources: list[SummarizedSource]):
     return f"""
@@ -101,9 +101,15 @@ def _make_cluster_with_chosen_sources_html(cluster: Cluster, chosen_sources: lis
     """
 
 
-def _make_cluster_source_html(source: SummarizedSource):
+def _make_cluster_source_html(source: SummarizedSource, source_type: str):
+    source_type2class = {
+        "primary": "primary",
+        "not_interesting": "not-interesting",
+        "N/A": "",
+        "": "",
+    }
     return f"""
-    <details class="clusterSource">
+    <details class="clusterSource {source_type2class[source_type]}">
         <summary>
         <h3><a target="_blank" href="https://www.sefaria.org/{Ref(source.source.ref).url()}">{source.source.ref}</a> ({Ref(source.source.ref).primary_category})</h3>
         {source.summary}
@@ -177,7 +183,17 @@ def _make_cluster_html_wrapper(topic, content):
         </body>
     </html>
     """
-def _make_cluster_and_penalties_html_wrapper(topic, chosen_sources, penalties, primary_sources_trefs, content):
+
+
+def _make_cluster_and_penalties_html_wrapper(topic, chosen_sources, penalties, primary_sources_trefs, not_interesting_trefs, content):
+    source_types = []
+    for source in chosen_sources:
+        if source.source.ref in primary_sources_trefs:
+            source_types.append("primary")
+        elif source.source.ref in not_interesting_trefs:
+            source_types.append("not_interesting")
+        else:
+            source_types.append("N/A")
     return f"""
     <html>
         <style>
@@ -189,6 +205,12 @@ def _make_cluster_and_penalties_html_wrapper(topic, chosen_sources, penalties, p
             .he {{
                 direction: rtl;
                 font-size: 120%;
+            }}
+            .primary {{
+                border: 4px solid #1F4E79;
+            }}
+            .not-interesting {{
+                border: 4px solid #B22222;
             }}
             .cluster {{
                 margin-bottom: 30px;
@@ -206,10 +228,8 @@ def _make_cluster_and_penalties_html_wrapper(topic, chosen_sources, penalties, p
         </style>
         <body>
             <h1>{topic.title['en']} Clusters and Chosen Sources (chose {len(chosen_sources)})</h1>
-            <h2>Primary Sources</h2>
-            {convert_list_to_html(primary_sources_trefs)}
             <h2>Chosen Sources (including primary source)</h2>
-            {''.join(_make_cluster_source_html(source) for source in chosen_sources)}
+            {''.join(_make_cluster_source_html(source, source_type) for (source, source_type) in zip(chosen_sources, source_types))}
             <h2>Penalties</h2>
             {convert_list_to_html(penalties)}
             {content}
