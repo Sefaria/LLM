@@ -7,6 +7,8 @@ from experiments.topic_source_curation.cluster import SummarizedSource
 from experiments.topic_source_curation.choose import choose
 from experiments.topic_source_curation.cache import load_sources, save_sources, load_clusters, save_clusters
 from experiments.topic_source_curation.curation_context import get_context_for_source
+from experiments.topic_source_curation.gather.source_gatherer import gather_sources_about_topic
+from experiments.topic_source_curation.cluster import get_clustered_sources_based_on_summaries
 from sefaria.helper.llm.topic_prompt import make_llm_topic
 from sefaria_llm_interface.common.topic import Topic
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
@@ -54,18 +56,19 @@ def save_curation(data, topic: Topic) -> list[SummarizedSource]:
 def curate_topic(topic: Topic) -> list[TopicPromptSource]:
     return (Artifact(topic)
             # .pipe(gather_sources_about_topic)
-            # .pipe(load_sources)
-            # .pipe(get_clustered_sources_based_on_summaries, topic)
+            # .pipe(save_sources, topic)
+            .pipe(load_sources)
+            .pipe(get_clustered_sources_based_on_summaries, topic)
             # .pipe(save_clusters, topic)
-            .pipe(load_clusters)
-            .pipe(choose, topic)
-            .pipe(save_curation, topic).data
+            # .pipe(load_clusters)
+            # .pipe(choose, topic)
+            # .pipe(save_curation, topic).data
             )
 
 
 if __name__ == '__main__':
-    topics = random.sample(get_topics_to_curate(), 50)
-    topics = [make_llm_topic(SefariaTopic.init('tov'))]
+    # topics = random.sample(get_topics_to_curate(), 50)
+    topics = [make_llm_topic(SefariaTopic.init(slug)) for slug in ['hagar']]
     for t in topics:
         print("CURATING", t.slug)
         curated_sources = curate_topic(t)
