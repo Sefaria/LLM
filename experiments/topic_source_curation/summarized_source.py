@@ -21,7 +21,7 @@ class SummarizedSource(AbstractClusterItem):
         return serial
 
     def get_str_to_summarize(self) -> str:
-        return self.summary
+        return self.summary or 'N/A'
 
     def get_str_to_embed(self) -> str:
         return self.summary

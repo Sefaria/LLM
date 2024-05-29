@@ -1,5 +1,5 @@
 from typing import Union
-from functools import partial
+from functools import partial, reduce
 from basic_langchain.chat_models import ChatOpenAI
 from basic_langchain.schema import HumanMessage, SystemMessage
 import random
@@ -9,7 +9,7 @@ from sefaria_llm_interface.common.topic import Topic
 from basic_langchain.embeddings import VoyageAIEmbeddings, OpenAIEmbeddings
 from util.pipeline import Artifact
 from util.general import get_by_xml_tag
-from util.cluster import Cluster, HDBSCANOptimizerClusterer, StandardClusterer, AbstractClusterItem
+from util.cluster import Cluster, OptimizingClusterer, StandardClusterer, AbstractClusterItem
 from experiments.topic_source_curation.common import get_topic_str_for_prompts
 from experiments.topic_source_curation.summarized_source import SummarizedSource
 import numpy as np
@@ -43,11 +43,14 @@ def get_clustered_sources(sources: list[TopicPromptSource]) -> list[Cluster]:
     """
     return Artifact(sources).pipe(_cluster_sources, get_text_from_source).data
 
+
 def embed_text_openai(text):
     return np.array(OpenAIEmbeddings(model="text-embedding-3-large").embed_query(text))
 
+
 def embed_text_voyageai(text):
     return np.array(VoyageAIEmbeddings(model="voyage-large-2-instruct").embed_query(text))
+
 
 def _get_cluster_summary_based_on_topic(topic_desc, strs_to_summarize):
     llm = ChatOpenAI("gpt-4o", 0)
@@ -62,10 +65,25 @@ def _get_cluster_summary_based_on_topic(topic_desc, strs_to_summarize):
         summary = response.content.replace('<summary>', '').replace('</summary>', '')
     return summary or 'N/A'
 
+
+HDBSCAN_PARAM_OPTS = {
+    "min_samples": [1, 1],
+    "min_cluster_size": [2, 2],
+    "cluster_selection_method": ["eom", "leaf"],
+    "cluster_selection_epsilon": [0.65, 0.5],
+}
+
+
+def _get_ith_hdbscan_params(i):
+    return reduce(lambda x, y: {**x, y[0]: y[1][i]}, HDBSCAN_PARAM_OPTS.items(), {})
+
+
 def _cluster_sources(sources: list[SummarizedSource], topic) -> list[Cluster]:
     topic_desc = get_topic_str_for_prompts(topic, verbose=False)
-    # get_cluster_algo will be optimized by HDBSCANOptimizerClusterer
-    clusterer = StandardClusterer(embed_text_openai, lambda x: HDBSCAN(),
-                                  partial(_get_cluster_summary_based_on_topic, topic_desc))
-    clusterer_optimizer = HDBSCANOptimizerClusterer(clusterer)
+    clusterers = []
+    for i in range(len(HDBSCAN_PARAM_OPTS['min_samples'])):
+        hdbscan_params = _get_ith_hdbscan_params(i)
+        clusterers.append(StandardClusterer(embed_text_openai, lambda x: HDBSCAN(**hdbscan_params),
+                          partial(_get_cluster_summary_based_on_topic, topic_desc)))
+    clusterer_optimizer = OptimizingClusterer(embed_text_openai, clusterers)
     return clusterer_optimizer.cluster_and_summarize(sources)

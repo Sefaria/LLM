@@ -190,6 +190,7 @@ def choose_ideal_clusters(clusters: list[Cluster], max_clusters: int) -> list[Cl
     # sorted_clusters = _sort_clusters_by_instruction(clusters)
     return [c for c in clusters if len(clusters) > 1]
 
+
 def sort_clusters(clusters: list[Cluster], topic:Topic, max_clusters: int) -> list[Cluster]:
     # print(f"Sorting {len(clusters)} clusters by interestingness...")
     # sorted_clusters = _sort_clusters_by_instruction(clusters, topic)
@@ -244,10 +245,12 @@ def _get_highest_avg_pairwise_distance_indices(embeddings: np.ndarray) -> np.nda
     sorted_indices = np.argsort(avg_distances)[::-1]  # Sort in descending order
     return sorted_indices
 
+
 def _sort_by_highest_avg_pairwise_distance(items: list[T], key: Callable[[T], str], verbose=True) -> list[T]:
     embeddings = np.array(run_parallel([key(x) for x in items], embed_text_openai, max_workers=100, desc="Embedding summaries for interestingness sort", disable=not verbose))
     sorted_indices = _get_highest_avg_pairwise_distance_indices(embeddings)
     return [items[i] for i in sorted_indices]
+
 
 def get_gpt_compare(system_prompt, human_prompt_generator, llm):
     content_to_val = {"1":-1, "2":1, "0":0}

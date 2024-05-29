@@ -43,7 +43,7 @@ def get_topics_to_curate():
 
 def save_curation(data, topic: Topic) -> list[SummarizedSource]:
     sources, clusters = data
-    contexts = run_parallel(sources, partial(get_context_for_source, topic=topic, clusters=clusters), max_workers=40, desc="Get source context")
+    contexts = run_parallel(sources, partial(get_context_for_source, topic=topic, clusters=clusters), max_workers=20, desc="Get source context")
     out = [{
         "ref": source.source.ref,
         "context": contexts[isource]
@@ -59,16 +59,16 @@ def curate_topic(topic: Topic) -> list[TopicPromptSource]:
             # .pipe(save_sources, topic)
             .pipe(load_sources)
             .pipe(get_clustered_sources_based_on_summaries, topic)
-            # .pipe(save_clusters, topic)
+            .pipe(save_clusters, topic)
             # .pipe(load_clusters)
-            # .pipe(choose, topic)
-            # .pipe(save_curation, topic).data
+            .pipe(choose, topic)
+            .pipe(save_curation, topic).data
             )
 
 
 if __name__ == '__main__':
     # topics = random.sample(get_topics_to_curate(), 50)
-    topics = [make_llm_topic(SefariaTopic.init(slug)) for slug in ['hagar']]
+    topics = [make_llm_topic(SefariaTopic.init(slug)) for slug in ['poverty']]
     for t in topics:
         print("CURATING", t.slug)
         curated_sources = curate_topic(t)
