@@ -4,12 +4,13 @@ from basic_langchain.chat_models import ChatOpenAI
 from basic_langchain.schema import HumanMessage, SystemMessage
 import random
 from hdbscan import HDBSCAN
+from sklearn.cluster import AffinityPropagation
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface.common.topic import Topic
 from basic_langchain.embeddings import VoyageAIEmbeddings, OpenAIEmbeddings
 from util.pipeline import Artifact
 from util.general import get_by_xml_tag
-from util.cluster import Cluster, OptimizingClusterer, StandardClusterer, AbstractClusterItem
+from util.cluster import Cluster, OptimizingClusterer, SklearnClusterer, AbstractClusterItem
 from experiments.topic_source_curation.common import get_topic_str_for_prompts
 from experiments.topic_source_curation.summarized_source import SummarizedSource
 import numpy as np
@@ -83,7 +84,14 @@ def _cluster_sources(sources: list[SummarizedSource], topic) -> list[Cluster]:
     clusterers = []
     for i in range(len(HDBSCAN_PARAM_OPTS['min_samples'])):
         hdbscan_params = _get_ith_hdbscan_params(i)
-        clusterers.append(StandardClusterer(embed_text_openai, lambda x: HDBSCAN(**hdbscan_params),
-                          partial(_get_cluster_summary_based_on_topic, topic_desc)))
+        temp_clusterer = SklearnClusterer(embed_text_openai,
+                                           lambda x: HDBSCAN(**hdbscan_params).fit(x).labels_,
+                                           partial(_get_cluster_summary_based_on_topic, topic_desc))
+        clusterers.append(temp_clusterer)
+
+    # temp_clusterer = SklearnClusterer(embed_text_openai,
+    #                                    lambda x: AffinityPropagation(damping=0.7).fit(x).predict(x),
+    #                                    partial(_get_cluster_summary_based_on_topic, topic_desc))
+    # clusterers.append(temp_clusterer)
     clusterer_optimizer = OptimizingClusterer(embed_text_openai, clusterers)
     return clusterer_optimizer.cluster_and_summarize(sources)
