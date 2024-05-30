@@ -134,8 +134,7 @@ def solve_clusters_iteratively(clusters: list[Cluster], topic: Topic, sorted_sou
         not_interesting_trefs |= {source.source.ref for source in not_interesting}
 
     print("Choosing best curation...")
-    sorted_not_interesting_trefs = _get_sorted_not_interesting_trefs(curation_options, not_interesting_trefs, topic)
-    best_curation = _choose_best_curation(curation_options, sorted_not_interesting_trefs)
+    best_curation = _choose_best_curation(curation_options, not_interesting_trefs, topic)
 
     print("All not interesting trefs")
     for tref in not_interesting_trefs:
@@ -146,7 +145,21 @@ def solve_clusters_iteratively(clusters: list[Cluster], topic: Topic, sorted_sou
     return best_curation.sources, best_curation.penalties, [s.source.ref for s in best_curation.not_interesting_sources]
 
 
-def _choose_best_curation(curation_options: list[CurationOption], sorted_not_interesting_trefs: list[str]) -> CurationOption:
+def _choose_best_curation(curation_options: list[CurationOption], not_interesting_trefs: set[str], topic: Topic) -> CurationOption:
+    highest_num_interesting_sources = max([len(o.interesting_sources) for o in curation_options])
+    tied_for_most_interesting = []
+    for option in curation_options:
+        if len(option.interesting_sources) == highest_num_interesting_sources:
+            tied_for_most_interesting.append(option)
+    if len(tied_for_most_interesting) == 1:
+        best_curation = tied_for_most_interesting[0]
+    else:
+        sorted_not_interesting_trefs = _get_sorted_not_interesting_trefs(curation_options, not_interesting_trefs, topic)
+        best_curation = _choose_best_curation_scoring_not_interesting(curation_options, sorted_not_interesting_trefs)
+    return best_curation
+
+
+def _choose_best_curation_scoring_not_interesting(curation_options: list[CurationOption], sorted_not_interesting_trefs: list[str]) -> CurationOption:
     return max(curation_options, key=lambda c: c.score(sorted_not_interesting_trefs))
 
 
