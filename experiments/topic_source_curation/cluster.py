@@ -86,7 +86,7 @@ def _cluster_sources(sources: list[SummarizedSource], topic) -> list[Cluster]:
         hdbscan_params = _get_ith_hdbscan_params(i)
         temp_clusterer = SklearnClusterer(embed_text_openai,
                                            lambda x: HDBSCAN(**hdbscan_params).fit(x).labels_,
-                                           partial(_get_cluster_summary_based_on_topic, topic_desc))
+                                           partial(_get_cluster_summary_based_on_topic, topic_desc), verbose=False)
         clusterers.append(temp_clusterer)
 
     # temp_clusterer = SklearnClusterer(embed_text_openai,

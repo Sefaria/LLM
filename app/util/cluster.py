@@ -103,7 +103,7 @@ class AbstractClusterer(ABC):
 
     def summarize_clusters(self, clusters: list[Cluster], **kwargs) -> list[Cluster]:
         return run_parallel(clusters, partial(self.summarize_cluster, **kwargs),
-                            max_workers=25, desc='summarize source clusters')
+                            max_workers=25, desc='summarize source clusters', disable=not self._verbose)
 
     @staticmethod
     def _build_clusters_from_cluster_results(labels, embeddings, items):
@@ -274,7 +274,7 @@ class OptimizingClusterer(AbstractClusterer):
             summarized_clusters = clusterer.summarize_clusters(curr_clusters)
             summarized_clusters = self._collapse_similar_clusters(summarized_clusters)
             clustering_score = self._calculate_clustering_score(summarized_clusters)
-            print("CLUSTER SCORE: ", clustering_score)
+            # print("CLUSTER SCORE: ", clustering_score)
             if clustering_score > highest_clustering_score:
                 highest_clustering_score = clustering_score
                 best_clusters = summarized_clusters
