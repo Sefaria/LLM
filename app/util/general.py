@@ -53,6 +53,13 @@ def get_by_xml_tag(text, tag_name) -> str:
     return match.group(1)
 
 
+def get_by_xml_list(text, list_item_tag_name) -> list[str]:
+    items = []
+    for match in re.finditer(fr"<{list_item_tag_name}>(.*?)</{list_item_tag_name}>", text.replace('\n', ' ')):
+        items += [match.group(1)]
+    return items
+
+
 def embedding_distance(embedding1, embedding2):
     # Compute dot product
     dot_product = np.dot(embedding1, embedding2)
