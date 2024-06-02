@@ -184,6 +184,8 @@ class SklearnClusterer(AbstractClusterer):
         large_clusters = []
         for cluster in clusters:
             other_cluster_lens = [len(c) for c in clusters if c != cluster]
+            if len(other_cluster_lens) <= 1:
+                continue
             if len(cluster) > (mean(other_cluster_lens) + 3*stdev(other_cluster_lens)):
                 large_clusters.append(cluster)
         return large_clusters
