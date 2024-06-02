@@ -122,12 +122,10 @@ def solve_clusters(clusters: list[Cluster], sorted_sources: list[SummarizedSourc
     #         ref = var_ref_map[var]
     #         print(f"https://www.sefaria.org/{Ref(ref).url()} value={var.varValue}")
     #
-    # print("Penalties:")
-    # for penalty in missing_category_penalty_vars:
-    #     if penalty.varValue and penalty.varValue > 0:
-    #         print(f"{penalty.name} = {penalty.varValue}")
-    #         chosen_penalties.append(penalty.name)
     chosen_penalties = []
+    for penalty in missing_category_penalty_vars:
+        if penalty.varValue and penalty.varValue > 0:
+            chosen_penalties.append(penalty.name)
     for penalty in same_book_penalty_vars:
         if penalty.varValue and penalty.varValue > 0:
             chosen_penalties.append(penalty.name)
