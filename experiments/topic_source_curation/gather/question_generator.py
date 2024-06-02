@@ -193,7 +193,6 @@ class LlmExpandedTemplatedQuestionGenerator(AbstractQuestionGenerator):
     def __get_type_for_topic(topic: Topic) -> str:
         return "generic"
 
-
     def generate(self, topic: Topic, verbose=True) -> list[str]:
         if verbose:
             print('---LLM QUESTION EXPANDER---')
