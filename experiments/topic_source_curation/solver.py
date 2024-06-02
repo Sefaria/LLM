@@ -22,6 +22,13 @@ from functools import reduce
 from sefaria.model import library
 
 
+def _get_category(ref: Ref) -> str:
+    category = ref.primary_category
+    # if category == "Commentary":
+    #     category = f"{ref.index.categories[0]} Commentary"
+    return category
+
+
 
 def solve_clusters(clusters: list[Cluster], sorted_sources: list[SummarizedSource], primary_trefs: list[str], black_listed_trefs: set[str]) -> (list[SummarizedSource], list[str]):
     num_sources = sum(len(c.items) for c in clusters)
@@ -47,10 +54,7 @@ def solve_clusters(clusters: list[Cluster], sorted_sources: list[SummarizedSourc
     # Add the constraints that the sum of sources with the same category must be >= 1
     category_vars_map = {}
     for tref, var in ref_var_map.items():
-        oref = Ref(tref)
-        category = oref.primary_category
-        if category == "Commentary":
-            category = f"{oref.index.categories[0]} Commentary"
+        category = _get_category(Ref(tref))
         if category not in category_vars_map:
             category_vars_map[category] = []
         category_vars_map[category].append(var)
