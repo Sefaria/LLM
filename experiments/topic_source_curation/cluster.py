@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from typing import Union
 from functools import partial, reduce
 from basic_langchain.chat_models import ChatOpenAI
@@ -9,7 +10,7 @@ from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface.common.topic import Topic
 from basic_langchain.embeddings import VoyageAIEmbeddings, OpenAIEmbeddings
 from util.pipeline import Artifact
-from util.general import get_by_xml_tag
+from util.general import get_by_xml_tag, run_parallel, get_by_xml_list
 from util.cluster import Cluster, OptimizingClusterer, SklearnClusterer, AbstractClusterItem
 from experiments.topic_source_curation.common import get_topic_str_for_prompts
 from experiments.topic_source_curation.summarized_source import SummarizedSource
@@ -79,7 +80,47 @@ def _get_ith_hdbscan_params(i):
     return reduce(lambda x, y: {**x, y[0]: y[1][i]}, HDBSCAN_PARAM_OPTS.items(), {})
 
 
+def _decompose_source_summary(source_summary, topic: Topic) -> list[str]:
+    system = SystemMessage(content=f"Given a text about {topic.title['en']}, break up the text into the unique ideas it mentions. Input is wrapped in <text> tags. Output each idea wrapped in an <idea> tag. If there's only one idea, only output one <idea> tag. Each idea should be a full sentence that can be read independently of the other ideas. Output no more than 3 ideas.")
+    human = HumanMessage(content=f"<text>{source_summary}</text>")
+    llm = ChatOpenAI(model='gpt-3.5-turbo-0125', temperature=0)
+    response = llm([system, human])
+    return get_by_xml_list(response.content, 'idea')
+
+
+def _decompose_sources_by_summary(sources: list[SummarizedSource], topic: Topic) -> (list[SummarizedSource], dict):
+    decomposed_summaries = run_parallel([s.summary for s in sources], partial(_decompose_source_summary, topic=topic), 100, desc='decomposing summaries')
+    temp_sources = []
+    original_summary_by_tref = {}
+    for source, summary_list in zip(sources, decomposed_summaries):
+        original_summary_by_tref[source.source.ref] = source.summary
+        for temp_summary in summary_list:
+            temp_source = SummarizedSource(**asdict(source))
+            temp_source.summary = temp_summary
+            temp_sources.append(temp_source)
+    return temp_sources, original_summary_by_tref
+
+
+def _recompose_sources_after_clustering(clusters: list[Cluster], original_summary_by_tref: dict) -> list[Cluster]:
+    clusters.sort(key=lambda x: len(x), reverse=True)
+    seen_trefs = set()
+    new_clusters = []
+    for cluster in clusters:
+        new_items = []
+        for item in cluster.items:
+            if item.source.ref in seen_trefs:
+                continue
+            item.summary = original_summary_by_tref[item.source.ref]
+            new_items.append(item)
+            seen_trefs.add(item.source.ref)
+        cluster.items = new_items
+        if len(cluster) > 0:
+            new_clusters.append(cluster)
+    return new_clusters
+
+
 def _cluster_sources(sources: list[SummarizedSource], topic) -> list[Cluster]:
+    # sources, original_summary_by_tref = _decompose_sources_by_summary(sources, topic)
     topic_desc = get_topic_str_for_prompts(topic, verbose=False)
     clusterers = []
     for i in range(len(HDBSCAN_PARAM_OPTS['min_samples'])):
@@ -88,10 +129,12 @@ def _cluster_sources(sources: list[SummarizedSource], topic) -> list[Cluster]:
                                            lambda x: HDBSCAN(**hdbscan_params).fit(x).labels_,
                                            partial(_get_cluster_summary_based_on_topic, topic_desc), verbose=False)
         clusterers.append(temp_clusterer)
+    temp_clusterer = SklearnClusterer(embed_text_openai, lambda x: AffinityPropagation(damping=0.7, max_iter=1000, convergence_iter=100).fit(x).predict(x), partial(_get_cluster_summary_based_on_topic, topic_desc), verbose=False)
+    clusterers.append(temp_clusterer)
 
-    # temp_clusterer = SklearnClusterer(embed_text_openai,
-    #                                    lambda x: AffinityPropagation(damping=0.7).fit(x).predict(x),
-    #                                    partial(_get_cluster_summary_based_on_topic, topic_desc))
-    # clusterers.append(temp_clusterer)
-    clusterer_optimizer = OptimizingClusterer(embed_text_openai, clusterers)
-    return clusterer_optimizer.cluster_and_summarize(sources)
+    clusterer_optimizer = OptimizingClusterer(embed_text_openai, clusterers, verbose=False)
+    clusters = clusterer_optimizer.cluster_and_summarize(sources)
+    # clusters = _recompose_sources_after_clustering(clusters, original_summary_by_tref)
+    return clusters
+
+
