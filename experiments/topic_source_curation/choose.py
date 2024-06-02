@@ -84,6 +84,7 @@ def choose(clusters: list[Cluster], topic: Topic) -> (list[SummarizedSource], li
             except:
                 cluster.items.remove(item)
     primary_sources_trefs = choose_primary_sources(clusters)
+    clusters = _put_primary_source_in_own_cluster(clusters, primary_sources_trefs)
     sorted_clusters = sort_clusters(clusters, topic, 0)
     sorted_items = _sort_by_highest_avg_pairwise_distance(reduce(lambda x, y: x + y.items, clusters, []), lambda x: x.summary)
     chosen_sources, chosen_penalties, not_interesting_trefs = solve_clusters_iteratively(clusters, topic, sorted_items, primary_sources_trefs)
@@ -91,6 +92,21 @@ def choose(clusters: list[Cluster], topic: Topic) -> (list[SummarizedSource], li
     chosen_sources = _put_primary_sources_first(chosen_sources, primary_sources_trefs)
     save_clusters_and_chosen_sources_to_html(topic, sorted_clusters, chosen_sources, chosen_penalties, primary_sources_trefs, not_interesting_trefs)
     return chosen_sources, clusters
+
+
+def _put_primary_source_in_own_cluster(clusters: list[Cluster], primary_sources_trefs):
+    primary_source_clusters = []
+    for cluster in clusters:
+        items_to_remove = []
+        for i, (embedding, item) in enumerate(zip(cluster.embeddings, cluster.items)):
+            if item.source.ref in primary_sources_trefs:
+                new_label = len(clusters)+1+len(primary_source_clusters)
+                primary_source_clusters.append(Cluster(new_label, [embedding], [item], item.summary))
+                items_to_remove.append(i)
+        for i in reversed(items_to_remove):
+            cluster.embeddings.pop(i)
+            cluster.items.pop(i)
+    return primary_source_clusters + clusters
 
 
 def _put_primary_sources_first(sources: list[SummarizedSource], primary_sources_trefs: list[str]) -> list[SummarizedSource]:
