@@ -9,6 +9,7 @@ Given clusters tries to
 from tqdm import tqdm
 from experiments.topic_source_curation.cluster import Cluster, SummarizedSource, embed_text_openai, get_text_from_source
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
+from sefaria.model.link import LinkSet, Link
 from sklearn.metrics import pairwise_distances
 from util.pipeline import Artifact
 import numpy as np
@@ -20,6 +21,7 @@ from pulp import LpProblem, LpMaximize, LpVariable, lpSum, LpStatus, LpSolverDef
 from sefaria.model.text import Ref
 from functools import reduce
 from sefaria.model import library
+import re
 
 
 def _get_category(ref: Ref) -> str:
@@ -29,10 +31,51 @@ def _get_category(ref: Ref) -> str:
     return category
 
 
+def _ref_opposite(from_ref: Ref, link: Link, from_tref: str, len_from_ref: int) -> (Ref, Ref):
+    reRef = from_ref.regex() if from_ref.is_range() else None
+    if reRef:
+        pos = 0 if any(re.match(reRef, tref) for tref in link.expandedRefs0) else 1
+    else:
+        pos = 0 if any(from_tref == tref[:len_from_ref] for tref in link.expandedRefs0) else 1
+    other_pos = 0 if pos == 1 else 1
+    return Ref(link.refs[pos]), Ref(link.refs[other_pos])
+
+
+def _get_link_pairs_to_avoid(sources: list[SummarizedSource]) -> set[tuple[str, str]]:
+    link_pairs = []
+    seg_to_orig_ref_map = {}
+    seg_tref_set = set()
+    for source in sources:
+        seg_trefs = [r.normal() for r in Ref(source.source.ref).all_segment_refs()]
+        for seg in seg_trefs:
+            seg_to_orig_ref_map[seg] = source.source.ref
+        seg_tref_set |= set(seg_trefs)
+    for source in sources:
+        from_ref = Ref(source.source.ref)
+        len_ref = len(source.source.ref)
+        links: list[Link] = LinkSet(from_ref).array()
+        for link in links:
+            try:
+                a_ref, b_ref = _ref_opposite(from_ref, link, source.source.ref, len_ref)
+            except:
+                # probably malformed ref
+                continue
+            if b_ref.primary_category not in {'Targum', 'Commentary'}:
+                continue
+            matching_trefs = set(r.normal() for r in b_ref.all_segment_refs()) & seg_tref_set
+            matching_other_side_trefs = set(r.normal() for r in a_ref.all_segment_refs()) & seg_tref_set
+            if len(matching_trefs) > 0 and len(matching_other_side_trefs) > 0:
+                # both sides exist in sources
+                for a_tref in matching_trefs:
+                    for b_tref in matching_other_side_trefs:
+                        link_pair = [seg_to_orig_ref_map[a_tref], seg_to_orig_ref_map[b_tref]]
+                        link_pair.sort()
+                        link_pairs.append(tuple(link_pair))
+    return set(link_pairs)
+
 
 def solve_clusters(clusters: list[Cluster], sorted_sources: list[SummarizedSource], primary_trefs: list[str], black_listed_trefs: set[str]) -> (list[SummarizedSource], list[str]):
     num_sources = sum(len(c.items) for c in clusters)
-    flattened_summarized_sources = reduce(lambda x, y: x + y.items, clusters, [])
     prob = LpProblem("Choose_Sources", LpMaximize)
 
     ref_var_map = {}
@@ -83,6 +126,14 @@ def solve_clusters(clusters: list[Cluster], sorted_sources: list[SummarizedSourc
         prob += lpSum(vars) - same_book_penalty_var <= 1
         same_book_penalty_vars.append(same_book_penalty_var)
 
+    # don't choose two sources that are linked (if link type is Commentary or Targum)
+    link_pair_penalty_vars = []
+    for a_tref, b_tref in _get_link_pairs_to_avoid(sorted_sources):
+        link_pair_penalty_var = LpVariable(f'penalty_link_pair_{a_tref}_{b_tref}', lowBound=0, cat='Integer')
+        prob += lpSum([ref_var_map[tref] for tref in (a_tref, b_tref)]) - link_pair_penalty_var <= 1
+        link_pair_penalty_vars.append(link_pair_penalty_var)
+
+
     # don't choose sources from the same author
     author_vars_map = {}
     for ref, var in ref_var_map.items():
@@ -107,7 +158,10 @@ def solve_clusters(clusters: list[Cluster], sorted_sources: list[SummarizedSourc
     weights = _get_source_weights(sorted_sources, black_listed_trefs)
     weighted_sources = [weights[i] * ordered_sources_vars[i] for i in range(len(ordered_sources_vars))]
     mean_weight = int(sum(weights) / len(weights))
-    objective_function = lpSum(weighted_sources) - num_sources*lpSum(missing_category_penalty_vars) - 5*num_sources*lpSum(same_book_penalty_vars) -num_sources*(same_author_penalty_vars)
+    objective_function = (lpSum(weighted_sources) - num_sources*lpSum(missing_category_penalty_vars)
+                          - 5*num_sources*lpSum(same_book_penalty_vars)
+                          - num_sources*(same_author_penalty_vars)
+                          - 5*num_sources*lpSum(link_pair_penalty_vars))
     prob += objective_function
 
     # Solve the problem
@@ -129,8 +183,11 @@ def solve_clusters(clusters: list[Cluster], sorted_sources: list[SummarizedSourc
     for penalty in same_book_penalty_vars:
         if penalty.varValue and penalty.varValue > 0:
             chosen_penalties.append(penalty.name)
+    for penalty in link_pair_penalty_vars:
+        if penalty.varValue and penalty.varValue > 0:
+            chosen_penalties.append(penalty.name)
 
-    chosen_sources = [item for item in flattened_summarized_sources if ref_var_map[item.source.ref].varValue > 0]
+    chosen_sources = [item for item in sorted_sources if ref_var_map[item.source.ref].varValue > 0]
 
     return chosen_sources, chosen_penalties
 
