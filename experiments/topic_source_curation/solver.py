@@ -9,7 +9,7 @@ Given clusters tries to
 from tqdm import tqdm
 from experiments.topic_source_curation.cluster import Cluster, SummarizedSource, embed_text_openai, get_text_from_source
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
-from sefaria.model.link import LinkSet, Link
+from sefaria.client.wrapper import get_links
 from sklearn.metrics import pairwise_distances
 from util.pipeline import Artifact
 import numpy as np
@@ -21,7 +21,6 @@ from pulp import LpProblem, LpMaximize, LpVariable, lpSum, LpStatus, LpSolverDef
 from sefaria.model.text import Ref
 from functools import reduce
 from sefaria.model import library
-import re
 
 
 def _get_category(ref: Ref) -> str:
@@ -29,16 +28,6 @@ def _get_category(ref: Ref) -> str:
     # if category == "Commentary":
     #     category = f"{ref.index.categories[0]} Commentary"
     return category
-
-
-def _ref_opposite(from_ref: Ref, link: Link, from_tref: str, len_from_ref: int) -> (Ref, Ref):
-    reRef = from_ref.regex() if from_ref.is_range() else None
-    if reRef:
-        pos = 0 if any(re.match(reRef, tref) for tref in link.expandedRefs0) else 1
-    else:
-        pos = 0 if any(from_tref == tref[:len_from_ref] for tref in link.expandedRefs0) else 1
-    other_pos = 0 if pos == 1 else 1
-    return Ref(link.refs[pos]), Ref(link.refs[other_pos])
 
 
 def _get_link_pairs_to_avoid(sources: list[SummarizedSource]) -> set[tuple[str, str]]:
@@ -51,19 +40,12 @@ def _get_link_pairs_to_avoid(sources: list[SummarizedSource]) -> set[tuple[str, 
             seg_to_orig_ref_map[seg] = source.source.ref
         seg_tref_set |= set(seg_trefs)
     for source in sources:
-        from_ref = Ref(source.source.ref)
-        len_ref = len(source.source.ref)
-        links: list[Link] = LinkSet(from_ref).array()
+        links = get_links(source.source.ref, with_text=False)
         for link in links:
-            try:
-                a_ref, b_ref = _ref_opposite(from_ref, link, source.source.ref, len_ref)
-            except:
-                # probably malformed ref
+            if link['category'] not in {'Targum', 'Commentary'}:
                 continue
-            if b_ref.primary_category not in {'Targum', 'Commentary'}:
-                continue
-            matching_trefs = set(r.normal() for r in b_ref.all_segment_refs()) & seg_tref_set
-            matching_other_side_trefs = set(r.normal() for r in a_ref.all_segment_refs()) & seg_tref_set
+            matching_trefs = set(link['anchorRefExpanded']) & seg_tref_set
+            matching_other_side_trefs = set(r.normal() for r in Ref(link['ref']).all_segment_refs()) & seg_tref_set
             if len(matching_trefs) > 0 and len(matching_other_side_trefs) > 0:
                 # both sides exist in sources
                 for a_tref in matching_trefs:
@@ -128,7 +110,8 @@ def solve_clusters(clusters: list[Cluster], sorted_sources: list[SummarizedSourc
 
     # don't choose two sources that are linked (if link type is Commentary or Targum)
     link_pair_penalty_vars = []
-    for a_tref, b_tref in _get_link_pairs_to_avoid(sorted_sources):
+    link_pairs = _get_link_pairs_to_avoid(sorted_sources)
+    for a_tref, b_tref in link_pairs:
         link_pair_penalty_var = LpVariable(f'penalty_link_pair_{a_tref}_{b_tref}', lowBound=0, cat='Integer')
         prob += lpSum([ref_var_map[tref] for tref in (a_tref, b_tref)]) - link_pair_penalty_var <= 1
         link_pair_penalty_vars.append(link_pair_penalty_var)
