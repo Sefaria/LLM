@@ -191,8 +191,11 @@ class SklearnClusterer(AbstractClusterer):
     def _recluster_large_clusters(self, clusters: list[Cluster]) -> list[Cluster]:
         large_clusters = set(self._get_large_clusters(clusters))
         other_clusters = [c for c in clusters if c not in large_clusters]
+        if len(large_clusters) == 0:
+            return clusters
         affinity_clusterer = self.clone(
-            get_cluster_labels=lambda x: AffinityPropagation(damping=0.7).fit(x).predict(x), breakup_large_clusters=False
+            get_cluster_labels=lambda x: AffinityPropagation(damping=0.7, max_iter=1000, convergence_iter=100).fit(x).predict(x),
+            breakup_large_clusters=False
         )
         items_to_recluster = reduce(lambda x, y: x + y.items, large_clusters, [])
         reclustered_clusters = affinity_clusterer.cluster_items(items_to_recluster)
@@ -210,7 +213,7 @@ class SklearnClusterer(AbstractClusterer):
         if self._breakup_large_clusters:
             clusters = self._recluster_large_clusters(clusters)
         if len(noise_items) > 0:
-            noise_labels = AffinityPropagation(damping=0.7).fit(noise_embeddings).predict(noise_embeddings)
+            noise_labels = AffinityPropagation(damping=0.7, max_iter=1000, convergence_iter=100).fit(noise_embeddings).predict(noise_embeddings)
             noise_clusters, _, _ = self._build_clusters_from_cluster_results(noise_labels, noise_embeddings, noise_items)
             if self._verbose:
                 print("LEN NOISE_CLUSTERS", len(noise_clusters))
@@ -232,10 +235,24 @@ class OptimizingClusterer(AbstractClusterer):
             summarized_clusters, lambda x: x.summary, max_workers=40, desc="embedding cluster summaries to score"
         )
 
-    def _collapse_similar_clusters(self, clusters: list[Cluster]) -> list[Cluster]:
+    def _optimize_collapse_similar_clusters(self, clusters: list[Cluster]) -> list[Cluster]:
         embeddings = self._embed_cluster_summaries(clusters)
         distances = pairwise_distances(embeddings, metric='cosine')
-        threshold = 0.3
+        highest_clustering_score = 0
+        best_clusters = None
+        best_thresh = None
+        for threshold in [0.2, 0.25, 0.3]:
+            temp_clusters = self._collapse_similar_clusters(clusters, distances, threshold)
+            temp_score = self._calculate_clustering_score(temp_clusters)
+            if temp_score > highest_clustering_score:
+                highest_clustering_score = temp_score
+                best_clusters = temp_clusters
+                best_thresh = threshold
+        print("Best threshold", best_thresh)
+        return best_clusters
+
+    @staticmethod
+    def _collapse_similar_clusters(clusters: list[Cluster], distances: ndarray, threshold: float) -> list[Cluster]:
         num_clusters = len(clusters)
 
         # Keep track of which clusters have been merged
@@ -249,12 +266,11 @@ class OptimizingClusterer(AbstractClusterer):
                 for j in range(i + 1, num_clusters):
                     if not merged[j] and distances[i, j] < threshold:
                         merged[j] = True
-                        print(f"MERGING {round(distances[i, j], 4)}\n- ({len(merged_cluster)}){merged_cluster.summary}\n- ({len(clusters[j])}){clusters[j].summary}")
                         merged_cluster = merged_cluster.merge(clusters[j])
                 new_clusters.append(merged_cluster)
         return new_clusters
 
-    def _calculate_clustering_score(self, summarized_clusters: list[Cluster], verbose=True) -> float:
+    def _calculate_clustering_score(self, summarized_clusters: list[Cluster]) -> float:
         embeddings = self._embed_cluster_summaries(summarized_clusters)
         distances = pairwise_distances(embeddings, metric='cosine')
         np.fill_diagonal(distances, np.inf)
@@ -269,15 +285,18 @@ class OptimizingClusterer(AbstractClusterer):
     def cluster_items(self, items: list[AbstractClusterItem]) -> list[Cluster]:
         best_clusters = None
         highest_clustering_score = 0
-        for clusterer in self._clusterers:
+        chosen_i = None
+        for i, clusterer in enumerate(self._clusterers):
             curr_clusters = clusterer.cluster_items(items)
             summarized_clusters = clusterer.summarize_clusters(curr_clusters)
-            summarized_clusters = self._collapse_similar_clusters(summarized_clusters)
+            summarized_clusters = self._optimize_collapse_similar_clusters(summarized_clusters)
             clustering_score = self._calculate_clustering_score(summarized_clusters)
             # print("CLUSTER SCORE: ", clustering_score)
             if clustering_score > highest_clustering_score:
                 highest_clustering_score = clustering_score
                 best_clusters = summarized_clusters
+                chosen_i = i
+        print("CLUSTERER CHOSEN", chosen_i)
         return best_clusters
 
     def cluster_and_summarize(self, items: list[AbstractClusterItem]) -> list[Cluster]:
