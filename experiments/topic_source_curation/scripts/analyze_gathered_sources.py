@@ -76,7 +76,7 @@ def _make_cluster_html(cluster: Cluster):
             </h2>
         </summary>
         <div class="clusterSources">
-        {''.join([_make_cluster_source_html(source) for source in cluster.items])}
+        {''.join([_make_cluster_source_html(source, '') for source in cluster.items])}
         </div>
     </details>
     """
