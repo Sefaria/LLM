@@ -75,23 +75,39 @@ class CurationOption:
 
 
 def choose(clusters: list[Cluster], topic: Topic) -> (list[SummarizedSource], list[Cluster]):
-    # return Artifact(clusters).pipe(sort_clusters, 20, topic).pipe(solve_clusters).data
-    ##ugly fix vectordatabase index inconsistencies:
-    for cluster in clusters:
-        for item in cluster.items[:]:
-            try:
-                Ref(item.source.ref)
-            except:
-                cluster.items.remove(item)
     primary_sources_trefs = choose_primary_sources(clusters)
     clusters = _put_primary_source_in_own_cluster(clusters, primary_sources_trefs)
-    sorted_clusters = sort_clusters(clusters, topic, 0)
+    sorted_clusters = sort_clusters(clusters)
     sorted_items = _sort_by_highest_avg_pairwise_distance(reduce(lambda x, y: x + y.items, clusters, []), lambda x: x.summary)
     chosen_sources, chosen_penalties, not_interesting_trefs = solve_clusters_iteratively(clusters, topic, sorted_items, primary_sources_trefs)
-    chosen_sources = _sort_sources_by_gpt_instruction(chosen_sources, topic)
-    chosen_sources = _put_primary_sources_first(chosen_sources, primary_sources_trefs)
+    chosen_sources = (Artifact(chosen_sources)
+                      .pipe(_sort_sources_by_gpt_instruction, topic)
+                      .pipe(_put_primary_sources_first, primary_sources_trefs)
+                      .pipe(_remove_not_interesting_sources, not_interesting_trefs)
+                      .pipe(_remove_duplicate_books).data
+                      )
     save_clusters_and_chosen_sources_to_html(topic, sorted_clusters, chosen_sources, chosen_penalties, primary_sources_trefs, not_interesting_trefs)
     return chosen_sources, clusters
+
+
+def _remove_not_interesting_sources(chosen_sources: list[SummarizedSource], not_interesting_trefs: list[str]) -> list[SummarizedSource]:
+    return filter(lambda source: source.source.ref not in not_interesting_trefs, chosen_sources)
+
+
+def _remove_duplicate_books(chosen_sources: list[SummarizedSource]) -> list[SummarizedSource]:
+    """
+    Prioritize sources higher in the list which have been sorted to be more interesting
+    :param chosen_sources:
+    :return:
+    """
+    seen_books = set()
+    out_sources = []
+    for source in chosen_sources:
+        if source.source.book_title['en'] in seen_books:
+            continue
+        seen_books.add(source.source.book_title['en'])
+        out_sources.append(source)
+    return out_sources
 
 
 def _put_primary_source_in_own_cluster(clusters: list[Cluster], primary_sources_trefs):
@@ -220,16 +236,8 @@ def choose_ideal_clusters(clusters: list[Cluster], max_clusters: int) -> list[Cl
     return [c for c in clusters if len(clusters) > 1]
 
 
-def sort_clusters(clusters: list[Cluster], topic:Topic, max_clusters: int) -> list[Cluster]:
-    # print(f"Sorting {len(clusters)} clusters by interestingness...")
-    # sorted_clusters = _sort_clusters_by_instruction(clusters, topic)
-    # sorted_cluster_items = run_parallel(sorted_clusters, partial(_sort_within_cluster, topic=topic), max_workers=100, desc="Sorting for interestingness within cluster")
-    # for cluster, sorted_items in zip(sorted_clusters, sorted_cluster_items):
-    #     cluster.items = sorted_items
-    sorted_clusters = _sort_by_highest_avg_pairwise_distance(clusters, lambda x: x.summary)
-    # for cluster in clusters:
-    #     cluster.items = _sort_by_highest_avg_pairwise_distance(cluster.items, lambda x: x.summary, verbose=False)
-    return sorted_clusters
+def sort_clusters(clusters: list[Cluster]) -> list[Cluster]:
+    return _sort_by_highest_avg_pairwise_distance(clusters, lambda x: x.summary)
 
 def choose_ideal_sources(source_clusters: list[Cluster], verbose=True) -> list[TopicPromptSource]:
     """
