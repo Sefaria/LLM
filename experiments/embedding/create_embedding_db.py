@@ -98,10 +98,10 @@ def ingest_docs(docs, start=0, end=None):
     embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
     if start == 0 and False:
         chroma_db = Chroma.from_documents(
-            documents=[docs[0]], embedding=embeddings, persist_directory="embedding/.chromadb_openai"
+            documents=[docs[0]], embedding=embeddings, persist_directory=".chromadb_openai"
         )
     else:
-        chroma_db = Chroma(persist_directory="embedding/.chromadb_openai", embedding_function=embeddings)
+        chroma_db = Chroma(persist_directory=".chromadb_openai", embedding_function=embeddings)
 
     with tqdm(total=len(docs)-1, desc="Ingesting documents") as pbar:
         pbar.update(start)
