@@ -19,6 +19,7 @@ import random
 import json
 import django
 django.setup()
+from sefaria.model.text import library
 from sefaria.model.topic import Topic as SefariaTopic
 
 random.seed(45612)
@@ -67,8 +68,23 @@ def curate_topic(topic: Topic) -> list[TopicPromptSource]:
 
 
 if __name__ == '__main__':
+    library.rebuild_toc()
     # topics = random.sample(get_topics_to_curate(), 50)
-    topics = [make_llm_topic(SefariaTopic.init(slug)) for slug in ['poverty']]
+    topics = [make_llm_topic(SefariaTopic.init(slug)) for slug in ['moriah',
+     'business',
+     'king-solomon',
+     'ezra',
+     'aleinu',
+     'clouds',
+     'rabbi-chanina-b-dosa',
+     'moses-and-the-torah',
+     'prophecy-of-abraham',
+     'maaser-sheni',
+     'shivah-asar-betammuz',
+     'sefirot',
+     'beyond-the-letter-of-the-law',
+     'three-weeks']
+]
     for t in topics:
         print("CURATING", t.slug)
         curated_sources = curate_topic(t)
