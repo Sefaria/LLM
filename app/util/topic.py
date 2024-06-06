@@ -35,9 +35,9 @@ def generate_topic_description(topic: Topic, text: str) -> str:
 
 def get_or_generate_topic_description(topic: Topic, verbose=True) -> str:
     # TODO create a general approach for deciding when a description isn't needed
-    dont_auto_generate_desc = {'poverty', 'ants', 'cyrus'}
+    generate_desc = {'abraham-in-egypt'}
     description = topic.description.get('en', '')
-    if topic.slug in dont_auto_generate_desc:
+    if topic.slug not in generate_desc:
         # these topics are better with just their titles. any description will limit their scope unnecessarily.
         return description
     if not description:
