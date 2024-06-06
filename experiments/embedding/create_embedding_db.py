@@ -96,12 +96,12 @@ def ingest_export(export_filename, start=0, end=None):
 
 def ingest_docs(docs, start=0, end=None):
     embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-    if start == 0:
+    if start == 0 and False:
         chroma_db = Chroma.from_documents(
-            documents=[docs[0]], embedding=embeddings, persist_directory="embedding/.chromadb_openai_he"
+            documents=[docs[0]], embedding=embeddings, persist_directory="embedding/.chromadb_openai"
         )
     else:
-        chroma_db = Chroma(persist_directory="embedding/.chromadb_openai_he", embedding_function=embeddings)
+        chroma_db = Chroma(persist_directory="embedding/.chromadb_openai", embedding_function=embeddings)
 
     with tqdm(total=len(docs)-1, desc="Ingesting documents") as pbar:
         pbar.update(start)
@@ -116,7 +116,7 @@ def ingest_docs(docs, start=0, end=None):
 
 if __name__ == '__main__':
     # 1307026
-    ingest_export(he_only_export_filename, start=round(2515456*0.25))
+    ingest_export("/Users/nss/Downloads/sefat_emet_to_ingest.jsonl")
     # ingest_passages()
     # query()
     # add_herzog_tanakh_passages()
