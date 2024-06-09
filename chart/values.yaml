@@ -7,10 +7,10 @@ deployment:
     imagePullPolicy: IfNotPresent
   resources:
     requests:
-      cpu: 100m
+      cpu: 1000m
       memory: 500Mi
     limits:
-      cpu: 200m
+      cpu: 2000m
       memory: 1Gi
   anthropicSecretRef: anthropic-api-key
   openaiSecretRef: openai-api-key
