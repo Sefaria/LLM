@@ -1,6 +1,11 @@
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 import diff_match_patch
 import re
+import numpy as np
+from typing import Any, Callable
+from tqdm import tqdm
+from concurrent.futures import ThreadPoolExecutor
+from basic_langchain.schema import SystemMessage, HumanMessage
 
 
 def get_source_text_with_fallback(source: TopicPromptSource, lang: str, auto_translate=False) -> str:
@@ -9,7 +14,7 @@ def get_source_text_with_fallback(source: TopicPromptSource, lang: str, auto_tra
     other_lang_text = source.text.get(other_lang, "")
     if len(text) == 0:
         if auto_translate and lang == "en":
-            from translation.poc import translate_text
+            from translation.translation import translate_text
             text = translate_text(other_lang_text)
         else:
             text = other_lang_text
@@ -48,3 +53,52 @@ def get_by_xml_tag(text, tag_name) -> str:
         return None
     return match.group(1)
 
+
+def get_by_xml_list(text, list_item_tag_name) -> list[str]:
+    items = []
+    for match in re.finditer(fr"<{list_item_tag_name}>(.*?)</{list_item_tag_name}>", text.replace('\n', ' ')):
+        items += [match.group(1)]
+    return items
+
+
+def embedding_distance(embedding1, embedding2):
+    # Compute dot product
+    dot_product = np.dot(embedding1, embedding2)
+
+    # Compute magnitudes
+    magnitude1 = np.linalg.norm(embedding1)
+    magnitude2 = np.linalg.norm(embedding2)
+
+    # Compute cosine similarity
+    cosine_similarity = dot_product / (magnitude1 * magnitude2)
+
+    # Compute cosine distance (1 - cosine_similarity)
+    cosine_distance = 1 - cosine_similarity
+
+    return cosine_distance
+
+
+def run_parallel(items: list[Any], unit_func: Callable, max_workers: int, **tqdm_kwargs) -> list:
+    def _pbar_wrapper(pbar, item):
+        unit = unit_func(item)
+        with pbar.get_lock():
+            pbar.update(1)
+        return unit
+
+
+    with tqdm(total=len(items), **tqdm_kwargs) as pbar:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = []
+            for item in items:
+                futures.append(executor.submit(_pbar_wrapper, pbar, item))
+
+    output = [future.result() for future in futures if future.result() is not None]
+    return output
+
+
+def summarize_text(text, llm, max_words: int):
+    system = SystemMessage(content=f"Given text wrapped in <text> tags, output a summary of text that is no more than "
+                                   f"{max_words} words long. Summary should be wrapped in <summary> tags.")
+    human = HumanMessage(content=f"<text>{text}</text>")
+    response = llm([system, human])
+    return get_by_xml_tag(response.content, 'summary')

@@ -3,6 +3,7 @@ from util.general import get_by_xml_tag
 
 from basic_langchain.chat_models import ChatAnthropic
 from basic_langchain.schema import HumanMessage, SystemMessage
+from anthropic import BadRequestError
 
 random.seed(26)
 
@@ -18,16 +19,21 @@ def translate_text(text: str, context: str = None):
                      "text. Don't translate <context>. Only translate <input> text. "
     identity_message = SystemMessage(content="You are a Jewish scholar knowledgeable in all Torah and Jewish texts. Your "
                                             f"task is to translate the Hebrew text wrapped in <input> tags. {context_prompt if context else ''}Output "
-                                            "translation wrapped in <translation> tags.")
+                                            "translation to English wrapped in <translation> tags.")
     task_prompt = f"<input>{text}</input>"
     if context:
         task_prompt = f"<context>{context}</context>{task_prompt}"
     task_message = HumanMessage(content=task_prompt)
-    llm = ChatAnthropic(model="claude-2.1", temperature=0)
-    response_message = llm([identity_message, task_message])
+    llm = ChatAnthropic(model="claude-3-opus-20240229", temperature=0)
+    try:
+        response_message = llm([identity_message, task_message])
+    except BadRequestError:
+        print(f"BadRequestError\n{task_message.content}")
+        return ""
     translation = get_by_xml_tag(response_message.content, 'translation')
     if translation is None:
         print("TRANSLATION FAILED")
+        print(text)
         print(response_message.content)
         return response_message.content
     return translation

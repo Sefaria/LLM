@@ -1,7 +1,7 @@
 from typing import List
 from sefaria_llm_interface import Topic
 from sefaria_llm_interface.topic_prompt import TopicPromptSource, TopicPromptCommentary
-from util.openai import get_completion_openai, count_tokens_openai
+from util.openai_utils import get_completion_openai, count_tokens_openai
 from basic_langchain.chat_models import ChatAnthropic
 from basic_langchain.schema import HumanMessage
 

@@ -1,8 +1,10 @@
 from typing import List
 from abc import ABC, abstractmethod
-from anthropic import Anthropic
+from anthropic import Anthropic, InternalServerError, RateLimitError
+from time import sleep
 from openai import OpenAI
 from basic_langchain.schema import AIMessage, AbstractMessage, LLMCompany
+from basic_langchain.cache import sqlite_cache
 
 
 class AbstractChatModel(ABC):
@@ -29,6 +31,7 @@ class ChatOpenAI(AbstractChatModel):
         super().__init__(model, temperature)
         self.client = OpenAI()
 
+    @sqlite_cache('chat')
     def __call__(self, messages: List[AbstractMessage]) -> AIMessage:
         response = self.client.chat.completions.create(
             model=self.model,
@@ -48,18 +51,32 @@ class ChatAnthropic(AbstractChatModel):
         self.client = Anthropic()
         self.max_tokens = max_tokens
 
-    def __call__(self, messages: List[AbstractMessage]) -> AIMessage:
+    @sqlite_cache('chat')
+    def __call__(self, messages: list[AbstractMessage]) -> AIMessage:
         system = "You are a helpful AI."
         if len(messages) > 0 and messages[0].role == "system":
             # claude wants system messages as a kwarg
             system = messages[0].content
             messages.pop(0)
-        response = self.client.messages.create(
-            model=self.model,
-            system=system,
-            temperature=self.temperature,
-            max_tokens=self.max_tokens,
-            messages=self._serialize_messages(messages)
-        )
+        response = self._api_call(system, messages)
         text = response.content[0].text
         return AIMessage(text)
+
+    def _api_call(self, system, messages: list[AbstractMessage]):
+        try:
+            return self.client.messages.create(
+                model=self.model,
+                system=system,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                messages=self._serialize_messages(messages)
+            )
+        except InternalServerError:
+            print("Internal Server Error. Waiting 5 seconds...")
+            sleep(5)
+            return self._api_call(system, messages)
+        except RateLimitError:
+            print("Rate Limit Error. Waiting 10min...")
+            sleep(60*10)
+            return self._api_call(system, messages)
+

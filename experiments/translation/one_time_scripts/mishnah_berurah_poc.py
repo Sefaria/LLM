@@ -2,7 +2,7 @@ from typing import List
 import django
 django.setup()
 from sefaria.model import *
-from translation.poc import translate_segment
+from translation.translation import translate_segment
 from util.sefaria_specific import get_normalized_ref_text, normalizer
 import random
 from tqdm import tqdm
