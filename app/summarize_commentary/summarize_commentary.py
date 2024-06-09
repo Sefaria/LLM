@@ -44,7 +44,7 @@ def summarize_commentary(source: TopicPromptSource, topic: Topic, company='opena
         print(f"Number of commentary tokens: {num_tokens}")
         completion = get_completion_openai(prompt)
     elif company == 'anthropic':
-        llm = ChatAnthropic(model="claude-instant-1.2", temperature=0)
+        llm = ChatAnthropic(model="claude-3-haiku-20240307", temperature=0)
         completion = llm([HumanMessage(content=prompt)]).content
     else:
         raise Exception("No valid company passed. Options are 'openai' or 'anthropic'.")

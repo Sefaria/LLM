@@ -17,7 +17,7 @@ def _get_toprompt_options(lang: str, topic: Topic, source: TopicPromptSource, ot
                           num_tries=1, phrase_to_avoid=None) -> TopromptOptions:
     # TODO pull out formatting from _get_input_prompt_details
     llm_prompt = TopromptLLMPrompt(lang, topic, source, other_sources).get()
-    llm = ChatOpenAI(model="gpt-4", temperature=0)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0)
     human_message = HumanMessage(content=llm_prompt.format())
     responses = []
     topic_prompts = []
@@ -67,7 +67,7 @@ def _improve_title(curr_responses, curr_title):
                                                        f"Rewrite the title, rephrasing to avoid using a colon."
                                                        f" Wrap the title in <title> tags. It should at most"
                                                        f" five words and grab the reader's attention.")
-    llm = ChatOpenAI(model="gpt-4", temperature=0.5)
+    llm = ChatOpenAI(model="gpt-4o", temperature=0.5)
     title_response = llm(curr_responses + [HumanMessage(content=better_title_prompt.format())])
     title_match = re.search(r'<title>(.+?)</title>', title_response.content)
     if title_match is None:
