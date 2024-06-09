@@ -9,7 +9,6 @@ Given clusters tries to
 from tqdm import tqdm
 from experiments.topic_source_curation.cluster import Cluster, SummarizedSource, embed_text_openai, get_text_from_source
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
-from sefaria.client.wrapper import get_links
 from sklearn.metrics import pairwise_distances
 from util.pipeline import Artifact
 import numpy as np
@@ -30,33 +29,7 @@ def _get_category(ref: Ref) -> str:
     return category
 
 
-def _get_link_pairs_to_avoid(sources: list[SummarizedSource]) -> set[tuple[str, str]]:
-    link_pairs = []
-    seg_to_orig_ref_map = {}
-    seg_tref_set = set()
-    for source in sources:
-        seg_trefs = [r.normal() for r in Ref(source.source.ref).all_segment_refs()]
-        for seg in seg_trefs:
-            seg_to_orig_ref_map[seg] = source.source.ref
-        seg_tref_set |= set(seg_trefs)
-    for source in sources:
-        links = get_links(source.source.ref, with_text=False)
-        for link in links:
-            if link['category'] not in {'Targum', 'Commentary'}:
-                continue
-            matching_trefs = set(link['anchorRefExpanded']) & seg_tref_set
-            matching_other_side_trefs = set(r.normal() for r in Ref(link['ref']).all_segment_refs()) & seg_tref_set
-            if len(matching_trefs) > 0 and len(matching_other_side_trefs) > 0:
-                # both sides exist in sources
-                for a_tref in matching_trefs:
-                    for b_tref in matching_other_side_trefs:
-                        link_pair = [seg_to_orig_ref_map[a_tref], seg_to_orig_ref_map[b_tref]]
-                        link_pair.sort()
-                        link_pairs.append(tuple(link_pair))
-    return set(link_pairs)
-
-
-def solve_clusters(clusters: list[Cluster], sorted_sources: list[SummarizedSource], primary_trefs: list[str], black_listed_trefs: set[str]) -> (list[SummarizedSource], list[str]):
+def solve_clusters(clusters: list[Cluster], sorted_sources: list[SummarizedSource], primary_trefs: list[str], black_listed_trefs: set[str], link_pairs) -> (list[SummarizedSource], list[str]):
     num_sources = sum(len(c.items) for c in clusters)
     prob = LpProblem("Choose_Sources", LpMaximize)
 
@@ -110,7 +83,6 @@ def solve_clusters(clusters: list[Cluster], sorted_sources: list[SummarizedSourc
 
     # don't choose two sources that are linked (if link type is Commentary or Targum)
     link_pair_penalty_vars = []
-    link_pairs = _get_link_pairs_to_avoid(sorted_sources)
     for a_tref, b_tref in link_pairs:
         link_pair_penalty_var = LpVariable(f'penalty_link_pair_{a_tref}_{b_tref}', lowBound=0, cat='Integer')
         prob += lpSum([ref_var_map[tref] for tref in (a_tref, b_tref)]) - link_pair_penalty_var <= 1

@@ -11,6 +11,7 @@ import django
 django.setup()
 from sefaria.pagesheetrank import pagerank_rank_ref_list
 from sefaria.model.text import Ref
+from sefaria.client.wrapper import get_links
 from sefaria.recommendation_engine import RecommendationEngine
 import voyageai
 from tqdm import tqdm
@@ -79,7 +80,8 @@ def choose(clusters: list[Cluster], topic: Topic) -> (list[SummarizedSource], li
     clusters = _put_primary_source_in_own_cluster(clusters, primary_sources_trefs)
     sorted_clusters = sort_clusters(clusters)
     sorted_items = _sort_by_highest_avg_pairwise_distance(reduce(lambda x, y: x + y.items, clusters, []), lambda x: x.summary)
-    chosen_sources, chosen_penalties, not_interesting_trefs = solve_clusters_iteratively(clusters, topic, sorted_items, primary_sources_trefs)
+    link_pairs = _get_link_pairs_to_avoid(sorted_items)
+    chosen_sources, chosen_penalties, not_interesting_trefs = solve_clusters_iteratively(clusters, topic, sorted_items, primary_sources_trefs, link_pairs)
     chosen_sources = (Artifact(chosen_sources)
                       .pipe(_sort_sources_by_gpt_instruction, topic)
                       .pipe(_put_primary_sources_first, primary_sources_trefs)
@@ -110,6 +112,32 @@ def _remove_duplicate_books(chosen_sources: list[SummarizedSource]) -> list[Summ
     return out_sources
 
 
+def _get_link_pairs_to_avoid(sources: list[SummarizedSource]) -> set[tuple[str, str]]:
+    link_pairs = []
+    seg_to_orig_ref_map = {}
+    seg_tref_set = set()
+    for source in sources:
+        seg_trefs = [r.normal() for r in Ref(source.source.ref).all_segment_refs()]
+        for seg in seg_trefs:
+            seg_to_orig_ref_map[seg] = source.source.ref
+        seg_tref_set |= set(seg_trefs)
+    for source in sources:
+        links = get_links(source.source.ref, with_text=False)
+        for link in links:
+            if link['category'] not in {'Targum', 'Commentary'}:
+                continue
+            matching_trefs = set(link['anchorRefExpanded']) & seg_tref_set
+            matching_other_side_trefs = set(r.normal() for r in Ref(link['ref']).all_segment_refs()) & seg_tref_set
+            if len(matching_trefs) > 0 and len(matching_other_side_trefs) > 0:
+                # both sides exist in sources
+                for a_tref in matching_trefs:
+                    for b_tref in matching_other_side_trefs:
+                        link_pair = [seg_to_orig_ref_map[a_tref], seg_to_orig_ref_map[b_tref]]
+                        link_pair.sort()
+                        link_pairs.append(tuple(link_pair))
+    return set(link_pairs)
+
+
 def _put_primary_source_in_own_cluster(clusters: list[Cluster], primary_sources_trefs):
     primary_source_clusters = []
     for cluster in clusters:
@@ -131,7 +159,7 @@ def _put_primary_sources_first(sources: list[SummarizedSource], primary_sources_
     return primary_sources + other_sources
 
 
-def solve_clusters_iteratively(clusters: list[Cluster], topic: Topic, sorted_sources: list[SummarizedSource], primary_sources_trefs: list[str], verbose=True) -> (list[SummarizedSource], list[str], list[str]):
+def solve_clusters_iteratively(clusters: list[Cluster], topic: Topic, sorted_sources: list[SummarizedSource], primary_sources_trefs: list[str], link_pairs, verbose=True) -> (list[SummarizedSource], list[str], list[str]):
     """
     Run solve_clusters in a loop, trying to remove sources that aren't interesting
     :param clusters:
@@ -144,7 +172,7 @@ def solve_clusters_iteratively(clusters: list[Cluster], topic: Topic, sorted_sou
     curation_options: list[CurationOption] = []
     not_interesting_trefs: set[str] = set()
     for _ in tqdm(range(max_iter), desc="Recursively solving clusters", disable=not verbose):
-        curr_chosen_sources, curr_chosen_penalties = solve_clusters(clusters, sorted_sources, primary_sources_trefs, not_interesting_trefs)
+        curr_chosen_sources, curr_chosen_penalties = solve_clusters(clusters, sorted_sources, primary_sources_trefs, not_interesting_trefs, link_pairs)
         interesting, not_interesting = _bisect_sources_by_if_interesting(curr_chosen_sources, topic, verbose=False)
         curation_options.append(CurationOption(interesting, not_interesting, curr_chosen_penalties))
         if len(not_interesting) == 0:
