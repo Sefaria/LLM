@@ -30,7 +30,7 @@ def get_context_for_source(source: SummarizedSource, clusters: list[Cluster], to
     other_sources: list[TopicPromptSource] = [s.source for s in source_cluster.items if s.source.ref != tref]
     closest_clusters = _find_closest_clusters([c for c in clusters if c.summary != source_cluster.summary], source_cluster, 10)
     icluster = 0
-    while len(other_sources) < 10:
+    while len(other_sources) < 10 and icluster < len(closest_clusters):
         other_sources += [s.source for s in closest_clusters[icluster].items]
         icluster += 1
     random.shuffle(other_sources)

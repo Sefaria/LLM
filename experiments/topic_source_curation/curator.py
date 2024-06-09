@@ -56,9 +56,9 @@ def save_curation(data, topic: Topic) -> list[SummarizedSource]:
 
 def curate_topic(topic: Topic) -> list[TopicPromptSource]:
     return (Artifact(topic)
-            # .pipe(gather_sources_about_topic)
-            # .pipe(save_sources, topic)
-            .pipe(load_sources)
+            .pipe(gather_sources_about_topic)
+            .pipe(save_sources, topic)
+            # .pipe(load_sources)
             .pipe(get_clustered_sources_based_on_summaries, topic)
             .pipe(save_clusters, topic)
             # .pipe(load_clusters)
@@ -69,31 +69,11 @@ def curate_topic(topic: Topic) -> list[TopicPromptSource]:
 
 if __name__ == '__main__':
     library.rebuild_toc()
-    # topics = random.sample(get_topics_to_curate(), 50)
-    topics = [make_llm_topic(SefariaTopic.init(slug)) for slug in ['moriah',
-     'business',
-     'king-solomon',
-     'ezra',
-     'aleinu',
-     'clouds',
-     'rabbi-chanina-b-dosa',
-     'moses-and-the-torah',
-     'prophecy-of-abraham',
-     'maaser-sheni',
-     'shivah-asar-betammuz',
-     'sefirot',
-     'beyond-the-letter-of-the-law',
-     'three-weeks']
-]
-    for t in topics:
+    topics = get_topics_to_curate()
+    print(len(topics))
+    for t in topics[356:]:
         print("CURATING", t.slug)
-        curated_sources = curate_topic(t)
-    # print('---CURATION---')
-    # print('num sources', len(sources))
-    # for source in sources:
-    #     s = source.source
-    #     print('---')
-    #     print('\t-', s.ref)
-    #     print('\t-', s.text['en'])
-
-
+        try:
+            curated_sources = curate_topic(t)
+        except:
+            print(f"FAILED", t.slug)

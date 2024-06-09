@@ -18,6 +18,7 @@ import re
 import csv
 from sefaria_llm_interface.common.topic import Topic
 from experiments.topic_source_curation.common import get_topic_str_for_prompts
+from openai import BadRequestError
 
 
 def create_multi_source_question_generator() -> 'AbstractQuestionGenerator':
@@ -255,7 +256,11 @@ class WebPageQuestionGenerator(AbstractQuestionGenerator):
         llm = ChatOpenAI(model="gpt-4o", temperature=0)
         system = SystemMessage(content="You are a Jewish teacher well versed in all Jewish texts and customs. Given text about a Jewish topic, summary the text and output the most important bullet points the text discusses. Topic is wrapped in <topic> tags and text is wrapped in <text> tags. Wrap each bullet point in a <bullet_point> tag.")
         human = HumanMessage(content=f"<topic>{get_topic_str_for_prompts(topic, verbose=False)}</topic>\n<text>{webpage_text}</text>")
-        response = llm([system, human])
+        try:
+            response = llm([system, human])
+        except BadRequestError:
+            # what if webpage is really long?
+            return []
         questions = []
         for match in re.finditer(r"<bullet_point>(.*?)</bullet_point>", response.content):
             questions += [match.group(1)]
