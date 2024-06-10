@@ -106,7 +106,7 @@ def _differentiate_prompts(toprompt_options: List[TopromptOptions], tp_input: To
     return differentiated
 
 
-def _differentiate_titles(toprompt_options: List[TopromptOptions], llm_responses: list[list[AbstractMessage]]):
+def _differentiate_titles(toprompt_options: List[TopromptOptions], llm_responses: list[list[AbstractMessage]], topic: Topic):
     """
     Unlike prompts, when titles repeat we can usually rewrite the title without rewriting the whole prompt
     :param toprompt_options:
@@ -123,9 +123,12 @@ def _differentiate_titles(toprompt_options: List[TopromptOptions], llm_responses
         elif phrase not in seen_phrases:
             seen_phrases.add(phrase)
         else:
-            diff_title_prompt = f"Rewrite the title but avoid using the phrase '{phrase}'"
+            diff_title_prompt = f"This title will appear on a page all about {topic.title['en']}. Rewrite the title given users already know the context and don't want to see '{topic.title['en']}' all over the page repeated. DO NOT use any punctuation marks in the new title."
             new_title = _improve_title(temp_llm_responses, toprompt_option.toprompts[0].title, diff_title_prompt)
-            print("REWROTE TITLE: ", toprompt_option.toprompts[0].title, new_title)
+            print("---REWROTE TITLE---")
+            print("\tREPEATED:", phrase)
+            print('\tOLD:', toprompt_option.toprompts[0].title)
+            print('\tNEW:', new_title)
             toprompt_option.toprompts[0].title = new_title
         differentiated += [toprompt_option]
     return differentiated
@@ -147,7 +150,7 @@ def get_toprompts(tp_input: TopicPromptInput):
         toprompt_options += [toprompt_option]
         llm_responses += [temp_llm_responses]
     toprompt_options = _differentiate_prompts(toprompt_options, tp_input)
-    toprompt_options = _differentiate_titles(toprompt_options, llm_responses)
+    toprompt_options = _differentiate_titles(toprompt_options, llm_responses, tp_input.topic)
     return toprompt_options
 
 
