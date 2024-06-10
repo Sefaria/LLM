@@ -67,7 +67,7 @@ def repeated_phrase(sentence, comparison_sentences: list[str]):
     human_message = HumanMessage(content=f"<target>{sentence}</target>\n{comparison_string}")
     response = llm([system_message, human_message])
     output = get_by_xml_tag(response.content, 'output')
-    if not output or output == "N/A" or len(output.split()) < 3:
+    if not output or output == "N/A" or len(output.strip().split()) < 3:
         return None
     return output.strip()
 
