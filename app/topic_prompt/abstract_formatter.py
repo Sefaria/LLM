@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import List, Dict, Tuple, Union
-from toprompt import TopromptOptions, Toprompt
+from app.topic_prompt.toprompt import TopromptOptions, Toprompt
 from sefaria_llm_interface import Topic
 
 
