@@ -14,7 +14,7 @@ def _get_file_ids():
 def create_fine_tune_job(model: str, suffix: str):
     training_file_id, validation_file_id = _get_file_ids()
 
-    fine_tuning_job = openai.FineTuningJob.create(
+    fine_tuning_job = openai.fine_tuning.jobs.create(
         model=model,
         training_file=training_file_id,
         validation_file=validation_file_id,
@@ -24,14 +24,14 @@ def create_fine_tune_job(model: str, suffix: str):
         }
     )
 
-    return fine_tuning_job["id"]
+    return fine_tuning_job.id
 
 
 def monitor_fine_tune_job(job_id):
     import time
 
     while True:
-        fine_tuning_status = openai.FineTune.get_status(job_id)
+        fine_tuning_status = openai.fine_tuning.jobs.retrieve(job_id)
         status = fine_tuning_status["status"]
         print(f"Fine-tuning job status: {status}")
 

@@ -5,7 +5,7 @@ import json
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def fine_tune_status(output_file: str):
-    fine_tune_jobs = openai.FineTuningJob.list()['data']
+    fine_tune_jobs = list(openai.fine_tuning.jobs.list())
     last_job = max(fine_tune_jobs, key=lambda x: x.created_at)
     last_job_dict = last_job.to_dict()
     print(last_job_dict)
