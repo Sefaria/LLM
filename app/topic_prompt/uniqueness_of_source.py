@@ -6,7 +6,6 @@ import re
 from functools import reduce
 from typing import List
 from util.general import get_source_text_with_fallback, get_by_xml_tag
-from util.topic import get_or_generate_topic_description
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from sefaria_llm_interface import Topic
 
@@ -17,7 +16,7 @@ from basic_langchain.chat_models import ChatOpenAI
 
 def _get_prompt_inputs(source, other_sources: List[TopicPromptSource], topic: Topic):
     topic_title = topic.title['en']
-    topic_description = get_or_generate_topic_description(topic, verbose=False)
+    topic_description = topic.description.get('en', 'N/A')
     comparison_sources_list = []
     max_len = 7000
     for other_source in other_sources:

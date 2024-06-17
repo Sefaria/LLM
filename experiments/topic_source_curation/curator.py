@@ -14,6 +14,7 @@ from sefaria_llm_interface.common.topic import Topic
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
 from util.pipeline import Artifact
 from util.general import run_parallel
+from util.topic import get_or_generate_topic_description
 import csv
 import random
 import json
@@ -44,6 +45,7 @@ def get_topics_to_curate():
 
 def save_curation(data, topic: Topic) -> list[SummarizedSource]:
     sources, clusters = data
+    topic.description['en'] = get_or_generate_topic_description(topic, verbose=False)
     contexts = run_parallel(sources, partial(get_context_for_source, topic=topic, clusters=clusters), max_workers=20, desc="Get source context")
     out = [{
         "ref": source.source.ref,
@@ -67,13 +69,34 @@ def curate_topic(topic: Topic) -> list[TopicPromptSource]:
             )
 
 
+def get_topics_that_havent_been_curated_yet() -> list[Topic]:
+    """
+    Get all filenames from output folder
+    :return:
+    """
+    from os import listdir
+    from os.path import isfile, join
+    import re
+    slugs_curated = {re.sub(r"curation_(.*)\.json", r"\1", f) for f in listdir("output") if isfile(join("output", f)) and re.match("curation_(.*)\.json", f)}
+    topics_to_curate = get_topics_to_curate()
+    topics_not_yet_curated = []
+    for topic in topics_to_curate:
+        if topic.slug in slugs_curated:
+            continue
+        topics_not_yet_curated.append(topic)
+    for topic in topics_not_yet_curated:
+        print(topic.slug)
+    return topics_not_yet_curated
+
+
 if __name__ == '__main__':
     library.rebuild_toc()
-    topics = get_topics_to_curate()
+    topics = get_topics_that_havent_been_curated_yet()
     print(len(topics))
-    for t in topics[356:]:
+    for t in topics:
         print("CURATING", t.slug)
         try:
             curated_sources = curate_topic(t)
-        except:
+        except Exception as e:
             print(f"FAILED", t.slug)
+            print(e)
