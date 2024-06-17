@@ -1,9 +1,9 @@
-langchain[llms]==0.1.2
-anthropic~=0.25.1
+langchain[llms]~=0.2.1
+anthropic~=0.26.1
 stanza~=1.5.0
-openai~=1.12.0
+openai~=1.30.0
 typer~=0.4.1
-pydantic~=1.10.8
+pydantic~=2.7.1
 loguru~=0.7.2
 tqdm~=4.66.1
 celery[redis]~=5.2.7
