@@ -11,7 +11,7 @@ diff-match-patch
 dnspython~=2.5.0
 tiktoken~=0.4.0
 readability_lxml
-tenacity
+tenacity==8.3.0
 requests
 numpy
 git+https://github.com/Sefaria/LLM@v1.0.3#egg=sefaria_llm_interface&subdirectory=app/llm_interface
