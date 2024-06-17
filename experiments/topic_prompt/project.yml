@@ -1,0 +1,49 @@
+vars:
+  script_dir: "../../app/util/fine_tune"
+  base_model: "gpt-3.5-turbo-0125"
+  output_model_suffix: "topic-prompt"
+env:
+  openai_api_key: OPENAI_API_KEY
+workflows:
+  all:
+    - upload_files
+    - create_fine_tune
+
+commands:
+  - name: delete_all_files
+    script:
+      - "python ${vars.script_dir}/delete_all_files.py"
+
+  - name: delete_all_fine_tunes
+    script:
+      - "python ${vars.script_dir}/delete_all_fine_tunes.py"
+
+  - name: delete_last_job
+    script:
+      - "python ${vars.script_dir}/delete_last_fine_tune_job.py"
+
+  - name: upload_files
+    deps:
+      - 'output/fine_tune_training_set.jsonl'
+      - 'output/fine_tune_validation_set.jsonl'
+    outputs:
+      - 'output/fine_tune_file_ids.json'
+    script:
+      - 'python ${vars.script_dir}/upload_fine_tune_files.py output/fine_tune_training_set.jsonl output/fine_tune_validation_set.jsonl'
+
+
+  - name: create_fine_tune
+    deps:
+      - 'output/fine_tune_file_ids.json'
+    script:
+      - 'python ${vars.script_dir}/create_fine_tune.py ${vars.base_model} ${vars.output_model_suffix}'
+
+  - name: fine_tune_status
+    script:
+      - 'python ${vars.script_dir}/fine_tune_status.py output/fine_tune_status.json'
+
+  - name: fine_tune_stats
+    outputs:
+      - 'output/fine_tune_stats.csv'
+    script:
+      - 'python ${vars.script_dir}/fine_tune_stats.py output/fine_tune_stats.csv'
