@@ -32,7 +32,7 @@ def get_topics_to_curate():
     with open(TOPICS_TO_CURATE_CSV_PATH, "r") as fin:
         cin = csv.DictReader(fin)
         for row in cin:
-            if len(row['curated']) > 0:
+            if len(row['curated'].strip()) > 0:
                 continue
             slug = row['slug'].strip()
             try:
