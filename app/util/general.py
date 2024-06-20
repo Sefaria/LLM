@@ -8,6 +8,23 @@ from concurrent.futures import ThreadPoolExecutor
 from basic_langchain.schema import SystemMessage, HumanMessage
 
 
+def escape_json_inner_quotes(json_string):
+    """
+    Given a JSON string, escape all double quotes that are in values to avoid invalid JSON
+    Assumes JSON is pretty for
+
+    :param json_string:
+    :return:
+    """
+    pattern = r'(:\s*")(.*?)(?="[,}\n])'
+
+    def escape_quotes(match):
+        # Escape quotes within the matched group
+        return match.group(1) + match.group(2).replace('"', '\\"')
+
+    return re.sub(pattern, escape_quotes, json_string)
+
+
 def get_source_text_with_fallback(source: TopicPromptSource, lang: str, auto_translate=False) -> str:
     text = source.text.get(lang, "")
     other_lang = "en" if lang == "he" else "he"
