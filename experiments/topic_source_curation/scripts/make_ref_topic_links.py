@@ -35,10 +35,11 @@ def _make_ref_topic_link(topic, tref, context, i):
 
 def save_ref_topic_links():
     import json
+    from tqdm import tqdm
     with open("scripts/ref_topic_links.json", "r") as fin:
         links = json.load(fin)
     len(links)
-    for link in links:
+    for link in tqdm(links):
         try:
             existing_links = RefTopicLinkSet({
                 "toTopic": link["toTopic"],
@@ -56,32 +57,7 @@ def save_ref_topic_links():
 def _generate_all_prompts():
     from tqdm import tqdm
     slugs_to_generate = [
-        "naaman",
-        "nephilim",
-        "naftali",
-        "sisera",
-        "sennacherib",
-        "serah-the-daughter-of-asher",
-        "iddo",
-        "obadiah",
-        "og",
-        "uzziah",
-        "ezra",
-        "achan",
-        "the-sons-of-eli",
-        "eli",
-        "amos",
-        "amram",
-        "amasa",
-        "efron",
-        "er-(firstborn-son-of-judah)",
-        "esau",
-        "potiphar",
-        "the-concubine-of-givah",
-        "pharaoh",
-        "zelophehad",
-        "keturah",
-        "cain",
+        'rebellions'
     ]
 
     for slug in tqdm(slugs_to_generate):
@@ -99,8 +75,11 @@ def _generate_prompts_for_slug(slug):
 
 if __name__ == '__main__':
     links = []
-    # topics = get_topics_to_curate()[94:120]
-    topics = [make_llm_topic(SefariaTopic.init('abel'))]
+    print(len(get_topics_to_curate()))
+    # topics = get_topics_to_curate()[:150]
+    topics = [make_llm_topic(SefariaTopic.init(slug)) for slug in [
+        'naval'
+    ]]
     for topic in topics:
         print(f'"{topic.slug}",')
         with open(f"output/curation_{topic.slug}.json", "r") as fin:
