@@ -23,10 +23,23 @@ from sefaria.model import library
 
 
 def _get_category(ref: Ref) -> str:
+    if len(ref.index.categories) >= 2 and ref.index.categories[1] == "Dictionary":
+        # re-categorize dictionaries as commentary. In addition to the fact that dictionaries will have a high penalty,
+        # this makes them very undesirable to choose. Without re-categorizing, there would still be an incentive to
+        # choose them to increase the category diversity.
+        return "Commentary"
     category = ref.primary_category
     # if category == "Commentary":
     #     category = f"{ref.index.categories[0]} Commentary"
     return category
+
+
+def _get_books_to_deprioritize() -> list[str]:
+    """
+    The following books should incur a large penalty if chosen since they are deemed to be not good for curation
+    :return:
+    """
+    return ["Tze'enah Ure'enah"] + library.get_indexes_in_category_path(["Reference", "Dictionary"])
 
 
 def solve_clusters(clusters: list[Cluster], sorted_sources: list[SummarizedSource], primary_trefs: list[str], black_listed_trefs: set[str], link_pairs) -> (list[SummarizedSource], list[str]):
@@ -88,6 +101,10 @@ def solve_clusters(clusters: list[Cluster], sorted_sources: list[SummarizedSourc
         prob += lpSum([ref_var_map[tref] for tref in (a_tref, b_tref)]) - link_pair_penalty_var <= 1
         link_pair_penalty_vars.append(link_pair_penalty_var)
 
+    # don't choose books marked for deprioriziation
+    ref_vars_to_deprioritize = reduce(lambda accum, title: accum + book_vars_map.get(title, []), _get_books_to_deprioritize(), [])
+    books_to_deprioritize_penalty_var = LpVariable('penalty_books_to_deprioritize', lowBound=0, cat='Integer')
+    prob += lpSum(ref_vars_to_deprioritize) - books_to_deprioritize_penalty_var <= 0
 
     # don't choose sources from the same author
     author_vars_map = {}
@@ -115,8 +132,9 @@ def solve_clusters(clusters: list[Cluster], sorted_sources: list[SummarizedSourc
     mean_weight = int(sum(weights) / len(weights))
     objective_function = (lpSum(weighted_sources) - num_sources*lpSum(missing_category_penalty_vars)
                           - 5*num_sources*lpSum(same_book_penalty_vars)
-                          - num_sources*(same_author_penalty_vars)
-                          - 5*num_sources*lpSum(link_pair_penalty_vars))
+                          - num_sources*lpSum(same_author_penalty_vars)
+                          - 5*num_sources*lpSum(link_pair_penalty_vars)
+                          - 5*num_sources*lpSum([books_to_deprioritize_penalty_var]))
     prob += objective_function
 
     # Solve the problem
