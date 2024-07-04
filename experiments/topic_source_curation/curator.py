@@ -46,7 +46,9 @@ def get_topics_to_curate():
 def save_curation(data, topic: Topic) -> list[SummarizedSource]:
     sources, clusters = data
     topic.description['en'] = get_or_generate_topic_description(topic, verbose=False)
-    contexts = run_parallel(sources, partial(get_context_for_source, topic=topic, clusters=clusters), max_workers=20, desc="Get source context")
+    # contexts = run_parallel(sources, partial(get_context_for_source, topic=topic, clusters=clusters), max_workers=20, desc="Get source context")
+    # not finding context helpful
+    contexts = ['']*len(sources)
     out = [{
         "ref": source.source.ref,
         "context": contexts[isource]
