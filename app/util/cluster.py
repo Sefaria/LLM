@@ -2,9 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Any, Callable, Union, TypeVar
 from functools import reduce, partial
 from tqdm import tqdm
-from hdbscan import HDBSCAN
 from sklearn.metrics import silhouette_score, pairwise_distances
-from sklearn.cluster import KMeans, AffinityPropagation
+from sklearn.cluster import AgglomerativeClustering, AffinityPropagation
 import random
 from dataclasses import dataclass
 from numpy import ndarray
@@ -122,7 +121,7 @@ class AbstractClusterer(ABC):
         return clusters, noise_items, noise_embeddings
 
 
-def _guess_optimal_kmeans_clustering(embeddings, verbose=True):
+def _guess_optimal_n_clusters(embeddings, get_model, verbose=True):
     if len(embeddings) <= 1:
         return len(embeddings)
 
@@ -136,20 +135,19 @@ def _guess_optimal_kmeans_clustering(embeddings, verbose=True):
         n_cluster_end = n_cluster_start + 1
     n_clusters = range(n_cluster_start, n_cluster_end)
     for n_cluster in tqdm(n_clusters, total=len(n_clusters), desc='guess optimal clustering', disable=not verbose):
-        kmeans = KMeans(n_clusters=n_cluster, n_init='auto', random_state=RANDOM_SEED).fit(embeddings)
-        labels = kmeans.labels_
-        sil_coeff = silhouette_score(embeddings, labels, metric='cosine', random_state=RANDOM_SEED)
+        model = get_model(n_cluster).fit(embeddings)
+        sil_coeff = silhouette_score(embeddings, model.labels_, metric='cosine', random_state=RANDOM_SEED)
         if sil_coeff > best_sil_coeff:
             best_sil_coeff = sil_coeff
             best_num_clusters = n_cluster
     if verbose:
-        print("Best silhouette score", round(best_sil_coeff, 4))
+        print("Best N", best_num_clusters, "Best silhouette score", round(best_sil_coeff, 4))
     return best_num_clusters
 
 
-def make_kmeans_algo_with_optimal_silhouette_score(embeddings: list[np.ndarray]):
-    n_clusters = _guess_optimal_kmeans_clustering(embeddings)
-    return KMeans(n_clusters=n_clusters, n_init='auto', random_state=RANDOM_SEED)
+def get_agglomerative_clustering_labels_with_optimal_silhouette_score(embeddings: list[np.ndarray]):
+    n_clusters = _guess_optimal_n_clusters(embeddings, lambda n: AgglomerativeClustering(n_clusters=n, linkage='average', metric='cosine'))
+    return AgglomerativeClustering(n_clusters=n_clusters, linkage='average', metric='cosine').fit(embeddings).labels_
 
 
 class SklearnClusterer(AbstractClusterer):
@@ -166,7 +164,6 @@ class SklearnClusterer(AbstractClusterer):
         super().__init__(embedding_fn, get_cluster_summary, verbose)
         self._get_cluster_labels = get_cluster_labels
         self._breakup_large_clusters = breakup_large_clusters
-
 
     def clone(self, **kwargs) -> 'SklearnClusterer':
         """

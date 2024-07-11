@@ -11,7 +11,7 @@ from sefaria_llm_interface.common.topic import Topic
 from basic_langchain.embeddings import VoyageAIEmbeddings, OpenAIEmbeddings
 from util.pipeline import Artifact
 from util.general import get_by_xml_tag, run_parallel, get_by_xml_list
-from util.cluster import Cluster, OptimizingClusterer, SklearnClusterer, AbstractClusterItem
+from util.cluster import Cluster, OptimizingClusterer, SklearnClusterer, AbstractClusterItem, get_agglomerative_clustering_labels_with_optimal_silhouette_score
 from experiments.topic_source_curation.common import get_topic_str_for_prompts
 from experiments.topic_source_curation.summarized_source import SummarizedSource
 import numpy as np
@@ -131,6 +131,10 @@ def _cluster_sources(sources: list[SummarizedSource], topic) -> list[Cluster]:
         clusterers.append(temp_clusterer)
     temp_clusterer = SklearnClusterer(embed_text_openai, lambda x: AffinityPropagation(damping=0.7, max_iter=1000, convergence_iter=100).fit(x).predict(x), partial(_get_cluster_summary_based_on_topic, topic_desc), verbose=False)
     clusterers.append(temp_clusterer)
+    # temp_clusterer = SklearnClusterer(embed_text_openai,
+    #                                   get_agglomerative_clustering_labels_with_optimal_silhouette_score,
+    #                                   partial(_get_cluster_summary_based_on_topic, topic_desc), verbose=False)
+    # clusterers = [temp_clusterer]
 
     clusterer_optimizer = OptimizingClusterer(embed_text_openai, clusterers, verbose=False)
     clusters = clusterer_optimizer.cluster_and_summarize(sources)
