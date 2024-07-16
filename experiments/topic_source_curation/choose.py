@@ -91,8 +91,49 @@ def choose(clusters: list[Cluster], topic: Topic) -> (list[SummarizedSource], li
                       .pipe(_remove_not_interesting_sources, not_interesting_trefs)
                       .pipe(_remove_duplicate_books).data
                       )
+    if len(chosen_sources) <= 5:
+        # try to pick more
+        clusters = _break_up_clusters(topic, clusters)
+        sorted_clusters = clusters
+        chosen_sources, chosen_penalties, not_interesting_trefs = solve_clusters_iteratively(clusters, topic, sorted_items, primary_sources_trefs, link_pairs)
+        chosen_sources = (Artifact(chosen_sources)
+                          .pipe(_remove_known_bad_sources)
+                          .pipe(_switch_daf_shevui_for_talmud)
+                          .pipe(_sort_sources_by_gpt_instruction, topic)
+                          .pipe(_put_primary_sources_first, primary_sources_trefs)
+                          .pipe(_remove_not_interesting_sources, not_interesting_trefs)
+                          .pipe(_remove_duplicate_books).data
+                          )
     save_clusters_and_chosen_sources_to_html(topic, sorted_clusters, chosen_sources, chosen_penalties, primary_sources_trefs, not_interesting_trefs)
     return chosen_sources, clusters
+
+
+def _break_up_clusters(topic: Topic, clusters: list[Cluster]):
+    new_clusters = clusters
+    counter = 0
+    while counter < 5:
+        temp_clusters = _break_up_largest_cluster(topic, new_clusters)
+        if temp_clusters is None:
+            break
+        new_clusters = temp_clusters
+        counter += 1
+    return new_clusters
+
+
+def _break_up_largest_cluster(topic: Topic, clusters: list[Cluster]):
+    from util.cluster import SklearnClusterer
+    from experiments.topic_source_curation.cluster import embed_text_openai, get_cluster_summary_based_on_topic
+    from sklearn.cluster import AgglomerativeClustering
+    topic_desc = get_topic_str_for_prompts(topic, verbose=False)
+    get_cluster_summary = partial(get_cluster_summary_based_on_topic, topic_desc)
+    largest_cluster = max(clusters, key=len)
+    if len(largest_cluster) >= 6:
+        get_cluster_labels = lambda x: AgglomerativeClustering(n_clusters=2).fit(x).labels_
+        clusterer = SklearnClusterer(embed_text_openai, get_cluster_labels, get_cluster_summary, breakup_large_clusters=False)
+        new_clusters = [c for c in clusters if c != largest_cluster]
+        new_clusters += clusterer.cluster_items(largest_cluster.items)
+        return new_clusters
+    return clusters
 
 
 def _remove_known_bad_sources(chosen_sources: list[SummarizedSource]) -> list[SummarizedSource]:
