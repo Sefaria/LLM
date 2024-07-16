@@ -1,30 +1,30 @@
 slug,owner,curated,prompts,ai generated,Learning Team commited,comments aobut categorization ,ai curated/titles/prompts ready for  review,published,notes,comments,suggestions for missing sources,image
-1001,,317,134,21,165,,162,243,,,,84
+1001,,611,134,21,164,,468,553,,,,261
 balaam ,Yavni,y,y,y,,,r,y,needs translation ,,,y
 parents ,Rachel B,y,,,,,r,y,needs translation ,,,y
-leviathan ,Yavni,y,,,,,r,bugs,,,,y
+leviathan ,Yavni,y,,,,,r,y,,"can't reorder, sources are further down on the page",,y
 memory ,Lev,y,y,y,,,r,y,,,,y
 tiberias ,Yavni,y,,,,,r,y,needs translation ,,,y
 shemini-atzeret ,Yavni,y,,,,,r,y,needs translation ,,,y
 the-ten-days-of-repentance ,Yavni,y,,,,,r,y,needs translation ,the topic description is in Hebrew,,y
 jezebel ,Lev,y,,,,,r,y,,,,y
-king-david ,Hadara,y,,,y,,r,y,,delete sources and reorder ,could do with a few more basic sources ,y
+king-david ,Hadara,y,,,y,,r,y,,,could do with a few more basic sources ,y
 hagar ,Hadara,y,,,,,r,y,needs translation ,,,y
-vashti ,Hadara,y,,,,,r,y,,delete source and reorder ,,y
+vashti ,Hadara,y,,,,,r,y,,,,y
 cyrus ,Hadara,y,,,,,r,y,,,,y
-bar-kokhba,,y,,,y,,r,y,,,,y
-the-patriarchs,Justin,y,,,,,r,y,,,,
+bar-kokhba,Shalhevet,y,,,y,,r,y,,,,y
+the-patriarchs,Justin,y,,,,,r,y,,,,y
 caleb,Rachel B,y,,,,,r,y,needs translation ,,,
 pinchas ,Rachel B,y,,,,,r,y,needs translation ,,,
 korach ,Yavni,y,,,,,r,y,,,,
-parah-adumah ,Rachel B,y,,,,,r,y,needs translation ,,,
+parah-adumah ,Rachel B,y,,,,,r,y,needs translation ,,,y
 incense ,Yavni,y,,,,,r,y,needs translation ,,,
-poverty ,Shalhevet,y,,,,,r,y,,,,
+poverty ,Shalhevet,y,,,,,r,y,,,,y
 hunger ,Shalhevet,y,,,,,r,y,needs translation ,,,
 disability ,Shalhevet,y,,,y,,r,y,needs another eye,,,
 creation-of-man ,Rachel G,y,,,y,,r,y,needs translation ,,,
 josephs-dream ,Shalhevet,y,,,,,r,y,,,,
-the-exodus-from-egypt ,Rachel B,y,,,,,r,y,needs translation ,,,
+the-exodus-from-egypt ,Rachel B,y,,,,,r,y,needs translation ,,,y
 counting-of-the-levites ,Yavni,y,,,,,r,y,needs translation ,,a source on the censuses of Ezra and Nehemia?,
 moses-and-the-torah ,Rachel G,y,,,,,r,y,needs translation ,,,
 pillar-of-cloud ,Rachel G,y,,,,,r,y,needs translation ,,,
@@ -36,133 +36,133 @@ empathy ,Rachel B,y,,,,currently only sheets ,r,y,,,,
 soul,Yavni,y,,,,,r,y,needs translation ,,,
 bat-kol ,Yavni,y,,,,,r,y,needs translation ,,,
 gabriel-the-angel ,Yavni,y,,,,,r,y,needs translation ,topic missing a description,,
-sefirot ,Shmuel,y,,,,,r,,,,,
+sefirot ,Shmuel,y,,,,,r,,needs translation ,,,
 camels ,Yavni,y,,,,,r,y,needs translation ,,,
-lions ,Yavni,y,,,,,r,y,needs translation ,,,
+lions ,Yavni,y,,,,,r,y,needs translation ,,,y
 plants ,Rachel B,y,,,,,r,y,needs translation ,The topic doesn't have a description,,
 summer ,Rachel B,y,,,,,r,y,needs to be curated again,"The topic needs a description. Also, there are only 5 sources.",,
-beitar ,Shalhevet,y,,,,,r,,needs to be curated again,sources weren't relevant,,
+beitar ,Shalhevet,y,,,,,r,y,,sources weren't relevant,,
 ulla ,Shalhevet,y,y,,,,r,y,needs translation ,,,
 tekhelet,Shalhevet,y,y,,,,r,y,,,,
-fasting ,Yavni,y,,,,,r,y,needs translation ,,,
+fasting ,Yavni,y,,,,,r,y,needs translation ,,,y
 new-year ,Hadara,y,,,,,r,y,,,there are probably more sources that can be added ,y
-yom-yerushalayim ,Hadara,y,,,,,r,y,,didn't provide a lot of sources,,
+yom-yerushalayim ,Hadara,y,,,,,r,y,,didn't provide a lot of sources,,y
 shivah-asar-betammuz,Rachel B,y,,,y,,r,y,needs translation ,,,y
 sigd ,Hadara,y,,,,,r,y,needs to be curated again,,,y
-abigail ,Yavni,y,,,,,r,y,needs translation ,,,
-avishai,Yavni,y,,,,,r,y,needs translation ,,,
+abigail ,Yavni,y,,,,,r,y,needs translation ,,,y
+avishai,Yavni,y,,,,,r,y,needs translation ,,,y
 abner,Yavni,y,,,,,r,y,needs translation ,,,
-absalom ,Rachel G,y,,,,,r,y,needs translation ,,,
+absalom ,Rachel G,y,,,,,r,y,needs translation ,,,y
 achitofel,Yavni,y,,,,,r,y,needs translation ,transliteration inconsistency,,
 adoniah,Rachel G,y,,,,,r,y,needs translation ,transliteration inconsistency,,
 adam ,Rachel G,y,,,,,r,y,needs translation ,,,
-adam-and-eve,Rachel G,y,,,y,,r,y,needs translation ,,,
+adam-and-eve,Rachel G,y,,,y,,r,y,needs translation ,,,y
 ahab ,Yavni,y,,,,,r,y,,,,
 ahaz ,Yavni,y,,,,,r,y,,,,
-elijah ,Rachel B,y,,,y,,r,y,needs translation ,,,
+elijah ,Rachel B,y,,,y,,r,y,needs translation ,,,y
 elimelekh1,Yavni,y,,,,,r,y,needs translation ,,,
 elifaz1,Yavni,y,,,,,r,y,,"transliteration inconsistent, not really a topic summary to speak of","IIRC correctly there is an important midrash about Esav sending him to kill Yaakov and him not doing it, or something like that. Happy to look for it if there is time.",
 elisheva,Yavni,y,,,,,r,y,needs translation ,"I added a title (""Joy and Tragedy"") and prompt for one of the extra sources that appeared below the curated ones, cause I thought it would be good. I then moved it higher up. It seems to work? Not sure about with the new design, so I thought I'd flag it.",,
-elisha ,Rachel B,y,,,,,r,y,needs translation ,,,
-elazar,Yavni,y,,,,,r,y,,transliteration inconsistent,,
+elisha ,Rachel B,y,,,,,r,y,needs translation ,,,y
+elazar,Yavni,y,,,,,r,y,,transliteration inconsistent,,y
 elkanah,Yavni,y,,,,,r,y,needs translation ,transliteration of Hannah inconsistent,,
-the-matriarchs ,Yavni,y,,,,,r,,needs to be curated again,,,
+the-matriarchs ,Hadara,y,,,,,r,y,needs translation ,could use reordering,,y
 asa ,Yavni,y,,,,,r,y,needs translation ,,,
 ephraim ,Rachel G,y,,,,,r,y,needs translation ,transliteration inconsistent (Manasseh is spelled several different ways),,
 aram ,Hadara,y,,,,,r,y,,,,
-boaz ,Rachel B,y,,,,,r,y,needs translation ,,,
-belshatzar,Rachel G,y,,,,,r,y,,transliteration of Belshatzar inconsistent,,
-benjamin ,Rachel G,y,,,,,r,y,needs translation ,,,
+boaz ,Rachel B,y,,,,,r,y,needs translation ,,,y
+belshatzar,Rachel G,y,,,,,r,y,,transliteration of Belshatzar inconsistent,,y
+benjamin ,Rachel G,y,,,,,r,y,needs translation ,,,y
 barukh-ben-neriah,Rachel G,y,,,,,r,y,needs translation ,transliteration of Barukh inconsistent,,
-gad ,Hadara,y,,,,,r,y,needs translation ,,,
+gad ,Hadara,y,,,,,r,y,needs translation ,,,y
 gechazi ,Yavni,y,,,,,r,y,needs translation ,transliterations inconsistent,,
 gedaliah,Yavni,y,,,,,r,y,,,,
 goliath ,Rachel G,y,,,,,r,y,,,,y
-deborah ,Rachel B,y,,,,,r,y,,only 5 curated sources and several similar,,
+deborah ,Rachel B,y,,,,,r,y,,only 5 curated sources and several similar,,y
 doeg ,Rachel G,y,,,,,r,y,,"only 4 curated sources on him, but then again, he is a pretty minor character that appears (AFAIK) only once in Tanakh",,
-the-spies ,Lev,y,,,,,r,y,,may need reordering,,
-dinah ,Rachel B,y,,,,,r,y,needs translation ,,,
-dan ,Yavni,y,,,,,r,y,needs translation ,,,
-daniel ,Lev,y,,,,,r,y,,,,
-darius,Shalhevet,y,,,,,r,y,,missing topic description,,
-abel ,Shalhevet,y,,,,,r,y,needs translation ,,,
+the-spies ,Lev,y,,,,,r,y,,may need reordering,,y
+dinah ,Rachel B,y,,,,,r,y,needs translation ,,,y
+dan ,Yavni,y,,,,,r,y,needs translation ,,,y
+daniel ,Lev,y,,,,,r,y,,,,y
+darius,Shalhevet,y,,,,,r,y,,missing topic description,,y
+abel ,Shalhevet,y,,,,,r,y,needs translation ,,,y
 hoshea-(the-prophet),Shalhevet,y,,,,,r,y,,"It is still having trouble telling the difference between actual book of Hosea and other texts that quote it
 Also - dictionaries have references with Hebrew characters which causes some sort of glitch",,
-zevulun ,Rachel B,y,,,,,r,y,needs translation ,source wasn't deleted ,,
-zechariah ,Rachel B,y,,,,,r,,,,,
-zimri ,Lev,y,,,,,r,y,,"There's the Torah Zimri, and the Zimri of I Kings 16.  Presuming this is the first.
-There are three deleted sources hanging around. ",,
-zeresh ,Rachel B,y,,,,,r,,needs to be curated again,only one source,,
-habakkuk ,Hadara,y,,,,,r,y,needs translation ,sources weren't deleted ,,
+zevulun ,Rachel B,y,,,,,r,y,needs translation ,,,
+zechariah ,Hadara,y,,,,,r,y,,part manual bc of messianic texts,,
+zimri ,Lev,y,,,,,r,y,,"This is the Torah Zimri, not the Zimri of I Kings 16. ",,
+zeresh ,Hadara,y,,,,,r,y,,curated manually with html,,
+habakkuk ,Hadara,y,,,,,r,y,needs translation ,,,
 chur ,Hadara,y,,,,,r,y,needs translation ,,,
-hezekiah ,Rachel B,y,,,,,r,,,Delete the 2 Steinsaltz texts. I don't think that they add enough in this context.,,
-hiram ,Shalhevet,y,,,,,r,y,,"some deleted texts were left by the glitch, no topic description",,
-ham ,,y,,,,,r,,,,,
-hannah ,Rachel B,y,,,,,r,y,,,,
-enoch1,Yavni,y,,,,,r,,needs translation ,it didn't find any usable sources about the Book of Enoch. Sources need to be deleted before publishing.,,
-judith ,Rachel B,y,,,,,r,y,needs translation ,,,
-jehoiachin,Yavni,y,,,,,r,,needs translation ,Sources need to be deleted before being published,,
-jehoiakim ,,y,,,,,r,,,,,
-jonadab-the-son-of-rechab ,,y,,,,,r,,,,,
-jonathan1,,y,,,,,r,,,,,
-yehoshafat,,y,,,,,r,,,,,
-yoav,Rachel B,y,,,,,r,y,needs translation ,deleted sources ,,
-joash-(king-of-judah) ,,y,,,,,r,,,,,
-jonah,Shalhevet,y,,,,,r,y,needs translation ,"MANY sources ended with something that was basically this sentence: The Book of Jonah is read during the Mincha service on Yom Kippur to emphasizes themes of repentance and divine mercy. I deleted a bunch of them. Also, whole page could use reordering",,
-ezekiel ,Yedida ,y,,,y,,r,,,,,
+hezekiah ,Rachel B,y,,,,,r,y,,,,y
+hiram ,Shalhevet,y,,,,,r,y,,no topic description,,
+ham ,Rachel G,y,,,,,r,y,needs translation ,transliteration inconsistencies (especially with Noah and Ham),,
+hannah ,Rachel B,y,,,,,r,y,,,,y
+enoch1,Yavni,y,,,,,r,y,needs translation ,it didn't find any usable sources about the Book of Enoch. ,,
+judah,,y,,,,,,y,,,,y
+judith ,Rachel B,y,,,,,r,y,needs translation ,,,y
+jehoiachin,Yavni,y,,,,,r,y,needs translation ,,,
+jehoiakim ,Hadara,y,,,,,r,y,,can't reorder ,,
+jonadab-the-son-of-rechab ,Shalhevet,y,,,,,r,y,needs translation ,,,
+jonathan1,Rachel G,y,,,,,r,y,,"I'm not sure why there is a 1 here, I only found one Jonathan topics page. Not many source and most are on the same topic of his modesty/love for David. But I think that's ok",,
+yehoshafat,Shalhevet,y,,,,,r,y,needs translation ,"transliteration issues, missing topic description",,
+yoav,Rachel B,y,,,,,r,y,needs translation ,,,
+joash-(king-of-judah) ,Shalhevet,y,,,,,r,y,needs translation ,massive transliteration discrepancies,,
+jonah,Shalhevet,y,,,,,r,y,needs translation ,"MANY sources ended with something that was basically this sentence: The Book of Jonah is read during the Mincha service on Yom Kippur to emphasizes themes of repentance and divine mercy. I deleted a bunch of them. Also, whole page could use reordering",,y
+ezekiel ,Hadara,y,,,y,,r,y,needs translation ,,,y
 yael,Rachel B,y,,,,,r,y,,,,
-yefet,,y,,,,,r,,,,,
-yiftach,,y,,,,,r,,,,,
-isaac-and-esau ,,y,,,,,r,,,,,
-yerovam-(son-of-nebat) ,Rachel G,y,,,,,r,,,,,
-jeremiah ,,y,,,y,,r,,,,,
-jesse ,,y,,,,,r,,,,,
-ishmael ,,y,,,y,,r,,,,,
-isaiah ,,y,,,y,,r,,,,,
-issachar ,,y,,,,,r,,,,,
-lot ,Shalhevet,y,,,,,r,y,needs translation ,deleted sources at top,,
+yefet,Shalhevet,y,,,,,r,y,,transliteration discrepancy,,
+yiftach,Shalhevet,y,,,,,r,y,needs translation ,,,
+isaac-and-esau ,Rachel G,y,,,,,r,y,needs translation ,"Transliteration inconsistencies, many sources are actually about Jacob and Esau but didn't change remove them because I don't know if that's a problem (it's all connected ultimately)",,y
+yerovam-(son-of-nebat) ,Rachel G,y,,,,,r,y,needs translation ,transliteration inconsistencies,,
+jeremiah ,Yavni,y,,,y,,r,y,,,,y
+jesse ,Shalhevet,y,,,,,r,,,,,
+ishmael ,Shalhevet,y,,,y,,r,y,needs translation ,,,
+isaiah ,Yavni,y,,,y,,r,y,,,,
+issachar ,Rachel G,y,,,,,r,y,needs translation ,transliteration inconsistencies,,y
+lot ,Shalhevet,y,,,,,r,y,needs translation ,,,y
 lilith ,Hadara,y,,,,,r,y,needs translation ,only four sources,,
-lemekh1,,y,,,,,r,,,,,
-micah,,y,,,,,r,,,,,
-mikhal,,y,,,,,r,,,,,
-malachi ,,y,,,,,r,,,,,
-melchizedek ,,y,,,,,r,,,,,
-menasseh-(king-of-judah) ,,y,,,,,r,,,,,
-nebuchadnezzar ,,y,,,,,r,,,,,
-navot,Shalhevet,y,,,,,r,,,,,
-naval,Shalhevet,y,,,,,r,,needs to be curated again,it only gave one source prompt?,,
-noah ,Shalhevet,y,,,y,,r,y,needs translation ,"heads up it thought source 2 was the Zohar, also I think could use some reordering eventually",,
+lemekh1,Hadara,y,,,,,r,y,needs translation ,,,
+micah,Shalhevet,y,,,,,r,y,needs translation ,"something should make it clear we're not talking about the biblical book, also transliteration problems",,
+mikhal,Yavni,y,,,,,r,y,needs translation ,"(1) A lot of the sources are about her rebuking David and being punished (and really mostly about the punishment.) I can't reorder sources to at least put the one source about her rescuing David higher up.    (2) In the Topic description, the last statement about the midrash is not one of the top things I would have said about her—it's just one way of interpreting the story.    (3) Inconsistent transliteration.",Something about her love for David?,
+malachi ,Yavni,y,,,,,r,y,needs translation ,"missing topic description. most of the sources were just quoting from Malachi, not discussing him.",Something about the conclusion of prophecy,
+melchizedek ,Shalhevet,y,,,,,r,y,,"no topic description, transliteration problems, akeidat yitzchak source is missing half translation",,
+menasseh-(king-of-judah) ,Yavni,y,,,,,r,y,,inconsistent transliteration,"Chazal have him as a model of scholarship, in spite of his evil.",
+nebuchadnezzar ,Shalhevet,y,,,,,r,y,needs translation ,,,
+navot,Shalhevet,y,,,,,r,y,,,,
+naval,Shalhevet,y,,,,,r,y,,transliteration,added a source from Shmuel,
+noah ,Shalhevet,y,,,y,,r,y,needs translation ,"heads up it thought source 2 was the Zohar, also I think could use some reordering eventually",,y
 nehemiah ,Shalhevet,y,,,,,r,y,needs translation ,thought the Steinzaltz source was from Nechemiah itself,,
 nimrod ,Shalhevet,y,,,,,r,y,needs translation ,,,
 naomi ,Hadara,y,,,,,r,y,,,,
-naaman ,,y,,,,,r,,,,,
+naaman ,Shalhevet,y,,,,,r,y,,"topic description is too short, should say there's a famous story about him getting tzaraat. Also deleted texts are left",,y
 nephilim ,Hadara,y,,,,,r,y,needs translation ,,,
-naftali,,y,,,,,r,,,,,
-sisera ,,y,,,,,r,,,,,
-sennacherib ,Shalhevet,y,,,,,r,y,,"there was a problem when I published it where it added back deleted sources. I re-deleted them so it should be okay now, but someone should double check",,
-serah-the-daughter-of-asher ,,y,,,,,r,,,,,
+naftali,Yavni,y,,,,,r,y,needs translation ,,,y
+sisera ,Yavni,y,,,,,r,y,needs translation ,lacking a topic description,,y
+sennacherib ,Shalhevet,y,,,,,r,y,,,,
+serah-the-daughter-of-asher ,Shalhevet,y,,,,,r,y,,"very few sources, transliteration inconsistencies",,
 iddo ,Rachel G,y,,,,,r,y,,"not a lot of sources, Could maybe add sources from Yalkut shimoni about his connection to אישה שונמית. There's a source there that reference זכריה בן עידו which is likely not the same Iddo, but I left the source there because some think it is. Ideally we would use the prompt to provide that context, but I think that is too involved for these prompts",,
-obadiah ,,y,,,,,r,,,,,
+obadiah ,Yavni,y,,,,,r,y,needs translation ,"needs topic description. This includes both Obadiah the prophet and Obadiah the steward of Ahab, which makes sense, because lots of sources think they are the same person, but it should probably be explained in the topic description, and we might add Elijah, Ahab, Jezebel to the ""Related"" sidebar.",,
 og ,Shalhevet,y,,,,,r,y,needs translation ,,,
-uzziah ,,y,,,,,r,,,,,
-ezra ,,y,,,,,r,,,,,
-achan ,,y,,,,,r,,,,,
+uzziah ,Shalhevet,y,,,,,r,y,,a lot of this was good! descriptions for Ginzburg and Steinsaltz were predictably general though,,
+ezra ,Yavni,y,,,,,r,y,,,,
+achan ,Shalhevet,y,,,,,r,y,needs translation ,needs topic description,,
 the-sons-of-eli ,Rachel G,y,,,,,r,y,needs translation ,transliteration inconsistencies ,,
-eli ,,y,,,,,r,,,,,
-amos ,,y,,,,,r,,,,,
-amram ,,y,,,,,r,,,,,
-amasa ,,y,,,,,r,,,,,
-efron,,y,,,,,r,,,,,
-er-(firstborn-son-of-judah),,y,,,,,r,,,,,
-esau ,Shalhevet,y,,,,,r,y,needs translation ,,something introductory about him being associated w Rome,
+eli ,Hadara,y,,,,,r,y,needs translation ,needs topic description,,
+amos ,Hadara,y,,,,,r,y,,missing topic description,,y
+amram ,Rachel G,y,,,,,r,y,needs translation ,,,
+amasa ,Yavni,y,,,,,r,y,,"Missing topic description, can't reorder sources—in general they are overwhelmingly about Joab killing Amasa, and Amasa wtih Abshalom + David appointing Amasa to high position after the rebellion only a couple sources at the end",,
+efron,Shalhevet,y,,,,,r,y,,transliteration inconsistencies,,
+er-(firstborn-son-of-judah),Yavni,y,,,,,r,y,needs translation ,,,
+esau ,Shalhevet,y,,,,,r,y,needs translation ,,something introductory about him being associated w Rome,y
 potiphar ,Rachel B,y,,,,,r,y,,,,
-the-concubine-of-givah,,y,,,,,r,,,,,
-pharaoh ,,y,,,,,r,reordering doesn't stick,,,,
+the-concubine-of-givah,Yavni,y,,,,,r,y,,do we do content warnings? D':,,
+pharaoh ,,y,,,,,r,,,reordering doesn't stick,,y
 daughters-of-zelophehad ,Hadara,y,,,,,r,y,,,,
 zelophehad ,Shalhevet,y,,,,,r,y,,"missing a topic description, also transliteration problems. Also: most of the sources it gave were about his daughters (I deleted those, it's its own page) so there were pretty few left. ",,
 keturah ,Hadara,y,,,,,r,y,,,,
-cain ,,y,,,,,r,,,,,
-vows,Hadara,y,,,,,r,,,,,
+cain ,Yavni,y,,,,,r,y,needs translation ,,,y
+vows,Hadara,y,,,,,r,y,,,,
 rachel-(rabbi-akiva),Yavni,y,y,y,,,r,y,,,,
 shabbat,Yedida ,y,y,,y,,,y,,,,y
 rosh-chodesh ,Yedida ,y,y,,y,,,y,,,,y
@@ -195,7 +195,7 @@ marriage ,Yedida ,y,y,,y,,,y,,,,y
 menorah1,Yedida ,y,y,,y,,,y,,,,y
 shofar ,Yedida ,y,y,,y,,,y,,,,y
 tefillin ,Yedida ,y,y,,y,,,y,,,,y
-torah-study ,,y,y,,y,,,y,,,,y
+torah-study ,Yedida ,y,y,,y,,,y,,,,y
 love-your-neighbor-as-yourself ,Yedida ,y,y,,y,,,y,,,,y
 idolatry ,Yedida ,y,y,,y,,,y,,,,y
 trees ,Yedida ,y,y,,y,,,y,,,,y
@@ -208,271 +208,268 @@ the-book-of-esther,Yedida ,y,y,,y,,,y,,,,y
 hasmoneans,Yedida ,y,y,,y,,,y,,,,y
 justice,Hadara,y,y,y,y,,,y,,,,y
 stars,Hadara,y,,,,,,y,,,,y
-shabbat-hagadol ,Yedida ,y,y,,y,,,y,,,,
+shabbat-hagadol ,Yedida ,y,y,,y,,,y,,,,y
 high-holidays ,Yedida ,y,y,,y,,,y,,,,y
-seder ,Yedida ,y,y,,y,,,y,,,,
+seder ,Yedida ,y,y,,y,,,y,,,,y
 hagaddah,Yedida ,y,y,,y,,,y,,,,
+bedikat-chametz-biur-chametz,,y,,,,,,y,,,,
 asarah-betevet,Yedida ,y,y,,y,,,y,,,,y
-elul,Yedida ,y,y,,y,,,y,,,,
-four-questions,Yedida ,y,y,,y,,,y,,,,
-the-four-children,Yedida ,y,y,,y,,,y,,,,
-the-four-expressions-of-redemption,Yedida ,y,y,,y,,,y,,,,
-fast-of-gedaliah,Yedida ,y,y,,y,,,y,,,,
-hoshana-rabbah,Yedida ,y,y,,y,,,y,,,,
-abraham ,Yedida ,y,y,,y,,,y,,,,
-aaron ,Yedida ,y,y,,y,,,y,,,,
-esther ,Yedida ,y,y,,y,,,y,,,,
-haman ,Yedida ,y,y,,y,,,y,,,,
+elul,Yedida ,y,y,,y,,,y,,,,y
+four-questions,Yedida ,y,y,,y,,,y,,,,y
+the-four-children,Yedida ,y,y,,y,,,y,,,,y
+the-four-expressions-of-redemption,Yedida ,y,y,,y,,,y,,,,y
+fast-of-gedaliah,Yedida ,y,y,,y,,,y,,,,y
+hoshana-rabbah,Yedida ,y,y,,y,,,y,,,,y
+abraham ,Yedida ,y,y,,y,,,y,,,,y
+aaron ,Yedida ,y,y,,y,,,y,,,,y
+esther ,Yedida ,y,y,,y,,,y,,,,y
+haman ,Yedida ,y,y,,y,,,y,,,,y
 judah ,Yedida ,y,y,,y,,,y,,,,
 joshua ,Yedida ,y,y,,y,,,y,,,,y
-yokheved,Justin,y,,,,,,y,,,,
-joseph ,Yedida ,y,y,,y,,,y,,,,
-jacob ,Yedida ,y,,,y,,,,,,,
-isaac ,Yedida ,y,y,,y,,,y,,,,
-moses ,Yedida ,y,y,,y,,,y,,,,
+yokheved,Justin,y,,,,,,y,,,,y
+joseph ,Yedida ,y,y,,y,,,y,,,,y
+jacob ,Hadara,y,,,y,,r,y,,,,y
+isaac ,Yedida ,y,y,,y,,,y,,,,y
+moses ,Yedida ,y,y,,y,,,y,,,,y
 yitro ,Yedida ,y,y,,y,,,y,,,,
-leah ,Yedida ,y,,,y,,,,,,,
-mordekhai,Yedida ,y,y,,y,,,y,,,,
+leah ,Yavni,y,,,y,,r,,,,,y
+mordekhai,Yedida ,y,y,,y,,,y,,,,y
 nadav-and-avihu ,Yedida ,y,y,,y,,,y,,,,
 amalek ,Yedida ,y,y,,y,,,y,,,,
-tzipporah,Justin,y,,,,,,y,,,,
-ruth ,Yedida ,y,y,,y,,,y,,,,
-rachel ,Yedida ,y,,,y,,,,,,,
-king-solomon ,Yedida ,y,,,y,,,,,,,
-samuel-(prophet),Yedida ,y,,,y,,,,,,,
+tzipporah,Justin,y,,,,,,y,,,,y
+ruth ,Yedida ,y,y,,y,,,y,,,,y
+rachel ,Hadara,y,,,y,,r,y,,,,y
+king-solomon ,,,,,y,,,,,,,y
+samuel-(prophet),,,,,y,,,,,,,
 betzalel ,Yedida ,y,y,,y,,,y,,,,
 pharaohs-daughter ,Yedida ,y,y,,y,,,y,,,,
-haggadah,Yedida ,y,y,,y,,,y,,,,
+haggadah,Yedida ,y,y,,y,,,y,,,,y
 blessings  ,Yedida ,y,y,y,,,,y,,,,
-hallel  ,Yedida ,y,y,,y,,,y,,,,
+hallel  ,Yedida ,y,y,,y,,,y,,,,y
 shema  ,Yedida ,y,y,,y,,,y,,,,
-shabbat-prayers  ,Yedida ,y,,,y,,,,,,,
-sheva-berakhot,,y,,,y,,,,,,,
-selichot  ,Yedida ,y,y,,y,,,y,,,,
-pidyon-haben ,Hadara,y,,,y,,,y,,,,
-priestly-garments ,Yedida ,y,y,,y,,,y,,,,
-the-tablets ,Yedida ,y,y,,y,,,y,,,,
+shabbat-prayers  ,,,,,y,,,,,,,
+sheva-berakhot,,,,,y,,,,,,,
+selichot  ,Yedida ,y,y,,y,,,y,,,,y
+pidyon-haben ,Hadara,y,,,y,,,y,,,,y
+priestly-garments ,Yedida ,y,y,,y,,,y,,,,y
+the-tablets ,Yedida ,y,y,,y,,,y,,,,y
 mikveh ,Yedida ,y,y,,y,,,y,,,,
 mishkan ,Yedida ,y,y,,y,,,y,,,,
-candles ,Yedida ,y,y,,y,,,y,,,,
+candles ,Yedida ,y,y,,y,,,y,,,,y
 tzitzit ,Yedida ,y,y,,y,,,y,,,,
-tallit ,,y,,,y,,,,,,,
-converts ,,y,,,y,,,,,,,
-women ,,y,,,y,,,,,,,
-feminism ,,y,,,y,,,,,,,
-sexuality ,,y,,,y,,,,,,,
-destruction-of-the-temple ,,y,y,,y,,,,,,,
+tallit ,,,,,y,,,,,,,y
+converts ,Yedida ,y,,,y,,,,,,,
+women ,,,,,y,,,,,,,
+feminism ,,,,,y,,,,,,,
+sexuality ,,,,,y,,,,,,,
+destruction-of-the-temple ,Yedida ,y,y,,y,,,y,,,,y
 creation ,Yedida ,y,y,,y,,,y,,,,
 golden-calf ,Yedida ,y,y,,y,,,y,,,,
 tzaraat,Yedida ,y,y,y,y,,,y,,,,
-binding-of-isaac ,Yedida ,y,y,,y,,,y,,,,
+binding-of-isaac ,Yedida ,y,y,,y,,,y,,,,y
 the-ten-plagues ,Yedida ,y,y,,y,,,y,,,,
 the-ten-commandments ,Yedida ,y,y,,y,,,y,,,,
 song-of-the-sea1,Yedida ,y,y,,y,,,y,,,,
 giving-of-the-torah ,Yedida ,y,y,,y,,,y,,,,
 strength ,Yedida ,y,y,,y,,,y,,,,
 freedom1 ,Yedida ,y,,,,,,y,,,,
-honoring-parents ,,y,y,,y,,,y,,,,
-atonement ,Yedida ,y,,,y,,,,,,,
-tzedakah ,,y,y,,y,,,y,,,,
-joy ,,y,y,,y,,,y,,,,
-teshuvah ,,y,y,,y,,,y,,,,
+honoring-parents ,Yedida ,y,y,,y,,,y,,,,y
+atonement ,Yedida ,y,,,y,,,y,,,,
+tzedakah ,Yedida ,y,y,,y,,,y,,,,y
+joy ,Yedida ,y,y,,y,,,y,,,,
+teshuvah ,Yedida ,y,y,,y,,,y,,,,
 priesthood ,Yedida ,y,y,y,y,,,y,,,,
 mashiach ,Yedida ,y,y,,y,,,y,,,,
 miracles ,Yedida ,y,y,,y,,,y,,,,
-the-tetragrammaton,Yedida ,y,,,y,,,,,,,
-animals ,Yedida ,y,y,y,,,,y,,,,
+animals ,Yedida ,y,y,y,,,,y,,,,y
 nature ,Yedida ,y,y,,y,,,y,,,,
-fire ,Yedida ,y,y,y,,,,,,,,
+fire ,Yedida ,y,y,y,,,,y,,,,
 light ,Yedida ,y,y,,y,,,y,,,,
 rain ,Yedida ,y,y,,y,,,y,,,,
-ohel-moed ,Yedida ,y,y,y,y,,,y,,,,
+ohel-moed ,Yedida ,y,y,y,y,,,y,,,,y
 red-sea ,Yedida ,y,y,,y,y,,y,,,,
-mount-sinai ,Yedida ,y,y,,y,y,,y,,,,
+mount-sinai ,Yedida ,y,y,,y,y,,y,,,,y
 chametz,Yedida ,y,y,,y,y,,y,,,,
-matzah ,Yedida ,y,y,,y,,,y,,,,
-pomegranates,Yedida ,y,y,,y,,,y,,,,
+matzah ,Yedida ,y,y,,y,,,y,,,,y
+pomegranates,Yedida ,y,y,,y,,,y,,,,y
 dreams ,Yedida ,y,y,,y,,,y,,,,
-health ,,y,y,,y,,,y,,,,
-rabbi-akiva ,Yedida ,y,y,,y,,,y,,,,
+health ,Yedida ,y,y,,y,,,y,,The intro paragraph to the page could do with more detail,,
+rabbi-akiva ,Yedida ,y,y,,y,,,y,,,,y
 13-principles-of-faith,Yedida ,y,y,,y,,,y,,,,
 redemption-of-captives,Yedida ,y,y,,y,,,y,,,,
 sacrifices,Yedida ,y,y,y,y,,,y,,,,
-jubilee,Yedida ,y,,,,,,,,,,
-bikkurim,Yedida ,y,y,,y,,,y,,,,
+jubilee,,y,,,,,r,,,,,
+bikkurim,Yedida ,y,y,,y,,,y,,,,y
 shifrah-and-puah1,Yedida ,y,y,,y,,,y,,,,
 gift-giving,Yedida ,y,y,,y,,,y,,,,
 tzaraat,Yedida ,y,y,y,,,,y,,,,
 taharah,Yedida ,y,y,y,,,,y,,,,
-the-book-of-ruth,Yedida ,y,y,,y,,,y,,,,
-adar,Yedida ,y,y,y,y,,,y,,,,
+the-book-of-ruth,Yedida ,y,y,,y,,,y,,,,y
+adar,Yedida ,y,y,y,y,,,y,,,,y
 baseless-hatred1,Yedida ,y,y,,y,,,y,,,,
 altars,Yedida ,y,y,,y,,,y,,,,
-seven-species,Yedida ,y,y,,y,,,y,,,,
-lashon-hara,Yedida ,y,,,,,,,,,,
-pirkei-avot,Yedida ,y,y,,y,,,y,,,,
-mishnah ,,y,,,y,,,,,,,
-talmud,,y,,,y,,,,,,,
-names ,,y,,,y,"currently only sheets. gets a lot of traffic, worth renaming to a broader topic maybe ""names"" and redirecting ",,,,,,
+seven-species,Yedida ,y,y,,y,,,y,,,,y
+lashon-hara,Hadara,y,,,,,r,y,,,,
+pirkei-avot,Yedida ,y,y,,y,,,y,,,,y
+mishnah ,,,,,y,,,,,,,y
+talmud,,,,,y,,,,,,,y
 homes,Yedida ,y,y,y,y,,,y,,,,
-rest,Yedida ,y,y,y,y,,,y,,,,
+rest,Yedida ,y,y,y,y,,,y,,,,y
 yom-hashoah,Hadara,y,y,y,,,,y,,,,
 mourners-kaddish,Yedida ,y,y,y,y,,,,,,,
 sons of aaron https://www.sefaria.org/topics/11?sort=Relevance&tab=sources,Yedida ,y,y,y,y,,,y,,,,
-dogs ,Hadara,,,,,,,,,,,y
-havdalah  ,,,,,y,,,,,,,y
-mourning ,,,,,,,,,,,,y
-bar-mitzvah ,,,,,y,,,,,,,y
-yahrzeit ,,,,,,,,,,,,y
-children ,,,,,,,,,,,,y
-mezuzah ,Yedida ,,,,y,,,,,,,y
-torah-scrolls ,,,,,,,,,,,,y
-shabbat-candles ,,,,,,,,,,,,y
-money ,,,,,,,,,,,,y
-creation-of-light-and-luminaires ,,,,,,,,,,,,y
-journey-in-the-desert ,,,,,,,,,,,,y
-love ,,,,,,,,,,,,y
-resurrection ,,,,,,,,,,,,y
-figs ,,,,,,,,,,,,y
-agriculture ,,,,,,,,,,,,y
-bread ,,,,,,,,,,,,y
-music ,,,,,,,,,,,,y
-shemittah,Yedida ,,,,,,,,,,,y
-synagogues,,,,,,,,,,,,y
-the-sons-of-korach ,,,,,,,,,,,,
-reuben ,,,,,,,,,,,,
-rebecca ,,,,,,,,,,,,
-rahab ,,,,,,,,,,,,
-rehoboam ,,,,,,,,,,,,
-king-saul ,,,,,,,,,,,,
-simeon ,,,,,,,,,,,,
-shimei ,,,,,,,,,,,,
-samson ,,,,,,,,,,,,
-tamar ,,,,,,,,,,,,
-terach ,,,,,,,,,,,,
-queen-of-sheba ,,,,,,,,,,,,
-josiah ,,,,,,,,,,,,
-zedekiah ,,,,,,,,,,,,
-eve ,,,,,,,,,,,,
-batsheva3,,,,,,,,,,,,
-shem ,,,,,,,,,,,,
-gideon ,,,,,,,,,,,,
-ahasuerus ,,,,,,,,,,,,
-achitofel,,,,,,,,,,,,
-asher ,,,,,,,,,,,,
-chananiah-mishael-and-azariah,,,,,,,,,,,,
-sichon1,,,,,,,,,,,,
-seth ,,,,,,,,,,,,
-nachshon-ben-aminadav ,,,,,,,,,,,,
-huldah,,,,,,,,,,,,
-priestly-blessing,Yedida ,,,,,,,,,,,
-kavanah  ,,,,,,,,,,,,
-praise-of-god  ,,,,,,,,,,,,
-birkat-hamazon  ,,,,,,,,,,,,
-hitbodedut  ,,,,,,,,,,,,
-vidui  ,,,,,,,,,,,,
-niggun  ,,,,,,,,,,,,
-kiddush  ,,,,,y,,,,,,,
-arvit  ,,,,,,,,,,,,
-shacharit  ,,,,,,,,,,,,
-tashlich  ,,,,,,,,,,,,
-al-hanisim  ,,,,,,,,,,,,
-kabbalat-shabbat  ,,,,,,,,,,,,
-aleinu  ,,,,,,,,,,,,
-lekha-dodi1,,,,,,,,,,,,
-mah-tovu,,,,,,,,,,,,
-vahavta  ,,,,,,,,,,,,
-birkot-hashachar  ,,,,,,,,,,,,
-shemoneh-esrei  ,,,,,,,,,,,,
-blessings-(halakhah)  ,,,,,,,,,,,,
-tachanun  ,,,,,,,,,,,,
-divorce ,,,,,,,,,,,,
-fertility ,,,,,,,,y,,,,
-burial ,,,,,,,,,,,,
-conversion ,Yedida ,,,,,,,,,,,
-bat-mitzvah ,,,,,y,,,,,,,
-etrog ,,,,,,,,,,,,
-four-cups ,,,,,,,,,,,,
-cup-for-the-blessing ,,,,,,,,,,,,
-the-gold-altar ,,,,,,,,,,,,
-the-copper-altar ,,,,,,,,,,,,
-the-curtain ,,,,,,,,,,,,
-temple-vessels ,,,,,,,,,,,,
-head-coverings ,,,,,,,,,,,,
-lulav ,,,,,,,,,,,,
-showbread ,,,,,,,,,,,,
-maaser-sheni ,,,,,,move to halakha (editing isn't working),,,,,,
-sukkah ,,,,,,,,,,,,
-mincha-(קרבן) ,,,,,,,,,,,,
-libations ,,,,,,,,,,,,
-omer-offering ,,,,,,,,,,,,
-oils1 ,Yedida ,,,,y,,,,,,,
-terumah ,,,,,,,,,,,,
-geniza,,,,,,,,,,,,
-kippah ,,,,,,,,,,,,
-man-and-wife ,,,,,,,,,,,,
-identity ,,,,,,,,,,,,
-ownership ,,,,,,,,,,,,
-diaspora ,,,,,,,,,,,,
-strangers ,,,,,,,,,,,,
-jewish-people ,,,,,,,,,,,,
-human-dignity ,,,,,,,,,,,,
-deceit ,,,,,,,,,,,,
-power ,,,,,,,,,,,,
-wars ,,,,,,,,,,,,
-governments ,,,,,,,,,,,,
-leadership ,,,,,,,,,,,,
-censuses ,,,,,,,,,,,,
-trade ,,,,,,,,,,,,
-travel ,,,,,,,,,,,,
-non-jews ,,,,,,,,,,,,
-tzaddik,,,,,,,,,,,,
-revenge ,,,,,,,,,,,,
-business ,,,,,,,,,,,,
-slaves ,,,,,,,,,,,,
-work ,,,,,,,,,,,,
-punishment ,,,,,,,,,,,,
-wealth ,,,,,,,,,,,,
-poor ,,,,,,,,,,,,
-oppression ,,,,,,,,,,,,
-workers ,,,,,,,,,,,,
-action ,,,,,,,,,,,,
-leaders-(פרנס) ,,,,,,,,,,,,
-society ,,,,,,,,,,,,
-authority ,,,,,,,,,,,,
-mentally-handicapped-people ,,,,,,,,,,,,
-partnership ,,,,,,,,,,,,
-neighbors ,,,,,,,,,,,,
-agency ,,,,,,,,,,,,
-hate ,,,,,,,,,,,,
-murder ,,,,,,,,,,,,
-abortion ,,,,,,,,,,,,
-inclusion ,,,,,,,,,,,,
-political-thought ,,,,,,,,,,,,
-civil-discourse ,,,,,,,,,,,,
-relationships ,,,,,,,,,,,,
-pluralism ,,,,,,,,,,,,
-democracy ,,,,,,,,,,,,
-race ,,,,,,,,,,,,
-racism ,,,,,,,,,,,,
-diversity ,,,,,,currently only sheets,,,,,,
-protection ,,,,,,,,,,,,
-modernity ,,,,,,currently only sheets,,,,,,
-independence ,,,,,,currently only sheets,,,,,,
-emancipation1,,,,,,,,,,,,
-migrants ,,,,,,,,,,,,
-innovation ,,,,,,currently only sheets ,,,,,,
-technology ,,,,,,currently only sheets ,,,,,,
-management ,,,,,,currently only sheets ,,,,,,
-masculinity ,,,,,,currently only sheets ,,,,,,
-disabilities ,,,,,,,,,,,,
-social-justice ,,,,,,,,,,,,
-marah ,,,,,,,,,,,,
-covenant-with-the-patriarchs ,,,,,,,,,,,,
-prophecy-of-the-patriarchs ,,,,,,,,,,,,
+dogs ,Yavni,y,,,,,r,y,,reordering issue,,y
+havdalah  ,Rachel B,y,,,y,,r,y,needs translation ,,,y
+mourning ,Rachel B,y,,,,,r,y,,,,y
+bar-mitzvah ,Yavni,y,,,y,,r,y,needs translation ,,,y
+yahrzeit ,Yavni,y,,,,,r,y,needs translation ,,"It brought two hasidic sources that were junk, so I deleted them, but there are probably good hasidic sources out there",y
+children ,Rachel B,y,,,,,r,y,needs translation ,,,y
+mezuzah ,Yavni,y,,,y,,r,y,,,,y
+torah-scrolls ,Yavni,y,,,,,r,y,needs translation ,,,y
+shabbat-candles ,Rachel B,y,,,,,r,y,needs translation ,,,y
+money ,Rachel B,y,,,,,r,y,needs translation ,,,y
+creation-of-light-and-luminaires ,Hadara,y,,,,,r,y,needs translation ,,,y
+journey-in-the-desert ,Yavni,y,,,,,r,y,needs translation ,,,y
+love ,Rachel B,y,,,,,r,y,needs translation ,needs topic description,,y
+resurrection ,Yavni,y,,,,,r,y,needs translation ,,,y
+figs ,Rachel B,y,,,,,r,y,needs translation ,,,y
+agriculture ,Yavni,y,,,,,r,y,needs another eye,"The Munk translation of the Shela""h is not great. It doesn't translate the verse being discussed.","Lacking sources on: Shmita, agricultural melakha on Shabbat, yom tov, and chol hamoed, agricultural holidays except Sukkot, rain (and praying for it), Gan Eden and our essential human duty to work the land and Adam's curse, orlah (more minor), redeeming fields (more minor), comparison of different qualities of land for growing things/different types of fields. Specific classic sources that come to mind: The one about the sage who stood up on Har Habayit and observed how much work goes into him eating something, Birkat Hashanim from Amida. There are a LOT of sources on gifts for the poor, especially Pe'ah (even though I deleted some).",y
+bread ,Rachel B,y,,,,,r,y,needs translation ,,,y
+music ,Rachel B,y,,,,,r,y,needs translation ,,,y
+shemitah,Rachel B,y,,,,,r,,,,,y
+synagogues,Hadara,y,,,,,r,y,needs translation ,,,y
+the-sons-of-korach ,Hadara,y,,,,,r,y,needs translation ,,,
+reuben ,Rachel G,y,,,,,r,y,needs translation ,"transliteration inconsistencies. Many of the sources are similar, either about the Bilhah situation or his role in the Joseph story. I think it could have also included sources about the tribe of Reuben later in the Torah and Tanakh",,y
+rebecca ,Rachel B,y,,,,,r,y,needs translation ,,,
+rahab ,Hadara,y,,,,,r,y,needs translation ,,,
+rehoboam ,Rachel G,y,,,,,r,y,needs translation ,,,
+king-saul ,Hadara,y,,,,,r,y,needs translation ,,,y
+simeon ,Rachel B,y,,,,,r,y,needs translation ,,,y
+shimei ,Rachel G,y,,,,,r,y,needs translation ,translit inconsistencies,There weren't any sources that showed how Shimei broke his oath to Solomon and met his death. I think the page could probably use the verses from the Tanakh where that happens,
+samson ,Rachel B,y,,,,,r,y,needs translation ,,,y
+tamar ,Rachel G,y,,,,,r,y,needs translation ,"1. translit inconsistencies 2. It doesn't look like we have a topics page for the Tamar of Sefer Shmuel, but still, since there are two relatively prominent Tamars in Tanakh, I think the title here should have some sort of disambiguation like (Judah) or (Genesis). ",,y
+terach ,Rachel B,y,,,,,r,y,needs translation ,needs a topic description,,
+queen-of-sheba ,Yavni,y,,,,,r,y,needs translation ,,,y
+josiah ,Yavni,y,,,,,r,y,needs translation ,,,
+zedekiah ,Yavni,y,,,,,r,y,needs translation ,,,
+eve ,Riva,y,,,,,r,y,needs to be curated again,"Topic description needs editing, see typo 'fromAdam'",,
+batsheva3,Rachel B,y,,,,,r,y,,,,
+shem ,Rav Nataf,y,,,,,r,y,needs translation ,several prompts are midrashic in their tone,,
+gideon ,Rachel G,y,,,,,r,y,,translit inconsistencies,,
+ahasuerus ,Rachel G,y,,,,,r,y,needs translation ,translit inconsistencies,,
+achitofel,Shalhevet,y,,,,,r,y,,transliteration... also needs topic description,,
+asher ,Rav Nataf,y,,,,,r,y,needs translation ,,,y
+chananiah-mishael-and-azariah,Rachel G,y,,,,,r,y,needs translation ,"Transliteration. Many of the sources are similar but I think that's ok (there is only one real story of the figures in Tanakh, so only so much to work with)",,
+sichon1,Rav Nataf,y,,,,,r,y,needs translation ,Could use some reordering,,
+seth ,Rachel G,y,,,,,r,y,needs translation ,transliteration,,
+nachshon-ben-aminadav ,Yavni,y,,,,,r,y,needs translation ,"There was only one source, so I added a few from the algorithmically-generated ones below.",,
+huldah,Yavni,y,,,,,r,y,,,The one about her name and Devorah's name?,
+priestly-blessing,Yedida ,y,,,,,,,,,,y
+kavanah  ,Hadara,y,,,,,r,y,,,,y
+praise-of-god  ,Riva,y,,,,,r,y,needs translation ,,,
+birkat-hamazon  ,Riva,y,,,,,r,y,needs translation ,,,y
+hitbodedut  ,Yavni,y,,,,,r,y,,"4 sources, might be enough",,
+vidui  ,Riva,y,,,,,r,y,needs translation ,Zohar,,
+niggun  ,Lev,y,,,,,r,y,,,,
+kiddush  ,Rachel B,y,,,y,,r,y,needs translation ,,,y
+arvit  ,Rav Nataf,y,,,,,r,y,needs translation ,"check sequence, maybe add sources  ",,
+shacharit  ,Rav Nataf,y,,,,,r,y,needs translation ,"check sequence, maybe add sources  ",,y
+tashlich  ,Rachel B,y,,,,,r,y,needs another eye,only 4 sources,,
+al-hanisim  ,Riva,y,,,,,r,y,needs translation ,only has 3 sources,,
+kabbalat-shabbat  ,Riva,y,,,,,r,y,needs translation ,,,y
+aleinu  ,Yavni,y,,,,,r,y,needs translation ,"I started deleting sources that were irrelevant, then I realized that was all but two of them.","the one about Joshua composing it (on the Joshua topic page), something about the line that is left out in some communities and the history there",
+lekha-dodi1,Hadara,y,,,,,r,y,,only 5 sources,,
+mah-tovu,Yavni,y,,,,,r,y,needs translation ,,,y
+vahavta  ,Rachel B,y,,,,,r,y,needs translation ,,,y
+birkot-hashachar  ,Rav Nataf,y,,,,,r,y,may need reordering,could use more sources,,y
+shemoneh-esrei  ,Rav Nataf,y,,,,,r,y,needs translation ,order can use improvement,,y
+blessings-(halakhah)  ,Shalhevet,y,,,,,r,y,needs translation ,,,
+tachanun  ,,y,,,,,r,y,needs translation ,,,
+divorce ,Rachel G,y,,,,,r,y,needs translation ,transliteration,,y
+fertility ,Yedida ,y,,,,,r,,,,,y
+burial ,Rachel G,y,,,,,r,y,needs translation ,transliteration,,y
+conversion ,Yedida ,y,,,,,,,,,,
+bat-mitzvah ,Hadara,y,,,,,r,y,,only four sources,,y
+etrog ,Rachel B,y,,,,,r,y,needs translation ,,,y
+four-cups ,Rachel B,y,,,,,r,y,needs translation ,,,
+cup-for-the-blessing ,Hadara,y,,,,,r,y,needs translation ,,,y
+the-gold-altar ,Yavni,y,,,,,r,y,needs translation ,,,
+the-copper-altar ,,y,,,,,r,,,,,
+the-curtain ,Rav Nataf,y,,,,,r,y,needs translation ,order could be further improved,,y
+temple-vessels ,Rav Nataf,y,,,,,r,y,needs translation ,,,
+head-coverings ,Rachel B,y,,,,,r,y,needs translation ,,,y
+lulav ,Rachel B,y,,,,,r,y,needs translation ,,,y
+showbread ,Rachel G,y,,,,,r,y,needs translation ,transliteration,,y
+maaser-sheni ,Rachel G,y,,,,,r,y,needs translation ,"Hadara Steinberg, I'm publishing this, but just flagging that I think that a topic like this is really out of the AI's ballpark at this point. In less halakhic or more theoretical topics (giving, kindness, biblical characters), I thought the AI's flowery language/fluffiness and occasional delusional language to be really fine or passable for the most part. In a topic like this, it really just felt like the AI was spewing things it did not understand. It would also throw around terms like ""demai""and ""bikkurim"" and ""dinarim"" without defining them, or say things like ""If you need to exchange money from the redemption of the second tithe for golden dinarim, you can do so without adding a fifth,"" without ever explaining how the process of exchanging works or that one generally does need to add a fifth (and what that means). This is all to say that in addition to the incoherent fluffiness and spewing, I don't think this page will be particularly accessible to a newcomer. ",transliteration inconsistencies,
+sukkah ,Rachel B,y,,,,,r,y,needs translation ,,,y
+mincha-(קרבן) ,Rav Nataf,y,,,,,r,y,,,,
+libations ,Yavni,y,,,,,r,y,needs translation ,,something on idolatrous libations/yayin nesekh,
+omer-offering ,Yavni,y,,,,,r,y,needs translation ,,,
+oils1 ,Yavni,y,,,y,,r,y,,,,
+terumah ,Shalhevet,y,,,,,r,y,,,,y
+geniza,Rachel B,y,,,,,r,y,,Zohar,"only five sources, added a few more from the html",
+kippah ,Yavni,y,,,,,r,y,,only had four sources. that may be fine.,,y
+man-and-wife ,Hadara,y,,,,,r,y,,weird page. not sure what it was meant to portray,,y
+identity ,Rachel B,y,,,,,r,y,needs translation ,,,
+ownership ,Riva,y,,,,,r,y,needs translation ,,,
+diaspora ,Riva,y,,,,,r,y,,,,
+strangers ,Riva,y,,,,,r,y,needs translation ,,,
+jewish-people ,Riva,y,,,,,r,y,needs translation ,,,
+human-dignity ,Riva,y,,,,,r,y,needs translation ,,,
+deceit ,Riva,y,,,,,r,y,needs translation ,,,
+power ,Riva,y,,,,,r,y,needs translation ,,,
+wars ,Riva,y,,,,,r,y,needs translation ,,,
+governments ,Riva,y,,,,,r,y,,,,
+leadership ,Rachel B,y,,,,,r,y,,,,
+censuses ,Riva,y,,,,,r,y,needs translation ,needs topic description,,
+trade ,,y,,,,,r,y,,This page has been done - not sure by who,,y
+travel ,Hadara,y,,,,,r,y,needs translation ,added a few sources,,y
+non-jews ,Riva,y,,,,,r,y,needs translation ,needs topic description,,
+tzaddik,,y,,,,,r,,,there are two Tzaddik pages (tsaddik and tzaddik) - merge,,
+revenge ,Hadara,y,,,,,r,y,,,,
+business ,Rachel B,y,,,,,r,y,,needs topic description,,
+slaves ,Riva,y,,,,,r,y,needs translation ,needs topic description. Source Kiddushin 22a doesn't show the full text,,
+work ,Riva,y,,,,,r,y,needs translation ,,,
+punishment ,Riva,y,,,,,r,y,,"needs topic description, not sure if 'social issue' is the right category for this page to be under",,
+wealth ,Rachel B,y,,,,,r,y,needs translation ,needs topic description,,
+poor ,Riva,y,,,,,r,y,needs translation ,,,y
+oppression ,Riva,y,,,,,r,y,needs translation ,,,
+workers ,Rachel B,y,,,,,r,y,,needs topic description,,
+action ,,y,,,,,r,,,,,
+leaders-(פרנס) ,Riva,y,,,,,r,y,needs translation ,Zohar,,
+society ,Riva,y,,,,,r,y,needs translation ,,,
+authority ,Riva,y,,,,,r,y,needs translation ,,,
+partnership ,,y,,,,,r,,,,,
+neighbors ,Rachel B,y,,,,,r,y,,,,
+agency ,Hadara,y,,,,,r,y,needs translation ,is this the right name for this topic page,,
+hate ,Riva,y,,,,,r,y,needs translation ,,,
+murder ,Riva,y,,,,,r,y,needs translation ,,,
+abortion ,Riva,y,,,,,r,y,needs translation ,,,
+inclusion ,Riva,y,,,,,r,y,needs translation ,,,
+political-thought ,Hadara,y,,,,,r,y,needs translation ,,,
+civil-discourse ,,y,,,,,r,,,,,
+relationships ,Riva,y,,,,,r,y,needs translation ,,,
+pluralism ,Rav Nataf,y,,,,,r,y,needs translation ,,,
+democracy ,Rav Nataf,y,,,,,r,y,needs translation ,could use more/more diverse sources; 4 of the 8 are from R. Sacks,,
+race ,Lev,y,,,,,r,,,check if we should have this ,,
+racism ,Rachel G,y,,,,,r,y,needs translation ,"translit. A lot were sources about antisemitism. Deleted some of them but not all (I'd say it made up roughly half the sources there). Some sources implicitly connect racism to antisemitism or see antisemitism as a form of racism, but not sure how much we want to get into that...",,
+diversity ,Rachel G,y,,,,currently only sheets,r,y,needs translation ,translit,,
+protection ,Rachel G,y,,,,,r,y,needs translation ,"translit. A bit mystical heavy at the beginning, but after a while it gets into other interesting sources (nezikin, arei miklat etc). Would have expected it to also have the pasuk of שומר ישראל or related things about God's protection of people (not mystical)",,
+modernity ,Rachel G,y,,,,currently only sheets,r,y,needs translation ,translit. Most Sacks and Berkovits,,
+independence ,Rachel G,y,,,,currently only sheets,r,y,,translit. ,,
+emancipation1,Rachel G,y,,,,,r,y,needs translation ,translit. A lot of R. Sacks but I think that's OK,,
+migrants ,Rachel G,y,,,,,r,y,needs translation ,translit.,,
+innovation ,Riva,y,,,,currently only sheets ,r,y,,Needs page description. This is a very broad topic which can feel a bit disorganized due to it's large scope.,,
+technology ,Riva,y,,,,currently only sheets ,r,y,,Needs page description. One of the sources is on medical advancements (IVF etc.) which might be better suited to a different page on medicine/medical ethics. I wouldn't personally associate IVF with 'technology'.,,
+management ,Rachel G,y,,,,,r,y,needs translation ,translit. inconsistencies ,,
+masculinity ,Rachel G,y,,,,,r,y,,translit. inconsistencies ,,
+social-justice ,Rachel G,y,,,,,r,y,needs translation ,translit. inconsistencies ,,
+marah ,Rachel G,y,,,,,r,y,needs translation ,translit. inconsistencies ,,
+covenant-with-the-patriarchs ,Rachel G,y,,,,,r,y,needs translation ,translit. inconsistencies ,,
+prophecy-of-the-patriarchs ,Riva,y,,,,,r,y,needs translation ,Needs page description,,
 abraham-in-ur-kasdim-and-his-departure-from-there ,,,,,,,,,,,,
 abraham-in-egypt ,,,,,,,,,,,,
-covenant-of-abraham ,,,,,,,,,,,,
+covenant-of-abraham ,,,,,,,,,,,,y
 gods-blessing-and-promise-to-abraham ,,,,,,,,,,,,
 abraham-and-the-hittites ,,,,,,,,,,,,
 abraham-and-the-angels ,,,,,,,,,,,,
@@ -482,7 +479,7 @@ prophecy-of-abraham ,,,,,,,,,,,,
 tests-of-abraham ,,,,,,,,,,,,
 adams-sin-and-his-punishment ,,,,,,,,,,,,
 aarons-sin ,,,,,,,,,,,,
-aarons-death ,,,,,,,,,,,,
+aarons-death ,Riva,y,,,,,r,y,needs translation ,,,y
 high-priest,,,,,,,,,,,,
 the-great-assembly ,,,,,,,,,,,,
 destruction-of-the-land-of-israel ,,,,,,,,,,,,
@@ -500,9 +497,9 @@ creation-of-heavens-and-earth ,,,,,,,,,,,,
 gog-and-magog ,,,,,,,,,,,,
 decree-against-sons ,,,,,,,,,,,,
 israel-in-egypt ,,,,,,,,,,,,
-egyptian-subjugation ,,,,,,,,,,,,
-egyptian-exile ,,,,,,,,,,,,
-garden-of-eden,,,,,,,,,,,,
+egyptian-subjugation ,,,,,,,,,,,,y
+egyptian-exile ,,,,,,,,,,,,y
+garden-of-eden,,,,,,,,,,,,y
 plague-of-pestilence-(דבר-) ,,,,,,,,,,,,
 the-house-of-david ,,,,,,,,,,,,
 david-and-the-temple ,,,,,,,,,,,,
@@ -516,7 +513,7 @@ well-in-the-desert ,,,,,,,,,,,,
 meat-in-the-sinai-desert ,,,,,,,,,,,,
 appointment-of-judges-for-the-generation-of-the-desert ,,,,,,,,,,,,
 edom-and-the-generation-of-the-desert ,,,,,,,,,,,,
-sin-of-the-spies ,,,,,,,,,,,,
+sin-of-the-spies ,,,,,,,,,,,,y
 sin-of-peor ,,,,,,,,,,,,
 war-with-midian ,,,,,,,,,,,,
 manna ,,,,,,,,,,,,
@@ -528,8 +525,8 @@ generation-of-the-desert ,,,,,,,,,,,,
 generation-of-the-dispersion ,,,,,,,,,,,,
 abels-sacrifice ,,,,,,,,,,,,
 destruction-of-jerusalem ,,,,,,,,,,,,
-judahs-blessing ,,,,,,,,,,,,
-conquest-of-jericho ,,,,,,,,,,,,
+judahs-blessing ,,,,,,,,,,,,y
+conquest-of-jericho ,,,,,,,,,,,,y
 stopping-of-the-sun-in-gibeon ,,,,,,,,,,,,
 josephs-blessing ,,,,,,,,,,,,
 joseph-and-potiphars-wife ,,,,,,,,,,,,
@@ -540,7 +537,7 @@ the-prophecy-of-ezekiel ,,,,,,,,,,,,
 jacob-and-the-birthright ,,,,,,,,,,,,
 jacobs-blessing ,,,,,,,,,,,,
 the-promise-to-jacob ,,,,,,,,,,,,
-jacobs-dream ,,,,,,,,,,,,
+jacobs-dream ,,,,,,,,,,,,y
 jacob-and-the-angel ,,,,,,,,,,,,
 jacob-and-the-sticks ,,,,,,,,,,,,
 jacob-in-egypt ,,,,,,,,,,,,
@@ -553,11 +550,10 @@ borrowing-the-property-during-the-exodus-from-egypt ,,,,,,,,,,,,
 retributions-during-the-exodus-from-egypt ,,,,,,,,,,,,
 crossing-the-jordan-river-and-setting-of-the-stones ,,,,,,,,,,,,
 journey-of-the-ark ,,,,,,,,,,,,
-blessing-of-levi ,,,,,,,,,,,,
+blessing-of-levi ,,,,,,,,,,,,y
 tower-of-babel ,,,,,,,,,,,,
 the-idol-of-micha ,,,,,,,,,,,,
 famine-in-egypt ,,,,,,,,,,,,
-moses-and-the-tent-of-meeting ,,,,,,,,,,,,
 moses-in-midian ,,,,,,,,,,,,
 moses-at-the-bush ,,,,,,,,,,,,
 moses-blessing ,,,,,,,,,,,,
@@ -579,16 +575,17 @@ tabernacle-inauguration ,,,,,,,,,,,,
 tabernacles-journey ,,,,,,,,,,,,
 tabernacles-making ,,,,,,,,,,,,
 donations-for-the-tabernacle ,,,,,,,,,,,,
+the-copper-snake,,,,,,,,,,,,
 days-of-cordoning ,,,,,,,,,,,,
-noah-and-the-ark ,,,,,,,,,,,,
+noah-and-the-ark ,,,,,,,,,,,,y
 noah-and-the-vineyard ,,,,,,,,,,,,
 noahs-sacrifice ,,,,,,,,,,,,
 sin-and-punishment-of-the-serpent ,,,,,,,,,,,,
 the-worship-of-molech ,,,,,,,,,,,,
 war-with-amalek ,,,,,,,,,,,,
 the-tree-of-knowledge ,,,,,,,,,,,,
-the-tree-of-life ,,,,,,,,,,,,
-plague-of-locusts ,,,,,,,,,,,,
+the-tree-of-life ,,,,,,,,,,,,y
+plague-of-locusts ,,,,,,,,,,,,y
 plague-of-hail ,,,,,,,,,,,,
 plague-of-blood ,,,,,,,,,,,,
 warnings-about-the-ten-plagues ,,,,,,,,,,,,
@@ -638,8 +635,8 @@ giving ,,,,,,,,,,,,
 knowing ,,,,,,,,,,,,
 honesty ,,,,,,,,,,,,
 righteous ,,,,,,,,,,,,
-learning ,,,,,,,,,,,,
-teaching ,,,,,,,,,,,,
+learning ,,,,,,,,,,,,y
+teaching ,,,,,,,,,,,,y
 forgiveness-(מחילה) ,,,,,y,,,,,,,
 machloket ,,,,,,,,,,,,
 generosity ,,,,,,,,,,,,
@@ -712,8 +709,7 @@ rabbinic-authority ,,,,,,,,,,,,
 ruach-hakodesh1 ,,,,,,,,,,,,
 satan ,,,,,,,,,,,,
 shekhinah ,,,,,,,,,,,,
-the-written-torah-and-the-oral-torah ,,,,,,,,,,,,
-torah ,,,,,,,,,,,,
+torah ,,,,,,,,,,,,y
 revelation ,,,,,,,,,,,,
 rituals1 ,,,,,,,,,,,,
 chosenness ,,,,,,,,,,,,
@@ -725,14 +721,14 @@ yetzer-hatov ,,,,,,,,,,,,
 yetzer-hara ,,,,,,,,,,,,
 air ,,,,,,,,,,,,
 ants ,,,,,,,,,,,,
-astronomy ,,,,,,,,,,,,
+astronomy ,,,,,,,,,,,,y
 birds ,,,,,,,,,,,,
 cats ,,,,,,,,,,,,
 cedars ,,,,,,,,,,,,
 clouds ,,,,,,,,,,,,
 dates ,,,,,,,,,,,,
 deserts ,,,,,,,,,,,,
-dew ,,,,,,,,,,,,
+dew ,,,,,,,,,,,,y
 dirt ,,,,,,,,,,,,
 donkeys ,,,,,,,,,,,,
 doves ,,,,,,,,,,,,
@@ -741,12 +737,12 @@ earth ,,,,,,,,,,,,
 ecology ,,,,,,,,,,,,
 environment ,,,,,,,,,,,,
 ewes ,,,,,,,,,,,,
-fish ,,,,,,,,,,,,
+fish ,,,,,,,,,,,,y
 flax ,,,,,,,,,,,,
 frogs ,,,,,,,,,,,,
-gazelles ,,,,,,,,,,,,
+gazelles ,,,,,,,,,,,,y
 goats ,,,,,,,,,,,,
-goats-(שעירים) ,,,,,,,,,,,,
+goats-(שעירים) ,,,,,,,,,,merge with goats?,,
 grapes ,,,,,,,,,,,,
 grass ,,,,,,,,,,,,
 horses ,,,,,,,,,,,,
@@ -774,18 +770,18 @@ snakes1 ,,,,,,,,,,,,
 snow ,,,,,,,,,,,,
 spring ,,,,,,,,,,,,
 springs ,,,,,,,,,,,,
-sun ,,,,,,,,,,,,
+sun ,,,,,,,,,,,,y
 sustainability ,,,,,,currently only sheets ,,,,,,
 tapuach ,,,,,,,,,,,,
 the-elements ,,,,,,,,,,,,
-the-moon,,,,,,,,,,,,
+the-moon,,,,,,,,,,,,y
 the-ocean ,,,,,,,,,,,,
 vines ,,,,,,,,,,,,
-water ,,,,,,,,,,,,
+water ,,,,,,,,,,,,y
 weather ,,,,,,,,,,,,
 wild-animals ,,,,,,,,,,,,
 willows ,,,,,,,,,,,,
-winds ,,,,,,,,,,,,
+winds ,,,,,,,,,,,,y
 wolves ,,,,,,,,,,,,
 worms ,,,,,,,,,,,,
 yavneh ,,,,,,,,,,,,
@@ -831,7 +827,7 @@ shechem ,,,,,,,,,,,,
 heavens ,,,,,,,,,,,,
 sharon ,,,,,,,,,,,,
 tarshish ,,,,,,,,,,,,
-beit-midrash ,,,,,,,,,,I tseted a few sources on this page ,,
+beit-midrash ,,,,,,,,,,I tested a few sources on this page ,,
 temple-mount ,,,,,,,,,,,,
 second-temple ,,,,,,,,,,,,
 en-dor ,,,,,,,,,,,,
@@ -839,7 +835,7 @@ jericho ,,,,,,,,,,,,
 israel ,,,,,,,,,,,,
 ashur ,,,,,,,,,,,,
 food ,,,,,,,,,,,,
-eating ,,,,,,,,,,,,
+ah ,,,,,,,,,,,,
 honey,,,,,,,,,,,,
 olives ,,,,,,,,,,,,
 milk ,,,,,,,,,,,,
@@ -852,154 +848,166 @@ fruit ,,,,,,,,,,,,
 flour ,,,,,,,,,,,,
 drinking ,,,,,,,,,,,,
 spices ,,,,,,,,,,,,
-food-ethics ,,,,,,currently only sheets ,,,,,,
-alcohol ,,,,,,,,,,,,
-vegetarianism ,,,,,,,,,,,,
-meat ,,,,,,,,,,,,
-kitniyot ,,,,,,,,,,,,
-wheat ,,,,,,,,,,,,
-philosophy ,,,,,,,,,,,,
-ethics ,Yedida ,,,,,,,,,,,
-human-knowledge ,,,,,,,,,,,,
-free-will ,,,,,,,,,,,,
-evil ,,,,,,currently only sheets ,,,,,,
-time ,Yedida ,,,,,,,,,,,
-beauty ,,,,,,,,,,,,
-thoughts ,,,,,,,,,,,,
-actuality ,,,,,,,,,,,,
-evildoers ,,,,,,,,,,,,
-jewish-identity ,,,,,,,,,,,,
-universalism ,,,,,,,,,,,,
-psychology ,,,,,,,,,,,,
-determinism ,,,,,,,,,,,,
-knowledge ,,,,,,,,,,,,
-purpose-of-life ,,,,,,,,,,,,
-good ,,,,,,,,,,,,
-folklore ,,,,,,,,,,,,
-superstitions1 ,,,,,,,,,,,,
-magicians ,,,,,,,,,,,,
-harmful-forces ,,,,,,,,,,,,
-demons ,,,,,,,,,,,,
-golems ,,,,,,,,,,,,
-infertility ,,,,,,,,,,,,
-medicine ,,,,,,,,,,,,
-mental-health ,,,,,,,,,,,,
-organ-donation ,,,,,,,,,,,,
-physicians ,,,,,,,,,,,,
-sleep ,,,,,,,,,,,,
-art ,,,,,,,,,,,,
-colors ,,,,,,,,,,,,
-songs ,,,,,,,,,,,,
-piyyut ,,,,,,,,,,,,
-dances1 ,,,,,,,,,,,,
-poetry ,,,,,,,,,,,,
-shimon-bar-yochai,,,,,,,,,,,,
-nahum-of-gamzo ,,,,,,,,,,,,
-avtalyon ,,,,,,,,,,,,
-shemaiah ,,,,,,,,,,,,
-shammai ,,,,,,,,,,,,
-hillel ,,,,,,,,,,,,
-rav ,,,,,,,,,,,,
-rava ,,,,,,,,,,,,
-rav-sheshet ,,,,,,,,,,,,
-rabbi-eliezer-b-hyrcanus ,,,,,,,,,,,,
-akavyah-b-mahalalel ,,,,,,,,,,,,
-rabban-shimon-b-gamliel-(ii) ,,,,,,,,,,,,
-rabbi-shimon-b-lakish ,,,,,,,,,,,,
-rabi ,,,,,,,,,,,,
-rav-zera ,,,,,,,,,,,,
-rabbah-bar-bar-chanah ,,,,,,,,,,,,
-shimon-b-zoma ,,,,,,,,,,,,
-sumkhos ,,,,,,,,,,,,
-rabbi-yohanan-hasandlar ,,,,,,,,,,,,
-rabbi-yehoshua-b-levi ,,,,,,,,,,,,
-abaye ,,,,,,,,,,,,
-elisha-ben-abuya ,,,,,,,,,,,,
-rabbi-elazar-b-azaryah ,,,,,,,,,,,,
-rabban-yochanan-b-zakkai ,,,,,,,,,,,,
-rabbi-chanina-b-dosa ,,,,,,,,,,,,
-yochanan-ben-bag-bag ,,,,,,,,,,,,
-rabbi-chiyya ,,,,,,,,,,,,
-beruriah,,,,,,,,,,,,
-rabbi-hananyah-b-teradyon ,,,,,,,,,,,,
-shmuel-(amora) ,,,,,,,,,,,,
-shimon-b-shetach ,,,,,,,,,,,,
-rabbi-yehoshua-b-hananyah ,,,,,,,,,,,,
-shimon-b-azzai ,,,,,,,,,,,,
-rabbi-tarfon,,,,,,,,,,,,
-rav-pappa ,,,,,,,,,,,,
-rav-chisda ,,,,,,,,,,,,
-rabban-gamliel ,,,,,,,,,,,,
-rav-ashi ,,,,,,,,,,,,
-rav-huna ,,,,,,,,,,,,
-zachor,,,,,,,,,,,,
-oral-torah,,,,,,,,,,,,
-kings,,,,,,,,,,,,
-eye-for-an-eye,,,,,,,,,,,,
-cities-of-refuge,,,,,,,,,,,,
-exile,,,,,,,,,,,,
-rainbows,,,,,,,,,,,,
-minhag,,,,,,,,,,,,
-ben-sorer-umoreh,,,,,,,,,,,,
-the-four-parshiot,,,,,y,,,,,,,
-tumah,,,,,,,,,,,,
-niddah,,,,,,,,,,,,
-clothing,,,,,,,,,,,,
-head-coverings,,,,,,,,,,,,
-jewish-unity,,,,,,,,,,,,
-halakhah,,,,,,,,,,,,
-minyan,,,,,,,,,,,,
-kiddush-hashem,,,,,,,,,,,,
-shaliach-tsibur,,,,,,,,,,,,
-azazel,,,,,,,,,,,,
-chasidut,,,,,not sure which category this should be,bug with primary title ,,,,,,
-agunah,,,,,,,,,,,,
-judges-(שופט),,,,,,not sure which category this should be,,,,,,
-babylonian-exile,,,,,,,,,,,,
-yannai,,,,,,,,,,,,
-letters,,,,,,not sure which category this should be,,,,,,
-numbers,,,,,,not sure which category this should be,,,,,,
-ushpizin,,,,,,,,,,,,
-bodies,,,,,,"not sure which category this should be (also change slug to ""the body"")",,,,,,
-shalosh-regalim,,,,,,,,,,,,
-writing,,,,,,not sure which category this should be,,,,,,
-gender,,,,,,,,,,,,
-humanity,,,,,,,,,,,,
-calendar,Yedida ,,,,,,,,,,,
-safek,,,,,,,,,,,,
-burning-bush,,,,,,,,,,,,
-tikkun-olam,,,,,,,,,,,,
-students,,,,,,not sure which category this should be,,,,,,
-birthright,,,,,,not sure which category this should be,,,,,,
-pregnancy,,,,,,primary title bug. check with Steve,,,,,,
-women-in-tanakh1,,,,,,,,,,,,
-sadness,,,,,,,,,,,,
-oaths,,,,,,,,,,,,
-laughter,,,,,,,,,,,,
-birthdays,,,,,,,,,,,,
-aron-habrit,,,,,,,,,,,,
-mistakes,,,,,,,,,,,,
-nazir,,,,,,,,,,,,
-midrash,,,,,y,,,,,,,
-eruv,,,,,,merge with dinei-eruvin,,,,,,
-kal-vechomer,,,,,,,,,,,,
-netilat-yadayim,,,,,,,,,,,,
-father,,,,,,,,,,,,
-haftarah ,,,,,,,,,,,,
-tosafot ,,,,,,,,,,,,
-marta-the-daughter-of-boethus,,,,,,,,,,,,
-shiluach-haken,,,,,,,,,,,,
-derekh-eretz,,,,,,,,,,,,
-yom-tov,,,,,,,,,,,,
-kol-nidrei4,,,,,y,,,,,,,
-amen,,,,,,,,,,,,
-malkhut1,,,,,,,,,,,,
-bina2,,,,,,,,,,,,
-tzimtzum1,,,,,,,,,,,,
-ein-sof1,,,,,,,,,,,,
-neshama1,,,,,,,,,,,,
-atzilut,,,,,,,,,,,,
-song-of-songs,,,,,y,,,,,,,
-ecclesiastes,,,,,,,,,,,,
-rav-rechumi,,,,,,,,,,,,
-three-weeks,,,,,,,,,,,,
+food-ethics ,,y,,,,,r,,,,,
+alcohol ,Riva,y,,,,,r,y,needs translation ,,,
+vegetarianism ,Rachel G,y,,,,,r,y,needs translation ,translit,,
+meat ,Rachel G,y,,,,,r,y,needs translation ,translit,,
+kitniyot ,Riva,y,,,,,r,y,needs translation ,,,
+wheat ,Riva,y,,,,,r,y,needs translation ,Needs page description,,
+philosophy ,Rav Nataf,y,,,,,r,y,needs translation ,May benefit from reordering,,
+ethics ,Yavni,y,,,,,r,y,,,,
+human-knowledge ,Rav Nataf,y,,,,,r,y,,May benefit from reordering,,
+free-will ,Riva,y,,,,,r,y,needs translation ,,,
+evil ,Riva,y,,,,currently only sheets ,r,y,needs translation ,,,
+time ,,y,,,,,r,,,,,y
+beauty ,Rachel G,y,,,,currently only sheets ,r,y,needs translation ,translit,,
+thoughts ,Rav Nataf,y,,,,,r,y,needs translation ,Could use reordering,,
+actuality ,Rav Nataf,y,,,,,r,y,needs translation ,Could use reordering,,
+evildoers ,Riva,y,,,,,r,,needs to be curated again,Merge with 'evil',,
+jewish-identity ,Rav Nataf,y,,,,,r,y,needs translation ,May benefit from reordering,,
+universalism ,Rav Nataf,y,,,,,r,y,needs translation ,May benefit from reordering,,
+psychology ,Rav Nataf,y,,,,,r,,,"This may need to be trimmed, especially in the number of sources from R. Sacks. Needs page description",,
+determinism ,Rav Nataf,y,,,,,r,y,needs translation ,May benetit from reordering,,
+knowledge ,Riva,y,,,,,r,y,needs translation ,,,
+purpose-of-life ,Rachel B,y,,,,,r,y,needs translation ,Needs page description,,
+good ,Riva,y,,,,,r,y,,Needs page description,,
+folklore ,Rachel B,y,,,,,r,y,needs translation ,Needs page description,,
+superstitions1 ,Yavni,y,,,,,r,y,needs translation ,Missing topic description. There were a lot of sources on idolatry and on witchcraft. I deleted most of the former and left most of the latter. Not sure I got it right in which I left.,,
+magicians ,Rav Nataf,y,,,,,r,y,needs translation ,"Needs page description, could use reordering.",,
+harmful-forces ,Rav Nataf,y,,,,,r,,,,,
+demons ,Hadara,y,,,,,r,y,needs translation ,,,y
+infertility ,Riva,y,,,,,r,y,needs translation ,Needs page description ,,
+medicine ,Riva,y,,,,,r,y,needs translation ,Needs page description. Could do with more sources (only has 5),,
+mental-health ,Riva,y,,,,,r,y,needs translation ,Needs page description,,
+organ-donation ,Rachel G,y,,,,,r,y,needs translation ,,,
+physicians ,Rachel G,y,,,,,r,y,needs translation ,translit,,
+sleep ,Riva,y,,,,,r,y,needs translation ,Needs page description,,
+art ,Riva,y,,,,,r,y,,Needs page description,,
+colors ,Riva,y,,,,,r,y,needs translation ,,,
+songs ,Riva,y,,,,,r,,,similar to Poetry,,y
+piyyut ,Riva,y,,,,,r,y,needs translation ,Needs page description,,
+dances1 ,Hadara,y,,,,,r,y,,,,y
+poetry ,Riva,y,,,,,r,y,,Seder Olam Rabbah 15:1' under 'The Miraculous Deliverance' needs to show more of the source,,
+shimon-bar-yochai,Riva,y,,,,,r,y,needs translation ,,,y
+nahum-of-gamzo ,Riva,y,,,,,r,y,,Only 3 sources,,
+avtalyon ,Yavni,y,,,,,r,y,,missing topic description,,
+shemaiah ,Riva,y,,,,,r,y,needs translation ,"This page confused Shemaya, member of the Sanhedrin, with Shemaya the prophet in Jeremiah. I deleted all references to the latter.",,
+shammai ,Riva,y,,,,,r,y,needs translation ,"Bottom source 'Shammai's Principles', needs reworking - it appears to show wrong text/combine two sources in one",,
+hillel ,Riva,y,,,,,r,y,needs translation ,,,y
+rav ,Yavni,y,,,,,r,y,needs translation ,only three sources,,
+rava ,Riva,y,,,,,r,y,needs translation ,,,
+rav-sheshet ,Riva,y,,,,,r,y,needs translation ,Second sentence of the page description could be clearer. ,,
+rabbi-eliezer-b-hyrcanus ,Riva,y,,,,,r,y,,"Page description could be clearer - not sure what ""Highly conservative in his approach to Torah"" means",,
+akavyah-b-mahalalel ,,y,,,,,r,,,Only 2,,
+rabban-shimon-b-gamliel-(ii) ,Riva,y,,,,,r,y,,Only 2,,
+rabbi-shimon-b-lakish ,Riva,y,,,,,r,y,,Only 4,,
+rabi ,Yavni,y,,,,,r,y,needs translation ,,"the Gemara about his death (and afterlife), something about his dynastic inheritence",
+rav-zera ,Yavni,y,,,,,r,y,,,,
+rabbah-bar-bar-chanah ,Yavni,y,,,,,r,y,needs translation ,Only 4,All of them are about his stories in Bava Batra (which I love!). But maybe we should include something else about him too?,
+shimon-b-zoma ,Yavni,y,,,,,r,,,,,y
+sumkhos ,,y,,,,,r,,,,,
+rabbi-yohanan-hasandlar ,,y,,,,,r,,,,,
+rabbi-yehoshua-b-levi ,Riva,y,,,,,r,y,needs translation ,,,
+abaye ,Riva,y,,,,,r,y,needs translation ,,,
+elisha-ben-abuya ,Rav Nataf,y,,,,,r,y,needs translation ,Could use reordering,,
+rabbi-elazar-b-azaryah ,Rav Nataf,y,,,,,r,y,needs translation ,Could use reordering,,
+rabban-yochanan-b-zakkai ,Riva,y,,,,,r,y,,,,
+rabbi-chanina-b-dosa ,Riva,y,,,,,r,y,needs translation ,,,
+yochanan-ben-bag-bag ,Riva,y,,,,,r,y,needs translation ,Page description needs to be expanded on. Page only has 4 sources,,
+rabbi-chiyya ,Riva,y,,,,,r,y,,Only has 3 sources,,
+beruriah,Riva,y,,,,,r,y,,Only has 4 sources ,,
+rabbi-hananyah-b-teradyon ,Riva,y,,,,,r,y,,First sentence of page description could be clearer. Only has 4 sources,,
+shmuel-(amora) ,Riva,y,,,,,r,y,,Only has 1 source,,
+shimon-b-shetach ,Riva,y,,,,,r,y,,,,
+rabbi-yehoshua-b-hananyah ,Riva,y,,,,,r,y,,Final source on Kedushat Levi needs to show more,,
+shimon-b-azzai ,Riva,y,,,,,r,y,,,,
+rabbi-tarfon,Riva,y,,,,,r,y,,,,
+rav-pappa ,Riva,y,,,,,r,y,,Only has 4 sources,,
+rav-chisda ,Riva,y,,,,,r,y,,Only has 1 source,,
+rabban-gamliel ,Riva,y,,,,,r,y,,"Page description could me made clearer - e.g. ""He was resolved to consolidate"" (I tried to change it but it wouldn't let me)",,
+rav-ashi ,Riva,y,,,,,r,y,,Only has 4 sources,,
+rav-huna ,Riva,y,,,,,r,y,,Only has 2 sources,,
+zachor,Rav Nataf,y,,,,,r,y,needs translation ,Needs page description,,
+oral-torah,Rav Nataf,y,,,,,r,,,,,
+kings,,y,,,,,r,,,,,
+eye-for-an-eye,Riva,y,,,,,r,y,needs translation ,Needs page description,,
+cities-of-refuge,Rachel G,y,,,,,r,y,needs translation ,translit,,
+exile,Riva,y,,,,,r,y,needs another eye,"A lot of this touches on the theme of redemption (this might be ok, as long as there isn't too much of an overlap, though perhaps some of the sources that are more focused on redemption than exile could be deleted)",,
+rainbows,Riva,y,,,,,r,y,needs translation ,Only 5 sources,,
+minhag,,y,,,,,r,,,,,
+ben-sorer-umoreh,Riva,y,,,,,r,y,needs translation ,Not sure that 'family law' is the right category for this page to be under?,,
+the-four-parshiot,,y,,,,,r,,,,,y
+tumah,,y,,,,,r,,,,,
+niddah,Riva,y,,,,,r,,needs translation ,Needs page description. Source Seder Ma'amadot 2:34 needs to show more,,
+clothing,Rav Nataf,y,,,,,r,y,needs translation ,"Perhaps too many sources on bigdei kehuna, would recommend adding part of discussion from function of clothing, esp. chapter from Redeeming Relevance in Exodus (Clothing Aharon) and its section about Tamar's use of clothes. Also chapter outlines many other sources that could be used here.",,y
+jewish-unity,Rav Nataf,y,,,,,r,y,needs translation ,Could use reordering,,
+halakhah,Rav Nataf,y,,,,,r,,needs to be curated again,"The topic page needs to focus on what halakhah is and how it works, and not be distracted by all the laws included in the halakhah.",,
+minyan,Rav Nataf,y,,,,,r,y,needs translation ,Could use reordering,,
+kiddush-hashem,Rav Nataf,y,,,,,r,y,needs translation ,Could use reordering,,
+shaliach-tsibur,Riva,y,,,,,r,y,,Needs page description,,
+azazel,Riva,y,,,,,r,y,needs translation ,Needs page description,,
+chasidut,Riva,y,,,,,r,,needs another eye,"Needs page description. The sources are Chasidus sources, rather than the page being focused on explaining what Chasidus is. The nature/goal of this page needs to be clarified. If it is just going to list Chasidus sources then which ones? What is the criteria for the sources on this page?",,y
+agunah,,y,,,,,r,,,,,
+judges-(שופט),Riva,y,,,,,r,,needs to be curated again,"Needs page description. This page includes many sources from the book of judges, as opposed to being about judges themselves.",,
+babylonian-exile,Riva,y,,,,,r,,needs translation ,,,
+yannai,,y,,,,,r,,,the king,,
+letters,Riva,y,,,,,r,y,needs to be curated again,Not sure that letters should be under the subcategory of 'art'. Needs page description. Only 6 sources.,,y
+numbers,Riva,y,,,,,r,y,needs translation ,Page description could do with rewriting.,lots of good sources on the page. I added a few,
+ushpizin,Riva,y,,,,,r,y,needs translation ,Only has 3 sources,,
+bodies,Riva,y,,,,,r,y,needs translation ,"Note: this page on the website is called 'body' not 'bodies'. Needs page description. Source 'Peninei Halakhah, Family 8:9:1' needs to show more.",,
+shalosh-regalim,Riva,y,,,,,r,y,needs translation ,,,
+writing,Riva,y,,,,,r,y,needs translation ,"Needs page description. Source 'Mishpitei Uziel' needs to show more. In general, this strikes me as a slightly odd topic that I can't imagine many people searching for.",,y
+gender,Lev,y,,,,,r,,,,,
+humanity,,y,,,,,r,,,,,
+calendar,Yavni,y,,,,,r,y,,,,y
+safek,Riva,y,,,,,r,y,needs translation ,,,
+burning-bush,Riva,y,,,,,r,y,needs translation ,Needs page description,,
+tikkun-olam,,y,,,,,r,,,Needs page description,,y
+students,Riva,y,,,,,r,y,needs translation ,Not sure that 'lifecycle' is the right category for this page to be under?,,
+birthright,,y,,,,,r,,,,,
+pregnancy,,y,,,,,r,,,,,
+women-in-tanakh1,,y,,,,,r,,,,,
+sadness,Riva,y,,,,,r,y,needs translation ,Needs page description,,
+oaths,Riva,y,,,,,r,y,needs translation ,Needs page description,,
+laughter,Riva,y,,,,,r,y,,Not sure this should be under the page category of 'health'? Maybe there could be one for 'emotions'?,,
+birthdays,Hadara,y,,,,,r,y,,,only two sources - I added a few more manually ,
+aron-habrit,,y,,,,,r,,,,,
+mistakes,Riva,y,,,,,r,,needs another eye,"Needs page description. This page is very much based on interpretation as to what constitutes a mistake and what doesn't. It includes many Biblical instances of sin which were not necessarily mistakes but could just be personal faliure, which isn't the same thing.",,
+nazir,Riva,y,,,,,r,y,needs translation ,The source Machzor Rosh Hashana needs to show more,,
+midrash,,y,,,,,r,,,,,
+eruv,,y,,,,,r,,,,,
+kal-vechomer,Riva,y,,,,,r,y,needs translation ,Needs page description,,
+netilat-yadayim,Riva,y,,,,,r,y,needs translation ,Needs page description,,y
+father,Rachel G,y,,,,,r,y,needs translation ,translit,,y
+haftarah ,Rachel G,y,,,y,,r,y,needs translation ,"translit. Also, the page is a bit all over the place. Some sources about the concept of haftarah generally but most sources were about specific haftarot, which makes the page feel very disjointed and random",,y
+marta-the-daughter-of-boethus,Rachel G,y,,,y,,r,y,needs translation ,translit. ,,
+shiluach-haken,Riva,y,,,y,,r,y,,,,
+derekh-eretz,Riva,y,,,y,,r,,needs another eye,Some of the sources seem a bit tangiental and not so closely connected to the theme,,
+yom-tov,,y,,,y,,r,,,,,
+kol-nidrei4,Riva,y,,,y,,r,y,,Only has 5 sources,,y
+amen,Riva,y,,,,,r,y,needs translation ,Needs page description,,
+malkhut1,Shmuel,y,,,,,r,,,,,
+bina2,Riva,y,,,,,r,y,needs translation ,Page description needs to be shortened,,
+tzimtzum1,Shmuel,y,,,,,r,,,,,
+ein-sof1,Shmuel,y,,,,,r,,,,,
+neshama1,Shmuel,y,,,,,r,,,,,
+atzilut,Shmuel,y,,,,,r,,,,,
+song-of-songs,Riva,y,,,,,r,y,needs translation ,,,
+ecclesiastes,Riva,y,,,,,r,y,needs translation ,,,
+rav-rechumi,,y,,,,,r,,,,,
+three-weeks,Riva,y,,,,,r,y,needs translation ,Needs page description,,
+curses,Yavni,y,,,,,r,y,,,,
+the-priestly-service,Riva,y,,,,,r,y,,,,
+lamentations,,,,,,,,,,,,y
+shiva,Riva,y,,,,,r,y,,Needs page description,,
+mayim-achronim,Riva,y,,,,,r,y,,,,y
+rebellions,Yavni,y,,,,,r,y,,,,
+tefillat-haderekh,,,,,,,,,,,,
+tamar-(absalom),,,,,,,,,,,,
+chasidut,,,,,,,,,,,,y
+pirkei-avot ,,,,,,,,,,,,y
+golems,,,,,,,,,,,,y
+matzah,,y,,,,,,y,,,,y
+ham,,,,,,,,,,,,y
+chur,,,,,,,,,,,,y
+rabban-gamliel-hazaken-(i),,,,,,,,,,,,
