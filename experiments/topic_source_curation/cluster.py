@@ -54,7 +54,7 @@ def embed_text_voyageai(text):
     return np.array(VoyageAIEmbeddings(model="voyage-large-2-instruct").embed_query(text))
 
 
-def _get_cluster_summary_based_on_topic(topic_desc, strs_to_summarize):
+def get_cluster_summary_based_on_topic(topic_desc, strs_to_summarize):
     llm = ChatOpenAI("gpt-4o", 0)
     system = SystemMessage(content="You are a Jewish scholar familiar with Torah. Given a few ideas (wrapped in <idea> "
                                    "XML tags) about a given topic (wrapped in <topic> XML tags) output a summary of the "
@@ -126,10 +126,10 @@ def _cluster_sources(sources: list[SummarizedSource], topic) -> list[Cluster]:
     for i in range(len(HDBSCAN_PARAM_OPTS['min_samples'])):
         hdbscan_params = _get_ith_hdbscan_params(i)
         temp_clusterer = SklearnClusterer(embed_text_openai,
-                                           lambda x: HDBSCAN(**hdbscan_params).fit(x).labels_,
-                                           partial(_get_cluster_summary_based_on_topic, topic_desc), verbose=False)
+                                          lambda x: HDBSCAN(**hdbscan_params).fit(x).labels_,
+                                          partial(get_cluster_summary_based_on_topic, topic_desc), verbose=False)
         clusterers.append(temp_clusterer)
-    temp_clusterer = SklearnClusterer(embed_text_openai, lambda x: AffinityPropagation(damping=0.7, max_iter=1000, convergence_iter=100).fit(x).predict(x), partial(_get_cluster_summary_based_on_topic, topic_desc), verbose=False)
+    temp_clusterer = SklearnClusterer(embed_text_openai, lambda x: AffinityPropagation(damping=0.7, max_iter=1000, convergence_iter=100).fit(x).predict(x), partial(get_cluster_summary_based_on_topic, topic_desc), verbose=False)
     clusterers.append(temp_clusterer)
     # temp_clusterer = SklearnClusterer(embed_text_openai,
     #                                   get_agglomerative_clustering_labels_with_optimal_silhouette_score,
