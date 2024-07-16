@@ -40,10 +40,44 @@ def print_completion(sentences):
         print(sentence)
 
 
+def claude_sentencizer(text, max_sentences=None):
+    text_left = text[:]
+    sentences = []
+    while len(text_left) > 0 and (max_sentences is None or len(sentences) < max_sentences):
+        next_sentence = claude_sentencizer_first_sentence(text_left)
+        if next_sentence is None:
+            break
+        istart = text_left.index(next_sentence)
+        text_left = text_left[istart+len(next_sentence):]
+        sentences.append(next_sentence)
+    return sentences
+
+
+def claude_sentencizer_first_sentence(text):
+    from basic_langchain.chat_models import ChatAnthropic
+    from basic_langchain.schema import SystemMessage, HumanMessage
+    from util.general import get_by_xml_tag
+    system = SystemMessage(content="Given a text discussing Torah topics will little to no punctuation, "
+                                   "output the first sentence. Input is in <input> tags. The first sentence "
+                                   "should be output verbatim as it appears in <input> wrapped in "
+                                   "<first_sentence> tags. Since the input text has no punctuation, use your judgement as to where the first sentence ends. Prefer smaller sentences.")
+    human = HumanMessage(content=f"<input>{text}</input>")
+    llm = ChatAnthropic("claude-3-5-sonnet-20240620", temperature=0)
+    response = llm([system, human])
+    return get_by_xml_tag(response.content, "first_sentence")
+
+
 if __name__ == '__main__':
+    import django
+    django.setup()
+    from sefaria.model import *
     yo = """[26] See R. Joseph B. Soloveitchik, \"Tzedakah: Brotherhood and Fellowship,\" in Halakhic Morality: Essays on Ethics and Masorah, 126-127."""
-    sents = sentencize(yo)
-    print_completion(sents)
+    sup = Ref("Sifra, Vayikra Dibbura DeNedavah, Section 4:1").text('he').text
+    # sents = sentencize(yo)
+    # print_completion(sents)
+    sents = claude_sentencizer(sup, 5)
+    for sent in sents:
+        print(sent)
     pass
 
 

@@ -10,8 +10,9 @@ from typing import TypeVar, Callable
 import django
 django.setup()
 from sefaria.pagesheetrank import pagerank_rank_ref_list
-from sefaria.model.text import Ref
+from sefaria.model.text import Ref, library
 from sefaria.client.wrapper import get_links
+from sefaria.helper.llm.topic_prompt import make_topic_prompt_source
 from sefaria.recommendation_engine import RecommendationEngine
 import voyageai
 from tqdm import tqdm
@@ -83,13 +84,78 @@ def choose(clusters: list[Cluster], topic: Topic) -> (list[SummarizedSource], li
     link_pairs = _get_link_pairs_to_avoid(sorted_items)
     chosen_sources, chosen_penalties, not_interesting_trefs = solve_clusters_iteratively(clusters, topic, sorted_items, primary_sources_trefs, link_pairs)
     chosen_sources = (Artifact(chosen_sources)
+                      .pipe(_remove_known_bad_sources)
+                      .pipe(_switch_daf_shevui_for_talmud)
                       .pipe(_sort_sources_by_gpt_instruction, topic)
                       .pipe(_put_primary_sources_first, primary_sources_trefs)
                       .pipe(_remove_not_interesting_sources, not_interesting_trefs)
                       .pipe(_remove_duplicate_books).data
                       )
+    if len(chosen_sources) <= 5:
+        # try to pick more
+        clusters = _break_up_clusters(topic, clusters)
+        sorted_clusters = clusters
+        chosen_sources, chosen_penalties, not_interesting_trefs = solve_clusters_iteratively(clusters, topic, sorted_items, primary_sources_trefs, link_pairs)
+        chosen_sources = (Artifact(chosen_sources)
+                          .pipe(_remove_known_bad_sources)
+                          .pipe(_switch_daf_shevui_for_talmud)
+                          .pipe(_sort_sources_by_gpt_instruction, topic)
+                          .pipe(_put_primary_sources_first, primary_sources_trefs)
+                          .pipe(_remove_not_interesting_sources, not_interesting_trefs)
+                          .pipe(_remove_duplicate_books).data
+                          )
     save_clusters_and_chosen_sources_to_html(topic, sorted_clusters, chosen_sources, chosen_penalties, primary_sources_trefs, not_interesting_trefs)
     return chosen_sources, clusters
+
+
+def _break_up_clusters(topic: Topic, clusters: list[Cluster]):
+    new_clusters = clusters
+    counter = 0
+    while counter < 5:
+        temp_clusters = _break_up_largest_cluster(topic, new_clusters)
+        if temp_clusters is None:
+            break
+        new_clusters = temp_clusters
+        counter += 1
+    return new_clusters
+
+
+def _break_up_largest_cluster(topic: Topic, clusters: list[Cluster]):
+    from util.cluster import SklearnClusterer
+    from experiments.topic_source_curation.cluster import embed_text_openai, get_cluster_summary_based_on_topic
+    from sklearn.cluster import AgglomerativeClustering
+    topic_desc = get_topic_str_for_prompts(topic, verbose=False)
+    get_cluster_summary = partial(get_cluster_summary_based_on_topic, topic_desc)
+    largest_cluster = max(clusters, key=len)
+    if len(largest_cluster) >= 6:
+        get_cluster_labels = lambda x: AgglomerativeClustering(n_clusters=2).fit(x).labels_
+        clusterer = SklearnClusterer(embed_text_openai, get_cluster_labels, get_cluster_summary, breakup_large_clusters=False)
+        new_clusters = [c for c in clusters if c != largest_cluster]
+        new_clusters += clusterer.cluster_items(largest_cluster.items)
+        return new_clusters
+    return clusters
+
+
+def _remove_known_bad_sources(chosen_sources: list[SummarizedSource]) -> list[SummarizedSource]:
+    known_bad_titles = set(library.get_indexes_in_category_path(["Reference", "Dictionary"]))
+    return filter(lambda source: source.source.book_title['en'] not in known_bad_titles, chosen_sources)
+
+
+def _switch_daf_shevui_for_talmud(chosen_sources: list[SummarizedSource]) -> list[SummarizedSource]:
+    import re
+    new_sources = []
+    for source in chosen_sources:
+        if source.source.ref.startswith('Daf Shevui'):
+            talmud_amud = re.search(r'Daf Shevui to (.*):\d+$', source.source.ref).group(1)
+            links = list(filter(lambda link: talmud_amud in link['ref'], get_links(source.source.ref, with_text=False)))
+            if len(links) == 1:
+                topic_prompt_source = make_topic_prompt_source(Ref(links[0]['ref']), '', False)
+                new_sources.append(SummarizedSource(topic_prompt_source, source.summary, source.embedding))
+            else:
+                print("LEN DAF SHEVUI LINKS", len(links), source.source.ref)
+        else:
+            new_sources.append(source)
+    return new_sources
 
 
 def _remove_not_interesting_sources(chosen_sources: list[SummarizedSource], not_interesting_trefs: list[str]) -> list[SummarizedSource]:
@@ -244,13 +310,17 @@ def choose_primary_sources(clusters: list[Cluster]) -> list[str]:
     """
     orefs = reduce(lambda x, y: x + [Ref(item.source.ref) for item in y.items], clusters, [])
     refs, pageranks = zip(*pagerank_rank_ref_list(orefs))
-    max_ref = refs[0].normal()
     thresh = mean(pageranks) + 2 * stdev(pageranks)
-    is_primary = pageranks[0] > thresh
-    print(max_ref, "IS PRIMARY:", is_primary, round(pageranks[0], 3), round(thresh, 3))
-    if is_primary:
-        return [max_ref]
-    return []
+    max_refs = []
+    for ref, pr in zip(refs[:3], pageranks[:3]):
+        max_ref = ref.normal()
+        is_primary = pr > thresh
+        print(max_ref, "IS PRIMARY:", is_primary, round(pr, 3), round(thresh, 3))
+        if is_primary:
+            max_refs.append(max_ref)
+        else:
+            break
+    return max_refs
 
 
 def choose_ideal_clusters(clusters: list[Cluster], max_clusters: int) -> list[Cluster]:

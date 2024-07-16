@@ -74,7 +74,7 @@ def get_topic_description_from_top_sources(topic: Topic, verbose=True):
 
 
 def get_top_trefs_from_slug(slug, top_n=10) -> list[str]:
-    out = get_topic(True, slug, with_refs=True, ref_link_type_filters=['about', 'popular-writing-of'])
+    out = get_topic(True, slug, 'english', with_refs=True, ref_link_type_filters=['about', 'popular-writing-of'])
     try:
         trefs = [d['ref'] for d in out['refs']['about']['refs'] if not d['is_sheet']]
         trefs = filter_invalid_refs(trefs[:top_n])

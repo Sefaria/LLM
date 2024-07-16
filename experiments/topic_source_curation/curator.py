@@ -27,12 +27,12 @@ random.seed(45612)
 TOPICS_TO_CURATE_CSV_PATH = 'input/Topic project plan - 1000 topics pages product - list of all topic slugs.csv'
 
 
-def get_topics_to_curate():
+def get_topics_to_curate() -> list[Topic]:
     topics = []
     with open(TOPICS_TO_CURATE_CSV_PATH, "r") as fin:
         cin = csv.DictReader(fin)
         for row in cin:
-            if len(row['curated']) > 0:
+            if len(row['curated'].strip()) > 0:
                 continue
             slug = row['slug'].strip()
             try:
@@ -46,7 +46,9 @@ def get_topics_to_curate():
 def save_curation(data, topic: Topic) -> list[SummarizedSource]:
     sources, clusters = data
     topic.description['en'] = get_or_generate_topic_description(topic, verbose=False)
-    contexts = run_parallel(sources, partial(get_context_for_source, topic=topic, clusters=clusters), max_workers=20, desc="Get source context")
+    # contexts = run_parallel(sources, partial(get_context_for_source, topic=topic, clusters=clusters), max_workers=20, desc="Get source context")
+    # not finding context helpful
+    contexts = ['']*len(sources)
     out = [{
         "ref": source.source.ref,
         "context": contexts[isource]

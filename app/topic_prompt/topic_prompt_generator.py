@@ -8,6 +8,7 @@ from sefaria_llm_interface import Topic
 from topic_prompt.toprompt_llm_prompt import TopromptLLMPrompt, get_output_parser
 from topic_prompt.toprompt import Toprompt, TopromptOptions
 from topic_prompt.differentiate_writing import repeated_phrase
+from util.general import escape_json_inner_quotes
 
 from langchain.prompts import PromptTemplate
 from basic_langchain.chat_models import ChatOpenAI
@@ -32,7 +33,7 @@ def _get_toprompt_options(lang: str, topic: Topic, source: TopicPromptSource, ot
             responses += [HumanMessage(content=secondary_prompt.format())]
 
         output_parser = get_output_parser()
-        parsed_output = output_parser.parse(curr_response.content)
+        parsed_output = output_parser.parse(escape_json_inner_quotes(curr_response.content))
         parsed_output.title = _remove_colon_from_title_with_validation(responses, parsed_output.title)
 
         topic_prompts += [Toprompt(topic, source, parsed_output.why, parsed_output.what, parsed_output.title)]
@@ -46,7 +47,7 @@ def _get_toprompt_options(lang: str, topic: Topic, source: TopicPromptSource, ot
                                                     partial_variables={"phrase": phrase_to_avoid, "format_instructions": get_output_parser().get_format_instructions()})
         curr_response = llm([human_message] + responses + [HumanMessage(content=avoid_prompt.format())])
         output_parser = get_output_parser()
-        parsed_output = output_parser.parse(curr_response.content)
+        parsed_output = output_parser.parse(escape_json_inner_quotes(curr_response.content))
         parsed_output.title = _remove_colon_from_title_with_validation(responses + [curr_response], parsed_output.title)
         topic_prompts[-1] = Toprompt(topic, source, parsed_output.why, parsed_output.what, parsed_output.title)
 
