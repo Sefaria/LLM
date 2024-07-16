@@ -27,7 +27,7 @@ random.seed(45612)
 TOPICS_TO_CURATE_CSV_PATH = 'input/Topic project plan - 1000 topics pages product - list of all topic slugs.csv'
 
 
-def get_topics_to_curate():
+def get_topics_to_curate() -> list[Topic]:
     topics = []
     with open(TOPICS_TO_CURATE_CSV_PATH, "r") as fin:
         cin = csv.DictReader(fin)
