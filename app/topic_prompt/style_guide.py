@@ -6,30 +6,31 @@ from typing import Optional
 from basic_langchain.schema import SystemMessage, HumanMessage
 from basic_langchain.chat_models import ChatOpenAI
 from util.general import get_by_xml_tag
+from dataclasses import dataclass
+
+
+@dataclass
+class StyleGuideRule:
+    title: str
+    example: str
 
 
 class StyleGuide:
-    STYLE_GUIDE_FILE = "input/The Sefaria Glossary - English + Transliterated Word List.csv"
+    STYLE_GUIDE_FILE = "input/Copy of The Sefaria Glossary - Commonly Used Glosses of Works.csv"
 
     def __init__(self):
-        self._rules = self._read_style_guide_file()
+        self._rules: list[StyleGuideRule] = self._read_style_guide_file()
 
     def _read_style_guide_file(self):
-        rules = [
-            {"title": "Bereshit Rabbah", "gloss": "a talmudic-era midrashic work on the book of Genesis"},
-            {"title": "Midrash Tanchuma", "gloss": "an early medieval midrash collection"},
-            {"title": "Mekhilta DeRabbi Yishmael", "gloss": "The Mekhilta DeRabbi Yishmael, an ancient midrash from the land of Israel on the book of Exodus, discusses the significance of matzoh and maror remnants during the Passover Seder."},
-            {"title": "Mishnah", "gloss": "The Mishnah, the first codification of Jewish law from the early third-century land of Israel, in tractate Chullin, discusses which sacrifices require the correct intention to fulfill their purpose."},
-            {"title": "Tosefta", "gloss": "The Tosefta, an ancient collection of rabbinic laws and teachings, in tractate Berakhot, uses the example of the biblical Isaac to illustrate this principle."}
-        ]
-        # with open(self.STYLE_GUIDE_FILE, "r") as fin:
-        #     cin = csv.reader(fin)
-        #     for row in list(cin)[4:]:
-        #         rules.append(row[0].strip())
+        rules = []
+        with open(self.STYLE_GUIDE_FILE, "r") as fin:
+            cin = csv.DictReader(fin)
+            for row in cin:
+                rules.append(StyleGuideRule(row["Work"].strip(), row["Example"].strip()))
         return rules
 
     def _get_all_titles(self) -> list[str]:
-        return [r['title'] for r in self._rules]
+        return [r.title for r in self._rules]
 
     def _get_title_prompt_uses(self, prompt: str) -> Optional[str]:
         system = SystemMessage(content="Given a list of titles of classic Jewish books, output the title that is mentioned in the input string. Titles are wrapped in <titles> tags. Input string is wrapped in <input> tags. Output the title mentioned in <title> tags. If the no title in <titles> is mentioned, output <title>N/A</title>.")
@@ -41,17 +42,17 @@ class StyleGuide:
             return None
         return title
 
-    def _get_gloss_by_title(self, title: str) -> Optional[str]:
+    def _get_example_by_title(self, title: str) -> Optional[str]:
         for rule in self._rules:
-            if rule['title'] == title:
-                return rule['gloss']
+            if rule.title == title:
+                return rule.example
 
     def rewrite_prompt(self, prompt: str) -> str:
         title = self._get_title_prompt_uses(prompt)
         if title is None:
             return prompt
-        gloss = self._get_gloss_by_title(title)
-        return self._rewrite_prompt_to_match_example(prompt, title, gloss)
+        example = self._get_example_by_title(title)
+        return self._rewrite_prompt_to_match_example(prompt, title, example)
 
     @staticmethod
     def _rewrite_prompt_to_match_rule(prompt: str, title: str, gloss: str) -> str:
