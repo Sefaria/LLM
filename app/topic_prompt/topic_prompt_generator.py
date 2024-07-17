@@ -5,6 +5,7 @@ from tqdm import tqdm
 from typing import List
 from sefaria_llm_interface.topic_prompt import TopicPromptInput, TopicPromptSource
 from sefaria_llm_interface import Topic
+from topic_prompt.style_guide import StyleGuide
 from topic_prompt.toprompt_llm_prompt import TopromptLLMPrompt, get_output_parser
 from topic_prompt.toprompt import Toprompt, TopromptOptions
 from topic_prompt.differentiate_writing import repeated_phrase
@@ -13,6 +14,8 @@ from util.general import escape_json_inner_quotes
 from langchain.prompts import PromptTemplate
 from basic_langchain.chat_models import ChatOpenAI
 from basic_langchain.schema import HumanMessage, AbstractMessage
+
+style_guide = StyleGuide()
 
 def _get_toprompt_options(lang: str, topic: Topic, source: TopicPromptSource, other_sources: List[TopicPromptSource],
                           num_tries=1, phrase_to_avoid=None) -> (TopromptOptions, list[AbstractMessage]):
@@ -36,7 +39,7 @@ def _get_toprompt_options(lang: str, topic: Topic, source: TopicPromptSource, ot
         parsed_output = output_parser.parse(escape_json_inner_quotes(curr_response.content))
         parsed_output.title = _remove_colon_from_title_with_validation(responses, parsed_output.title)
 
-        topic_prompts += [Toprompt(topic, source, parsed_output.why, parsed_output.what, parsed_output.title)]
+        topic_prompts += [Toprompt(topic, source, parsed_output.why, style_guide.rewrite_prompt(parsed_output.what), parsed_output.title)]
 
     # phrase to avoid
     if phrase_to_avoid:
@@ -49,7 +52,7 @@ def _get_toprompt_options(lang: str, topic: Topic, source: TopicPromptSource, ot
         output_parser = get_output_parser()
         parsed_output = output_parser.parse(escape_json_inner_quotes(curr_response.content))
         parsed_output.title = _remove_colon_from_title_with_validation(responses + [curr_response], parsed_output.title)
-        topic_prompts[-1] = Toprompt(topic, source, parsed_output.why, parsed_output.what, parsed_output.title)
+        topic_prompts[-1] = Toprompt(topic, source, parsed_output.why, style_guide.rewrite_prompt(parsed_output.what), parsed_output.title)
 
     return TopromptOptions(topic_prompts), responses
 
