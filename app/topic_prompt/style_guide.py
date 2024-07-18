@@ -16,7 +16,7 @@ class StyleGuideRule:
 
 
 class StyleGuide:
-    STYLE_GUIDE_FILE = "input/Copy of The Sefaria Glossary - Commonly Used Glosses of Works.csv"
+    STYLE_GUIDE_FILE = "topic_prompt/input/Copy of The Sefaria Glossary - Commonly Used Glosses of Works.csv"
 
     def __init__(self):
         self._rules: list[StyleGuideRule] = self._read_style_guide_file()
