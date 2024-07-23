@@ -60,10 +60,11 @@ def break_up_doc(doc: dict, nlp: Language) -> list[dict]:
     for sub_doc in new_docs:
         end_token = curr_token + len(nlp(sub_doc['text']))
         spacy_sub_doc = nlp(sub_doc['text'])
-        for span in doc['spans']:
+        prev_span_end = 0
+        for span in sorted(doc['spans'], key=lambda span: span['start']):
             if span['token_start'] >= curr_token and span['token_end'] < end_token:
                 span_text = text[span['start']: span['end']]
-                span_start = sub_doc['text'].index(span_text)
+                span_start = sub_doc['text'][prev_span_end:].index(span_text) + prev_span_end
                 span_end = span_start + len(span_text)
                 spacy_span = spacy_sub_doc.char_span(span_start, span_end)
                 span_token_start, span_token_end = span_inds(spacy_span)
@@ -75,9 +76,10 @@ def break_up_doc(doc: dict, nlp: Language) -> list[dict]:
                     "label": span['label'],
                 })
                 spans_taken += 1
+                prev_span_end = span_end
         curr_token = end_token
     if spans_taken < len(doc['spans']):
-        print("FEWER SPANS WERE TAKEN!")
+        print("FEWER SPANS WERE TAKEN!", doc['meta']['Ref'])
 
     return new_docs
 
