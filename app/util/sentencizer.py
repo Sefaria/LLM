@@ -40,6 +40,23 @@ def print_completion(sentences):
         print(sentence)
 
 
+def best_substring_match_index(long_string, short_string):
+    from thefuzz import fuzz
+
+    best_score = -1
+    best_index = -1
+
+    for i in range(len(long_string) - len(short_string) + 1):
+        substring = long_string[i:i+len(short_string)]
+        score = fuzz.ratio(short_string, substring)
+
+        if score > best_score:
+            best_score = score
+            best_index = i
+
+    return best_index, best_score
+
+
 def claude_sentencizer(text, max_sentences=None):
     text_left = text[:]
     sentences = []
@@ -47,7 +64,7 @@ def claude_sentencizer(text, max_sentences=None):
         next_sentence = claude_sentencizer_first_sentence(text_left)
         if next_sentence is None:
             break
-        istart = text_left.index(next_sentence)
+        istart, _ = best_substring_match_index(text_left, next_sentence)
         text_left = text_left[istart+len(next_sentence):]
         sentences.append(next_sentence)
     return sentences
@@ -61,7 +78,7 @@ def claude_sentencizer_first_sentence(text):
                                    "output the first sentence. Input is in <input> tags. The first sentence "
                                    "should be output verbatim as it appears in <input> wrapped in "
                                    "<first_sentence> tags. Since the input text has no punctuation, use your judgement as to where the first sentence ends. Prefer smaller sentences.")
-    human = HumanMessage(content=f"<input>{text}</input>")
+    human = HumanMessage(content=f"<input>{text[:200]}</input>")  # assume sentence can't be longer than 200 words
     llm = ChatAnthropic("claude-3-5-sonnet-20240620", temperature=0)
     response = llm([system, human])
     return get_by_xml_tag(response.content, "first_sentence")
