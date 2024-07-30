@@ -1,12 +1,12 @@
-from dataclasses import dataclass, asdict
 import os
 import argparse
+from abc import ABC, abstractmethod
 from sefaria.utils.util import wrap_chars_with_overlaps
 from sklearn.model_selection import train_test_split
 import srsly
-from util.sefaria_specific import load_mongo_docs
-from linker.fine_tune.project_scripts import constants
-from langchain.chat_models.openai import convert_message_to_dict
+from app.util.sefaria_specific import load_mongo_docs
+from experiments.linker.fine_tune.project_scripts import constants
+from langchain_community.adapters.openai import convert_message_to_dict
 from langchain.schema import HumanMessage, SystemMessage, AIMessage
 
 
@@ -16,6 +16,9 @@ SPAN_LABEL_TO_CLASSICATION_TAG = {
     "Group": "Group",
     "Name-of-God": "Person",
     "Citation": "Citation",
+    "מקור": "Citation",
+    "בן-אדם": "Person",
+    "קבוצה": "Group",
 }
 
 
@@ -38,43 +41,51 @@ def get_window_around_match(start_char:int, end_char:int, text:str, window:int=1
     return before_window, after_window
 
 
-class GptNerTrainingGenerator:
+class AbstractGptTrainingGenerator(ABC):
 
-    format = "completion"
+    format = "chat"
 
     @staticmethod
-    def generate(docs, is_labeled=True):
+    @abstractmethod
+    def _docs_to_data(docs):
+        """
+        Convert list of docs to list of data for training
+        For NER, just return docs
+        For entity classification, return tuples of (doc, span)
+        :param docs:
+        :return:
+        """
+        pass
+
+    def generate(self, docs, is_labeled=True):
         """
         Generate a list of messages to feed to GPT to either train or run on
         :param docs: input data in the form of spaCy docs
         :param is_labeled: are the docs labeled with the correct answers. False for inference use.
         :return:
         """
-        examples = [GptNerTrainingGenerator.generate_one(doc, is_labeled) for doc in docs]
-        if GptNerTrainingGenerator.format == "completion":
+        examples = [self.generate_one(data, is_labeled) for data in self._docs_to_data(docs)]
+        if self.format == "completion":
             return examples
-        return [GptNerTrainingGenerator.serialize_messages(example) for example in examples]
+        return [self.serialize_messages(example) for example in examples]
 
-    @staticmethod
-    def generate_one(doc, is_labeled=True):
-        if GptNerTrainingGenerator.format == "completion":
-            return GptNerTrainingGenerator._generate_one_completion_format(doc, is_labeled)
-        return GptNerTrainingGenerator._generate_one_chat_format(doc, is_labeled)
+    def generate_one(self, data, is_labeled=True):
+        if self.format == "completion":
+            return self._generate_one_completion_format(data, is_labeled)
+        return self._generate_one_chat_format(data, is_labeled)
 
-    @staticmethod
-    def _generate_one_chat_format(doc, is_labeled=True):
+    def _generate_one_chat_format(self, data, is_labeled=True):
         messages = [
-            SystemMessage(content=GptNerTrainingGenerator._create_system_prompt()),
-            HumanMessage(content=GptNerTrainingGenerator._create_prompt(doc)),
+            SystemMessage(content=self._create_system_prompt()),
+            HumanMessage(content=self._create_prompt(data)),
         ]
         if is_labeled:
-            messages += [AIMessage(content=GptNerTrainingGenerator._create_completion(doc))]
+            messages += [AIMessage(content=self._create_completion(data))]
         return messages
 
-    @staticmethod
-    def _generate_one_completion_format(doc, is_labeled=False):
-        prompt = GptNerTrainingGenerator._create_prompt(doc)
-        completion = GptNerTrainingGenerator._create_completion(doc)
+    def _generate_one_completion_format(self, data, is_labeled=False):
+        prompt = self._create_prompt(data)
+        completion = self._create_completion(data)
         prompt_formatted = f"{prompt} {constants.GPT_PROMPT_END_INDICATOR}"
         completion_formatted = f"{completion}{constants.GPT_COMPLETION_END_INDICATOR}"
         if is_labeled:
@@ -87,6 +98,28 @@ class GptNerTrainingGenerator:
     @staticmethod
     def serialize_messages(messages):
         return {"messages": [convert_message_to_dict(message) for message in messages]}
+
+    @staticmethod
+    @abstractmethod
+    def _create_system_prompt():
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def _create_prompt(data):
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def _create_completion(data):
+        pass
+
+
+class GptNerTrainingGenerator(AbstractGptTrainingGenerator):
+
+    @staticmethod
+    def _docs_to_data(docs):
+        return docs
 
     @staticmethod
     def _create_system_prompt():
@@ -104,27 +137,35 @@ class GptNerTrainingGenerator:
         return wrap_chars_with_overlaps(doc['text'], chars_to_wrap, _get_wrapped_citation)
 
 
-class GptEntityClassificationTrainingGenerator:
+class GptEntityClassificationTrainingGenerator(AbstractGptTrainingGenerator):
 
-    def generate(self, docs):
+    @staticmethod
+    def _docs_to_data(docs):
         data = []
         for doc in docs:
             for span in doc['spans']:
-                data += [{
-                    "prompt": self.create_prompt(doc['text'], span['start'], span['end']),
-                    "completion": self._create_completion(doc, span)
-                }]
+                data.append((doc, span))
         return data
 
-    def create_prompt(self, text, start, end):
+    @staticmethod
+    def _create_system_prompt():
+        return "You are Jewish scholar knowledgeable in all Torah texts. Given a named entity wrapped in curly braces, " \
+               "output the type of entity it is. Valid types are: 'Citation', 'Person'."
+
+    @staticmethod
+    def _create_prompt(data):
+        doc, span = data
+        text = doc['text']
+        start, end = span['start'], span['end']
         before_window, after_window = get_window_around_match(start, end, text)
         span_text = text[start:end]
         wrapped_chars = f"{before_window} {constants.ENTITY_PRE_WRAPPER}{span_text}{constants.ENTITY_POST_WRAPPER} {after_window}"
-        return f"{wrapped_chars} {constants.GPT_PROMPT_END_INDICATOR}"
+        return wrapped_chars
 
     @staticmethod
-    def _create_completion(doc, span):
-        return f" {SPAN_LABEL_TO_CLASSICATION_TAG[span['label']]} {constants.GPT_COMPLETION_END_INDICATOR}"
+    def _create_completion(data):
+        doc, span = data
+        return SPAN_LABEL_TO_CLASSICATION_TAG[span['label']]
 
 
 def get_gpt_training_data(task, docs):
