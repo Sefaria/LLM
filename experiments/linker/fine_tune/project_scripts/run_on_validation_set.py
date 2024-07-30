@@ -1,21 +1,21 @@
 from tqdm import tqdm
 from functools import reduce
 from typing import List, Any
-from langchain.chat_models import ChatOpenAI
-from langchain.llms import OpenAI
-from linker.fine_tune.project_scripts import constants
+from langchain_openai import ChatOpenAI, OpenAI
+from experiments.linker.fine_tune.project_scripts import constants
 from langchain.schema import BaseOutputParser
 from dataclasses import dataclass
 from sefaria.helper.normalization import NormalizerComposer, RegexNormalizer, AbstractNormalizer
-from linker.fine_tune.project_scripts.create_citation_input_for_fine_tuning import GptEntityClassificationTrainingGenerator, SPAN_LABEL_TO_CLASSICATION_TAG, GptNerTrainingGenerator
+from experiments.linker.fine_tune.project_scripts.create_citation_input_for_fine_tuning import GptEntityClassificationTrainingGenerator, SPAN_LABEL_TO_CLASSICATION_TAG, GptNerTrainingGenerator
 import re
 import random
-from util.sefaria_specific import load_mongo_docs, get_removal_list
+from util.sefaria_specific import load_mongo_docs
+from util.general import get_removal_list, run_parallel
 from util.sentencizer import sentencize
 from db_manager import MongoProdigyDBManager
 
 import langchain
-from langchain.cache import SQLiteCache
+from langchain_community.cache import SQLiteCache
 from sefaria.spacy_function_registry import inner_punct_tokenizer_factory
 import spacy
 from spacy.tokens import Doc
@@ -26,8 +26,8 @@ langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 random.seed(613)
 
-entity_recognizer_model = "ft:davinci-002:sefaria:en-ner:85JqAfCQ"
-entity_classifier_model = "ft:davinci-002:sefaria:en-entity-class:85dnuVZD"
+entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-ner:9qKKSIH1"
+entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-entity-class:9oqXg238"
 
 nlp = English()
 nlp.tokenizer = inner_punct_tokenizer_factory()(nlp)
@@ -149,9 +149,9 @@ class EntityParser(BaseOutputParser[EntityDoc]):
         return EntityDoc(text=cleaned_text, entities=corrected_entities)
 
     def _correct_entity_locations(self, text, entities) -> List[Entity]:
-        mapping = normalizer.get_mapping_after_normalization(text, reverse=True)
+        mapping, subst_end_indices = normalizer.get_mapping_after_normalization(text, reverse=True)
         orig_indices = [(e.start, e.end) for e in entities]
-        new_indices = normalizer.convert_normalized_indices_to_unnormalized_indices(orig_indices, mapping, reverse=True)
+        new_indices = normalizer.norm_to_unnorm_indices_with_mapping(orig_indices, mapping, subst_end_indices, reverse=True)
         for e, (start, end) in zip(entities, new_indices):
             e.start = start
             e.end = end
@@ -167,11 +167,13 @@ class EntityParser(BaseOutputParser[EntityDoc]):
 
 class EntityTagger:
 
-    def __init__(self, recognizer_is_chat=False):
+    def __init__(self, recognizer_is_chat=False, classifier_is_chat=False):
         self.recognizer_is_chat = recognizer_is_chat
+        self.classifier_is_chat = classifier_is_chat
         recognizer_model = ChatOpenAI if recognizer_is_chat else OpenAI
+        classifier_model = ChatOpenAI if classifier_is_chat else OpenAI
         self._llm_recognizer = recognizer_model(model=entity_recognizer_model, temperature=0)
-        self._llm_classifier = OpenAI(model=entity_classifier_model, temperature=0)
+        self._llm_classifier = classifier_model(model=entity_classifier_model, temperature=0)
         self._parser = EntityParser()
 
     def predict(self, spacy_doc) -> EntityDoc:
@@ -180,13 +182,14 @@ class EntityTagger:
         return doc
 
     def _recognize_entities(self, spacy_doc):
-        prompt = GptNerTrainingGenerator.generate_one(spacy_doc, is_labeled=False)
+        gen = GptNerTrainingGenerator()
+        prompt = gen.generate_one(spacy_doc, is_labeled=False)
         if self.recognizer_is_chat:
-            output = self._llm_recognizer(prompt)
-            doc = self._parser.parse(output.content)
+            output = self._llm_recognizer.invoke(prompt)
+            output = output.content
         else:
-            output = self._llm_recognizer(prompt, stop=[constants.GPT_COMPLETION_END_INDICATOR])
-            doc = self._parser.parse(output)
+            output = self._llm_recognizer.invoke(prompt, stop=[constants.GPT_COMPLETION_END_INDICATOR])
+        doc = self._parser.parse(output)
         doc.validate(spacy_doc['text'])
         return doc
 
@@ -197,8 +200,13 @@ class EntityTagger:
 
     def _classify_entity(self, text, entity: Entity) -> str:
         generator = GptEntityClassificationTrainingGenerator()
-        prompt = generator.create_prompt(text, entity.start, entity.end)
-        output = self._llm_classifier(prompt, stop=[constants.GPT_COMPLETION_END_INDICATOR])
+        data = ({'text': text}, {'start': entity.start, 'end': entity.end})
+        prompt = generator.generate_one(data, is_labeled=False)
+        if self.classifier_is_chat:
+            output = self._llm_classifier.invoke(prompt)
+            output = output.content
+        else:
+            output = self._llm_classifier.invoke(prompt, stop=[constants.GPT_COMPLETION_END_INDICATOR])
         output = output.strip()
         if output not in SPAN_LABEL_TO_CLASSICATION_TAG.values():
             print(f"NOT good '{output}'")
@@ -209,9 +217,9 @@ class EntityTagger:
 def realign_entities(original_text: str, doc: EntityDoc) -> EntityDoc:
     removal_list = get_removal_list(original_text, doc.text)
     temp_normalizer = AbstractNormalizer()
-    mapping = temp_normalizer.get_mapping_after_normalization(original_text, removal_list, reverse=False)
+    mapping, subst_end_indices = temp_normalizer.get_mapping_after_normalization(original_text, removal_list, reverse=False)
     old_inds = [(entity.start, entity.end) for entity in doc.entities]
-    new_inds = temp_normalizer.convert_normalized_indices_to_unnormalized_indices(old_inds, mapping, reverse=False)
+    new_inds = temp_normalizer.norm_to_unnorm_indices_with_mapping(old_inds, mapping, subst_end_indices, reverse=False)
     for (new_start, new_end), entity in zip(new_inds, doc.entities):
         entity.start = new_start
         entity.end = new_end
@@ -219,22 +227,29 @@ def realign_entities(original_text: str, doc: EntityDoc) -> EntityDoc:
     return doc
 
 
+def tag_example(example: dict):
+    try:
+        doc = tagger.predict(example)
+    except (AssertionError, AttributeError) as e:
+        print("ERROR", example['text'])
+        print(e)
+        return None
+    doc.meta = example['meta']
+    return doc
+
+
 if __name__ == '__main__':
-    tagger = EntityTagger()
-    my_db = MongoProdigyDBManager("ner_en_gpt_copper")
+    tagger = EntityTagger(recognizer_is_chat=True, classifier_is_chat=True)
+    my_db = MongoProdigyDBManager("ner_he_gpt_copper")
     my_db.output_collection.delete_many({})
-    generator = ExampleGenerator(['ner_en_input'], skip=13000)
-    for d in tqdm(generator.get(sentencize=True)):
-        try:
-            doc = tagger.predict(d)
-            doc.meta = d['meta']
-            print(doc)
-            mongo_doc = doc.spacy_serialize()
-            my_db.output_collection.insert_one(mongo_doc)
-        except (AssertionError, AttributeError) as e:
-            print("ERROR", d['text'])
-            print(e)
-        print()
+    generator = ExampleGenerator(['achronim_output_broken'], skip=0)
+    examples = list(generator.get(sentencize=False))[:50]
+    docs = run_parallel(examples, tag_example, max_workers=50, desc="Tagging examples")
+    for doc in docs:
+        if not doc:
+            continue
+        mongo_doc = doc.spacy_serialize()
+        my_db.output_collection.insert_one(mongo_doc)
 
 """
 prodigy ner-recipe ref_tagging ner_en_gpt_copper ner_en_gpt_silver Citation,Person,Group -lang en -dir ltr --view-id ner_manual
