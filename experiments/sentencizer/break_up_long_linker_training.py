@@ -4,9 +4,11 @@ django.setup()
 from sefaria.helper.linker import load_spacy_model
 from spacy import Language
 from thefuzz import fuzz
+from functools import reduce
 from db_manager import MongoProdigyDBManager
 from tqdm import tqdm
 from sefaria.model.linker.ref_part import span_inds, span_char_inds
+from util.general import run_parallel
 
 
 def load_mongo_docs(min_training_text_len, unique_by_metadata=True, *db_manager_args) -> list[dict]:
@@ -20,11 +22,8 @@ def load_mongo_docs(min_training_text_len, unique_by_metadata=True, *db_manager_
 
 
 def break_up_docs(docs: list[dict], nlp: Language) -> list[dict]:
-    new_docs = []
-    for doc in tqdm(docs):
-        temp_new_docs = break_up_doc(doc, nlp)
-        new_docs += temp_new_docs
-    return new_docs
+    broken_up_docs: list[list[dict]] = run_parallel(docs, lambda doc: break_up_doc(doc, nlp), max_workers=50, desc="Breaking up")
+    return reduce(lambda x, y: x + y, broken_up_docs)
 
 
 def break_up_doc(doc: dict, nlp: Language) -> list[dict]:
@@ -109,9 +108,9 @@ def best_substring_match_index(long_string, short_string):
 
 def run():
     nlp = load_spacy_model("/Users/nss/sefaria/models/ref_he")
-    docs = load_mongo_docs(0, False, 'rishonim_input_gold')
+    docs = load_mongo_docs(0, False, 'achronim_output')
     docs = break_up_docs(docs, nlp)
-    my_db = MongoProdigyDBManager('rishonim_input_gold_broken')
+    my_db = MongoProdigyDBManager('achronim_output_broken')
     my_db.output_collection.delete_many({})
     my_db.output_collection.insert_many(docs)
 
