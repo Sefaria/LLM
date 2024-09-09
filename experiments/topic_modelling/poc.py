@@ -1,3 +1,5 @@
+import math
+
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from collections import defaultdict
@@ -8,7 +10,7 @@ from langchain.globals import set_llm_cache
 
 set_llm_cache(SQLiteCache(database_path=".langchain.db"))
 
-random.seed(614)
+random.seed(615)
 embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
 db = Chroma(persist_directory=".chromadb_openai", embedding_function=embeddings)
 
@@ -68,33 +70,85 @@ def get_recommended_slugs_frequency_map(docs, ref_to_ignore="$$$"):
             recommended_slugs[slug] += 1
     return recommended_slugs
 
+def get_recommended_slugs_weighted_frequency_map(docs, compute_weight_fn, ref_to_ignore="$$$"):
+    recommended_slugs = defaultdict(lambda: 0)
+    for doc, score in docs:
+        if doc.metadata['Ref'] == ref_to_ignore:
+            continue
+        slugs = slugs_string_to_list(doc.metadata['Slugs'])
+        for slug in slugs:
+            recommended_slugs[slug] += compute_weight_fn(score)*1
+    return recommended_slugs
+
+def get_recall_of_pair(data_slugs, inferred_slugs):
+    return len(set(data_slugs).intersection(inferred_slugs))
+
+def euclidean_relevance_to_l2(euclidean_relevance_score):
+    return math.sqrt(2)*(1-euclidean_relevance_score)
+
+def l2_to_cosine_similarity(l2_distance):
+    if 1 - (l2_distance ** 2) / 2 <0:
+        print("Cosine Similarity:",  1 - (l2_distance ** 2) / 2)
+    return 1 - (l2_distance ** 2) / 2
+
+def cosine_to_one_minus_sine(cos_theta):
+    sin_theta = math.sqrt(1 - cos_theta**2)
+    # print("One Minus Sine:", 1 - sin_theta)
+    return 1 - sin_theta
+
+def cosine_to_linear(cos_theta):
+    x = math.acos(cos_theta)
+    y = -(math.pi / 4) * x + 1
+    return y
 def eval():
     with open("topic_modelling_training_set.json", 'r') as file:
         items = json.load(file)
-    items_sample = random.sample(items, 20)
+    items_sample = random.sample(items, 100)
+
+    num_of_slug_hits = 0
+    num_of_all_data_slugs = 0
 
     sheet_rows = []
 
 
     for item in items_sample:
-        if "Haamek Davar on Exodus 13:4:1" not in item["Ref"]:
+        if "Kol Bo 46:1" not in item["Ref"]:
             continue
-        docs = get_closest_docs_by_text_similarity(item["English"], 1000)
-        recommended_slugs = get_recommended_slugs_frequency_map(docs, item["Ref"])
-        best_slugs = get_keys_above_mean(recommended_slugs, 2.0)
-        print("Ref:", item["Ref"])
-        print("Text:", item["English"])
-        print("Slugs from Data:", item["Slugs"])
-        print("Recommended Slugs:", best_slugs)
+        docs = get_closest_docs_by_text_similarity(item["English"], 500)
+        recommended_slugs_cosine = get_recommended_slugs_weighted_frequency_map(docs, lambda score: l2_to_cosine_similarity(euclidean_relevance_to_l2(score))
+                                                                         ,item["Ref"])
+        recommended_slugs_sine = get_recommended_slugs_weighted_frequency_map(docs, lambda score: (cosine_to_one_minus_sine(l2_to_cosine_similarity(euclidean_relevance_to_l2(score))))**10
+                                                                         ,item["Ref"])
+        recommended_slugs_linear = get_recommended_slugs_weighted_frequency_map(docs, lambda score: (cosine_to_linear(l2_to_cosine_similarity(euclidean_relevance_to_l2(score))))
+                                                                                ,item["Ref"])
+
+        best_slugs_cosine = get_keys_above_mean(recommended_slugs_cosine, 2.5)
+        best_slugs_sine = get_keys_above_mean(recommended_slugs_sine, 2.5)
+
+        best_slugs_linear = get_keys_above_mean(recommended_slugs_linear, 2.5)
+
+        best_slugs_naive = get_keys_above_mean(get_recommended_slugs_frequency_map(docs, item["Ref"]),2.5)
+
+        num_of_all_data_slugs += len(item["Slugs"])
+        # num_of_slug_hits += get_recall_of_pair(item["Slugs"], best_slugs)
+        # print("Ref:", item["Ref"])
+        # print("Text:", item["English"])
+        # print("Slugs from Data:", item["Slugs"])
+        # print("Recommended Slugs:", best_slugs)
+
         sheet_rows.append(
             {
                 "Ref": item["Ref"],
                 "Text": item["English"],
                 "Slugs from Data": item["Slugs"],
-                "Recommended Slugs:": best_slugs
+                "Recommended Slugs Cosine": best_slugs_cosine,
+                "Recommended Slugs Sine": best_slugs_sine,
+                "In Sine not in Cosine": set(best_slugs_sine).difference(set(best_slugs_cosine)),
+                "In Cosine not in Sine": set(best_slugs_cosine).difference(set(best_slugs_sine))
             }
         )
     convert_to_csv(sheet_rows)
+    # print("Recall: ", num_of_slug_hits/num_of_all_data_slugs)
 
 
 
