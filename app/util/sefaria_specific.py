@@ -42,12 +42,16 @@ def get_raw_ref_text(oref: Ref, lang: str, vtitle=None) -> str:
 def get_normalized_ref_text(oref: Ref, lang: str, vtitle=None) -> str:
     return normalizer.normalize(get_raw_ref_text(oref, lang, vtitle))
 
+def translate_segment(tref: str, context: str = None):
+    from translation.translation import translate_text
+    oref = Ref(tref)
+    text = get_normalized_ref_text(oref, 'he')
+    return translate_text(text, context)
 
 def get_ref_text_with_fallback(oref: Ref, lang: str, auto_translate=False) -> str:
     raw_text = get_raw_ref_text(oref, lang)
     if len(raw_text) == 0:
         if auto_translate and lang == "en":
-            from translation.translation import translate_segment
             raw_text = translate_segment(oref.normal())
         else:
             other_lang = "en" if lang == "he" else "he"
