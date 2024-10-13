@@ -1,7 +1,7 @@
 import math
 import django
 django.setup()
-from sefaria.model import *
+from sefaria.model import Ref
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from collections import defaultdict
@@ -12,6 +12,7 @@ from langchain.cache import SQLiteCache
 from langchain.globals import set_llm_cache
 from util.sefaria_specific import get_ref_text_with_fallback
 from srsly import read_jsonl, write_jsonl
+
 
 
 set_llm_cache(SQLiteCache(database_path=".langchain.db"))

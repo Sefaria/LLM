@@ -1,12 +1,14 @@
 import math
 
 from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Chroma
+# from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 from collections import defaultdict
 import json, csv
 import random
-from langchain.cache import SQLiteCache
+from langchain_community.cache import SQLiteCache
 from langchain.globals import set_llm_cache
+
 
 set_llm_cache(SQLiteCache(database_path=".langchain.db"))
 
@@ -112,8 +114,8 @@ def eval():
 
 
     for item in items_sample:
-        if "Kol Bo 46:1" not in item["Ref"]:
-            continue
+        # if "Kol Bo 46:1" not in item["Ref"]:
+        #     continue
         docs = get_closest_docs_by_text_similarity(item["English"], 500)
         recommended_slugs_cosine = get_recommended_slugs_weighted_frequency_map(docs, lambda score: l2_to_cosine_similarity(euclidean_relevance_to_l2(score))
                                                                          ,item["Ref"])

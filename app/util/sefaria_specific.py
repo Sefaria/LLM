@@ -49,6 +49,8 @@ def translate_segment(tref: str, context: str = None):
     return translate_text(text, context)
 
 def get_ref_text_with_fallback(oref: Ref, lang: str, auto_translate=False) -> str:
+    if isinstance(oref, str):
+        oref = Ref(oref)
     raw_text = get_raw_ref_text(oref, lang)
     if len(raw_text) == 0:
         if auto_translate and lang == "en":
