@@ -4,9 +4,12 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import List
 import json, csv
+import pickle
+import os
 from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from util.sefaria_specific import get_ref_text_with_fallback
+import optuna
 
 
 
@@ -126,6 +129,47 @@ class InRAMPredictor(Predictor):
         super().__init__(*hyperparameters)
 
 
+class FileMemoizer:
+
+    def __init__(self, cache_filename):
+        self.cache_filename = cache_filename
+        self._cache = {}
+
+    def load(self):
+        """Load cache from a file if it exists."""
+        if os.path.exists(self.cache_filename):
+            with open(self.cache_filename, 'rb') as file:
+                self._cache = pickle.load(file)
+        else:
+            self._cache = {}
+
+    def save(self):
+        """Save cache to a file."""
+        with open(self.cache_filename, 'wb') as file:
+            pickle.dump(self._cache, file)
+
+    def memoize(self, func):
+        """Decorator to memoize the function."""
+
+        def wrapper(*args):
+            cache_key = args[1:]  # Skip 'self' when caching instance method
+
+            if cache_key in self._cache:
+                # print("Fetching from cache")
+                return self._cache[cache_key]
+
+            # print("Computing and caching")
+            result = func(*args)  # Pass all args including 'self' to the function
+            self._cache[cache_key] = result
+            return result
+
+        return wrapper
+
+vector_queries_memoizer = FileMemoizer("cached_vector_queries.pkl")
+vector_queries_memoizer.load()
+
+ref_to_text_memoizer = FileMemoizer("cached_ref_to_text.pkl")
+ref_to_text_memoizer.load()
 class VectorDBPredictor(Predictor):
 
     def __init__(self, vector_db_dir, **hyperparameters):
@@ -134,16 +178,27 @@ class VectorDBPredictor(Predictor):
         embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
         self.vector_db = Chroma(persist_directory=vector_db_dir, embedding_function=embeddings)
 
-    def _get_closest_docs_by_text_similarity(self, query, k=100, score_threshold=0.0):
+
+    @vector_queries_memoizer.memoize
+    def _get_all_similar_docs(self, query):
         docs = self.vector_db.similarity_search_with_relevance_scores(
-            query.lower(), k=k, score_threshold=score_threshold
+            query.lower(), k=10000, score_threshold=0.0
         )
         return docs
+
+    def _get_closest_docs_by_text_similarity(self, query, k=100, score_threshold=0.0):
+        docs = self._get_all_similar_docs(query)
+        return docs[:k]
+
+    @ref_to_text_memoizer.memoize
+    def _get_en_text_for_ref(self, ref):
+        text = get_ref_text_with_fallback(ref, 'en', auto_translate=True)
+        return text
 
     def predict(self, refs):
         results = []
         for ref in refs:
-            text = get_ref_text_with_fallback(ref, 'en', auto_translate=True)
+            text = self._get_en_text_for_ref(ref)
             docs = self._get_closest_docs_by_text_similarity(text, self.docs_num)
             recommended_slugs_sine = self._get_recommended_slugs_weighted_frequency_map(docs, lambda score: self._euclidean_relevance_to_one_minus_sine(score, self.power_relevance_fun), ref)
             best_slugs_sine = self._get_keys_above_mean(recommended_slugs_sine, self.above_mean_threshold_factor)
@@ -162,13 +217,81 @@ class PredictorFactory:
 
 
 class Evaluator:
-
     def __init__(self, gold_standard: List[LabelledRef], considered_labels: List[str]):
-        self.gold_standard = gold_standard
         self.considered_labels = considered_labels
+        gold_standard = self._get_projection_of_labelled_refs(gold_standard)
+        self.gold_standard = gold_standard
 
-    def evaluate(self, predictions: list):
-        pass
+    def evaluate(self, predictions: List[LabelledRef]):
+        predictions = self._get_projection_of_labelled_refs(predictions)
+        refs_in_pred = [lr.ref for lr in predictions]
+        refs_in_gold = [lr.ref for lr in gold_standard]
+        predictions_filtered = [lr for lr in predictions if lr.ref in refs_in_gold]
+        gold_filtered = [lr for lr in gold_standard if lr.ref in refs_in_pred]
+        result = self._compute_f1_score(gold_filtered, predictions_filtered)
+        return result
+
+    def _get_projection_of_labelled_refs(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
+        # Remove irrelevant slugs from the slugs list
+        projected = []
+        for ref in lrs:
+            projected.append(LabelledRef(ref.ref, [slug for slug in ref.slugs if slug in self.considered_labels]))
+        return projected
+
+    def _compute_metrics_for_refs_pair(self, golden_standard_ref: LabelledRef, predicted_ref: LabelledRef):
+        golden_standard = golden_standard_ref.slugs
+        predicted = predicted_ref.slugs
+
+        true_positives = 0
+        false_positives = 0
+        false_negatives = 0
+
+        for item in predicted:
+            if item in golden_standard:
+                true_positives += 1
+            else:
+                false_positives += 1
+
+        for item in golden_standard:
+            if item not in predicted:
+                false_negatives += 1
+
+        return true_positives, false_positives, false_negatives
+
+    def _compute_f1_score(self, gold_standard: List[LabelledRef], predictions: List[LabelledRef]):
+        precision = self._compute_total_precision(gold_standard, predictions)
+        recall = self._compute_total_recall(gold_standard, predictions)
+
+        f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
+        return f1_score
+
+    def _compute_total_recall(self, gold_standard: List[LabelledRef], predictions: List[LabelledRef]):
+        total_true_positives = 0
+        total_false_negatives = 0
+
+        for golden_standard_ref, predicted_ref in zip(gold_standard, predictions):
+            true_positives, _, false_negatives = self._compute_metrics_for_refs_pair(golden_standard_ref, predicted_ref)
+            # if false_negatives != 0:
+            #     print("oh!")
+            total_true_positives += true_positives
+            total_false_negatives += false_negatives
+
+        total_recall = total_true_positives / (total_true_positives + total_false_negatives) if (total_true_positives + total_false_negatives) > 0 else 0
+        return total_recall
+
+    def _compute_total_precision(self, gold_standard: List[LabelledRef], predictions: List[LabelledRef]):
+        total_true_positives = 0
+        total_false_positives = 0
+        total_false_negatives = 0
+
+        for golden_standard_ref, predicted_ref in zip(gold_standard, predictions):
+            true_positives, false_positives, false_negatives = self._compute_metrics_for_refs_pair(golden_standard_ref, predicted_ref)
+            total_true_positives += true_positives
+            total_false_positives += false_positives
+            total_false_negatives += false_negatives
+
+        total_precision = total_true_positives / (total_true_positives + total_false_positives) if (total_true_positives + total_false_positives) > 0 else 0
+        return total_precision
 
 
 class EvaluationController:
@@ -177,13 +300,13 @@ class EvaluationController:
         self.evaluator = evaluator
         self.predictor = predictor
 
-    def evaluate(self, refs: list):
+    def evaluate(self, refs: List[str]):
         predictions = self.predictor.predict(refs)
         return self.evaluator.evaluate(predictions)
 
 
-def optimization_run(evaluator, refs, close_topics, hyperparameters):
-    controller = EvaluationController(evaluator, InRAMPredictor(close_topics, hyperparameters))
+def optimization_run(evaluator, refs, db_dir, hyperparameters):
+    controller = EvaluationController(evaluator, VectorDBPredictor(db_dir, **hyperparameters))
     return controller.evaluate(refs)
 
 
@@ -191,9 +314,31 @@ if __name__ == '__main__':
     # close_topics = "hello"
     # refs = gold_standard
     # evaluator = Evaluator(gold_standard, considered_labels)
-    # optimization_run_bound = partial(optimization_run, evaluator, close_topics, refs)
-    hyperparameters = {"docs_num" : 500,
-                       "above_mean_threshold_factor" : 2.5,
-                       "power_relevance_fun" : 10}
-    predictor = VectorDBPredictor(".chromadb_openai", **hyperparameters)
-    print(predictor.predict(["Genesis 1:1", "Isaiah 2:3"]))
+    # hyperparameters = {"docs_num" : 500,
+    #                    "above_mean_threshold_factor" : 2.5,
+    #                    "power_relevance_fun" : 10}
+    considered_labels = file_to_slugs("evaluation_data/all_slugs_in_training_set.csv")
+    gold_standard = jsonl_to_labelled_refs("evaluation_data/gold.jsonl")
+    refs_to_evaluate = [labelled_ref.ref for labelled_ref in gold_standard]
+    evaluator = Evaluator(gold_standard, considered_labels)
+
+    optimization_run_bound = partial(optimization_run, evaluator, refs_to_evaluate, ".chromadb_openai")
+    def objective(trial):
+        docs_num_magnitude = trial.suggest_int("docs_num_magnitude", 10, 100)
+        above_mean_threshold_factor = trial.suggest_float("above_mean_threshold_factor", 0.25, 5.0)
+        power_relevance_fun = trial.suggest_int("power_relevance_fun", 1, 20)
+        hyperparameters = {
+            "docs_num": docs_num_magnitude*10,
+            "above_mean_threshold_factor": above_mean_threshold_factor,
+            "power_relevance_fun": power_relevance_fun
+        }
+        score = optimization_run_bound(hyperparameters)
+        return score
+
+
+    study = optuna.create_study(direction="maximize")
+    study.optimize(objective, n_trials=1000)
+    print(study.best_params)
+
+    vector_queries_memoizer.save()
+    ref_to_text_memoizer.save()
