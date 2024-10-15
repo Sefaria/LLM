@@ -66,6 +66,37 @@ def file_to_slugs(csv_or_json_path) -> List[str]:
     else:
         raise ValueError("Unsupported file format. Only CSV, JSON, and JSONL are supported.")
 
+def add_implied_toc_slugs(labelled_refs: List[LabelledRef]):
+    from sefaria.model import library
+
+    def _find_parent_slug(data_structure, target_slug):
+        # Access the 'children' list
+        children = data_structure['children']
+
+        # Iterate through each category dictionary
+        for category in children:
+            # If the target slug matches the current category's slug
+            if category['slug'] == target_slug:
+                # Return the parent slug
+                return data_structure['slug']
+            # If the current category has children, recursively search within them
+            if 'children' in category:
+                result = _find_parent_slug(category, target_slug)
+                # If the parent slug is found in any of the children, return it
+                if result:
+                    return result
+        # If the target slug is not found in any children, return None
+        return None
+    return labelled_refs
+
+    toc = library.get_topic_toc_json_recursive()
+    for lr in labelled_refs:
+        for slug in lr.slugs:
+            parent = (_find_parent_slug({"children": toc, "slug": None}, slug))
+            if parent and parent not in lr.slugs:
+                # print(f"{parent} missing parent of {slug}")
+                lr.slugs.append(parent)
+
 class Predictor:
 
     def __init__(self, docs_num, above_mean_threshold_factor, power_relevance_fun):
@@ -203,6 +234,7 @@ class VectorDBPredictor(Predictor):
             recommended_slugs_sine = self._get_recommended_slugs_weighted_frequency_map(docs, lambda score: self._euclidean_relevance_to_one_minus_sine(score, self.power_relevance_fun), ref)
             best_slugs_sine = self._get_keys_above_mean(recommended_slugs_sine, self.above_mean_threshold_factor)
             results.append(LabelledRef(ref=ref, slugs=best_slugs_sine))
+        results = add_implied_toc_slugs(results)
         return results
 
 
@@ -220,6 +252,7 @@ class Evaluator:
     def __init__(self, gold_standard: List[LabelledRef], considered_labels: List[str]):
         self.considered_labels = considered_labels
         gold_standard = self._get_projection_of_labelled_refs(gold_standard)
+        gold_standard = add_implied_toc_slugs(gold_standard)
         self.gold_standard = gold_standard
 
     def evaluate(self, predictions: List[LabelledRef]):
@@ -339,6 +372,8 @@ if __name__ == '__main__':
     study = optuna.create_study(direction="maximize")
     study.optimize(objective, n_trials=1000)
     print(study.best_params)
+    print(study.best_params)
+    print(study.best_trial)
 
     vector_queries_memoizer.save()
     ref_to_text_memoizer.save()
