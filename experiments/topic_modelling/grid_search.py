@@ -9,6 +9,8 @@ import os
 from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from util.sefaria_specific import get_ref_text_with_fallback
+from sefaria.model import library
+toc = library.get_topic_toc_json_recursive()
 import optuna
 
 
@@ -67,7 +69,6 @@ def file_to_slugs(csv_or_json_path) -> List[str]:
         raise ValueError("Unsupported file format. Only CSV, JSON, and JSONL are supported.")
 
 def add_implied_toc_slugs(labelled_refs: List[LabelledRef]):
-    from sefaria.model import library
 
     def _find_parent_slug(data_structure, target_slug):
         # Access the 'children' list
@@ -87,15 +88,15 @@ def add_implied_toc_slugs(labelled_refs: List[LabelledRef]):
                     return result
         # If the target slug is not found in any children, return None
         return None
-    return labelled_refs
 
-    toc = library.get_topic_toc_json_recursive()
     for lr in labelled_refs:
         for slug in lr.slugs:
             parent = (_find_parent_slug({"children": toc, "slug": None}, slug))
             if parent and parent not in lr.slugs:
                 # print(f"{parent} missing parent of {slug}")
                 lr.slugs.append(parent)
+    return labelled_refs
+
 
 class Predictor:
 
@@ -144,6 +145,13 @@ class Predictor:
                 self._euclidean_relevance_to_l2(
                     euclidean_relevance_score)))
         return one_minus_sine ** power
+
+    def _euclidean_relevance_to_cosine_similarity(self, euclidean_relevance_score, power=1):
+        cosine_similarity = self._l2_to_cosine_similarity(
+            self._euclidean_relevance_to_l2(
+            euclidean_relevance_score
+        ))
+        return cosine_similarity ** power
 
     def predict(self, refs):
         pass
@@ -231,8 +239,9 @@ class VectorDBPredictor(Predictor):
         for ref in refs:
             text = self._get_en_text_for_ref(ref)
             docs = self._get_closest_docs_by_text_similarity(text, self.docs_num)
-            recommended_slugs_sine = self._get_recommended_slugs_weighted_frequency_map(docs, lambda score: self._euclidean_relevance_to_one_minus_sine(score, self.power_relevance_fun), ref)
-            best_slugs_sine = self._get_keys_above_mean(recommended_slugs_sine, self.above_mean_threshold_factor)
+            recommended_slugs = self._get_recommended_slugs_weighted_frequency_map(docs, lambda score: self._euclidean_relevance_to_one_minus_sine(score, self.power_relevance_fun), ref)
+            # recommended_slugs = self._get_recommended_slugs_weighted_frequency_map(docs, lambda score: self._euclidean_relevance_to_cosine_similarity(score), ref)
+            best_slugs_sine = self._get_keys_above_mean(recommended_slugs, self.above_mean_threshold_factor)
             results.append(LabelledRef(ref=ref, slugs=best_slugs_sine))
         results = add_implied_toc_slugs(results)
         return results
@@ -252,7 +261,6 @@ class Evaluator:
     def __init__(self, gold_standard: List[LabelledRef], considered_labels: List[str]):
         self.considered_labels = considered_labels
         gold_standard = self._get_projection_of_labelled_refs(gold_standard)
-        gold_standard = add_implied_toc_slugs(gold_standard)
         self.gold_standard = gold_standard
 
     def evaluate(self, predictions: List[LabelledRef]):
@@ -352,6 +360,7 @@ if __name__ == '__main__':
     #                    "power_relevance_fun" : 10}
     considered_labels = file_to_slugs("evaluation_data/all_slugs_in_training_set.csv")
     gold_standard = jsonl_to_labelled_refs("evaluation_data/gold.jsonl")
+    gold_standard = add_implied_toc_slugs(gold_standard)
     refs_to_evaluate = [labelled_ref.ref for labelled_ref in gold_standard]
     evaluator = Evaluator(gold_standard, considered_labels)
 
