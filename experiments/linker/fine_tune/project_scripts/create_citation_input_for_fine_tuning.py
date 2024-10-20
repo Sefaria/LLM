@@ -99,9 +99,8 @@ class AbstractGptTrainingGenerator(ABC):
     def serialize_messages(messages):
         return {"messages": [convert_message_to_dict(message) for message in messages]}
 
-    @staticmethod
     @abstractmethod
-    def _create_system_prompt():
+    def _create_system_prompt(self):
         pass
 
     @staticmethod
@@ -117,14 +116,21 @@ class AbstractGptTrainingGenerator(ABC):
 
 class GptNerTrainingGenerator(AbstractGptTrainingGenerator):
 
+    def __init__(self, subtask: str):
+        super().__init__()
+        self._subtask = subtask
+
     @staticmethod
     def _docs_to_data(docs):
         return docs
 
-    @staticmethod
-    def _create_system_prompt():
-        return "You are Jewish scholar knowledgeable in all Torah texts. Your task is to wrap all people, groups of " \
-               "people and citations in double curly braces."
+    def _create_system_prompt(self):
+        if self._subtask == "ref-people":
+            return "You are Jewish scholar knowledgeable in all Torah texts. Your task is to wrap all people, groups of " \
+                   "people and citations in double curly braces."
+        elif self._subtask == "ref-part":
+            return "You are Jewish scholar knowledgeable in all Torah texts. Your task is to wrap each part of a citation" \
+                   " in double curly braces (e.g. title, numbered, DH etc.)."
 
     @staticmethod
     def _create_prompt(doc):
@@ -139,6 +145,10 @@ class GptNerTrainingGenerator(AbstractGptTrainingGenerator):
 
 class GptEntityClassificationTrainingGenerator(AbstractGptTrainingGenerator):
 
+    def __init__(self, subtask: str):
+        super().__init__()
+        self._subtask = subtask
+
     @staticmethod
     def _docs_to_data(docs):
         data = []
@@ -147,10 +157,13 @@ class GptEntityClassificationTrainingGenerator(AbstractGptTrainingGenerator):
                 data.append((doc, span))
         return data
 
-    @staticmethod
-    def _create_system_prompt():
-        return "You are Jewish scholar knowledgeable in all Torah texts. Given a named entity wrapped in curly braces, " \
-               "output the type of entity it is. Valid types are: 'Citation', 'Person'."
+    def _create_system_prompt(self):
+        if self._subtask == 'ref-people':
+            return "You are Jewish scholar knowledgeable in all Torah texts. Given a named entity wrapped in curly braces, " \
+                   "output the type of entity it is. Valid types are: 'Citation', 'Person'."
+        elif self._subtask == 'ref-part':
+            return "You are Jewish scholar knowledgeable in all Torah texts. Given a named entity wrapped in curly braces, " \
+                   "output the type of entity it is. Valid types are: 'title', 'number', 'DH', 'range-symbol', 'dir-ibid', 'ibid."
 
     @staticmethod
     def _create_prompt(data):
@@ -168,11 +181,11 @@ class GptEntityClassificationTrainingGenerator(AbstractGptTrainingGenerator):
         return SPAN_LABEL_TO_CLASSICATION_TAG[span['label']]
 
 
-def get_gpt_training_data(task, docs):
+def get_gpt_training_data(task, subtask, docs):
     if task == "ner":
-        generator = GptNerTrainingGenerator()
+        generator = GptNerTrainingGenerator(subtask)
     elif task == "entity_classification":
-        generator = GptEntityClassificationTrainingGenerator()
+        generator = GptEntityClassificationTrainingGenerator(subtask)
     else:
         raise Exception("Unrecognized task. Options are 'ner', 'entity_classification'.")
     return generator.generate(docs)
@@ -182,6 +195,7 @@ def init_argparse() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument('input')
     parser.add_argument('task')
+    parser.add_argument('subtask')
     parser.add_argument('training_filename')
     parser.add_argument('validation_filename')
     parser.add_argument('-m', '--db-host', dest='db_host')
@@ -197,8 +211,8 @@ if __name__ == '__main__':
     password = os.getenv('MONGO_PASSWORD')
     citation_docs = load_mongo_docs(args.input, args.db_host, args.db_port, args.user, password, args.replicaset)
     citation_docs = [doc for doc in citation_docs if doc.get('answer', 'accept') == 'accept']
-    gpt_training = get_gpt_training_data(args.task, citation_docs)
-    training_data, validation_data = train_test_split(gpt_training, random_state=613, train_size=0.8)
+    gpt_training = get_gpt_training_data(args.task, args.subtask, citation_docs)
+    training_data, validation_data = train_test_split(gpt_training, random_state=613, train_size=0.99)
     print("TRAINING SIZE:", len(training_data))
     print("VALIDATION SIZE:", len(validation_data))
     srsly.write_jsonl(args.training_filename, training_data)
