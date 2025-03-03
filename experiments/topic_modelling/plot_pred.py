@@ -39,14 +39,19 @@ class EvalPlot(Evaluator):
             writer.writerows(table)
 
 if __name__ == '__main__':
-    considered_labels = file_to_slugs("evaluation_data/all_slugs_in_training_set.csv")
-    gold_standard = jsonl_to_labelled_refs("evaluation_data/gold.jsonl")
-    gold_standard = add_implied_toc_slugs(gold_standard)
-    refs_to_evaluate = [labelled_ref.ref for labelled_ref in gold_standard]
-    plot_evaluator = EvalPlot(gold_standard, considered_labels)
-    hyperparameters = {'docs_num': 98*10, 'above_mean_threshold_factor': 0.9427136687356984, 'power_relevance_fun': 2}
+    # considered_labels = file_to_slugs("evaluation_data/all_slugs_in_training_set.csv")
+    # gold_standard = jsonl_to_labelled_refs("evaluation_data/gold.jsonl")
+    # gold_standard = add_implied_toc_slugs(gold_standard, considered_labels)
+    # refs_to_evaluate = [labelled_ref.ref for labelled_ref in gold_standard]
+    # plot_evaluator = EvalPlot(gold_standard, considered_labels)
+    hyperparameters = {'docs_num': 10000*10, 'above_mean_threshold_factor': 0.1, 'power_relevance_fun': 1}
+    # predictor = VectorDBPredictor(".chromadb_openai", **hyperparameters)
+    # predictions = predictor.predict(refs_to_evaluate)
+    # plot_evaluator.plot_table(predictions)
+    # print("Recall:", plot_evaluator._compute_total_recall(gold_standard, predictions))
+
     predictor = VectorDBPredictor(".chromadb_openai", **hyperparameters)
-    predictions = predictor.predict(refs_to_evaluate)
-    plot_evaluator.plot_table(predictions)
+    predictions = predictor.predict(["Taanit.2a.12"])
+    print(predictions)
 
 

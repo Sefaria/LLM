@@ -10,8 +10,17 @@ from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
 from util.sefaria_specific import get_ref_text_with_fallback
 from sefaria.model import library
-toc = library.get_topic_toc_json_recursive()
+from experiments.topic_source_curation.gather.source_gatherer import _get_items_relevant_to_topic
+from sefaria.helper.llm.topic_prompt import make_llm_topic
+from sefaria_llm_interface.common.topic import Topic
+from sefaria.model.topic import Topic as SefariaTopic
+from experiments.topic_source_curation.common import get_topic_str_for_prompts
+from experiments.topic_source_curation.gather.source_gatherer import _is_text_about_topic
+from util.general import run_parallel
 import optuna
+
+toc = library.get_topic_toc_json_recursive()
+
 
 
 
@@ -20,9 +29,52 @@ import optuna
 class LabelledRef:
     ref: str
     slugs: List[str]
-
     def __repr__(self):
         return f"LabelledRef(ref='{self.ref}', slugs={self.slugs})"
+
+class FileMemoizer:
+
+    def __init__(self, cache_filename):
+        self.cache_filename = cache_filename
+        self._cache = {}
+
+    def load(self):
+        """Load cache from a file if it exists."""
+        if os.path.exists(self.cache_filename):
+            with open(self.cache_filename, 'rb') as file:
+                self._cache = pickle.load(file)
+        else:
+            self._cache = {}
+
+    def save(self):
+        """Save cache to a file."""
+        with open(self.cache_filename, 'wb') as file:
+            pickle.dump(self._cache, file)
+
+    def memoize(self, func):
+        """Decorator to memoize the function."""
+
+        def wrapper(*args):
+            cache_key = args[1:]  # Skip 'self' when caching instance method
+
+            if cache_key in self._cache:
+                # print("Fetching from cache")
+                return self._cache[cache_key]
+
+            # print("Computing and caching")
+            result = func(*args)  # Pass all args including 'self' to the function
+            self._cache[cache_key] = result
+            return result
+
+        return wrapper
+
+vector_queries_memoizer = FileMemoizer("cached_vector_queries.pkl")
+vector_queries_memoizer.load()
+
+ref_to_text_memoizer = FileMemoizer("cached_ref_to_text.pkl")
+ref_to_text_memoizer.load()
+
+
 
 def jsonl_to_labelled_refs(jsonl_filename) -> List[LabelledRef]:
     lrs = []
@@ -68,7 +120,30 @@ def file_to_slugs(csv_or_json_path) -> List[str]:
     else:
         raise ValueError("Unsupported file format. Only CSV, JSON, and JSONL are supported.")
 
-def add_implied_toc_slugs(labelled_refs: List[LabelledRef]):
+
+def filter_topics_relevant_to_text(text: str, topics: list[Topic], verbose=True):
+    topic_descriptions = []
+    for topic in topics:
+        topic_descriptions += [get_topic_str_for_prompts(topic, verbose=False)]
+    unit_func = partial(_is_text_about_topic, text=text)
+    is_about_text_list = run_parallel(topic_descriptions, unit_func, 100,
+                                       desc="filter irrelevant topics", disable=not verbose)
+    filtered_items = []
+    if verbose:
+        print("---FILTERING---")
+    for is_about_topic, topic in zip(is_about_text_list, topics):
+        if is_about_topic:
+            filtered_items += [topic]
+        else:
+            pass
+            # if verbose:
+            #     print(item.ref)
+            #     print(key(item))
+    if verbose:
+        print('after filtering: ', len(filtered_items))
+    return filtered_items
+
+def add_implied_toc_slugs(labelled_refs: List[LabelledRef], considered_labels=None):
 
     def _find_parent_slug(data_structure, target_slug):
         # Access the 'children' list
@@ -95,6 +170,13 @@ def add_implied_toc_slugs(labelled_refs: List[LabelledRef]):
             if parent and parent not in lr.slugs:
                 # print(f"{parent} missing parent of {slug}")
                 lr.slugs.append(parent)
+
+        if considered_labels:
+            projected = []
+            for slug in lr.slugs:
+                if slug in considered_labels:
+                    projected.append(slug)
+            lr.slugs = projected
     return labelled_refs
 
 
@@ -168,47 +250,6 @@ class InRAMPredictor(Predictor):
         super().__init__(*hyperparameters)
 
 
-class FileMemoizer:
-
-    def __init__(self, cache_filename):
-        self.cache_filename = cache_filename
-        self._cache = {}
-
-    def load(self):
-        """Load cache from a file if it exists."""
-        if os.path.exists(self.cache_filename):
-            with open(self.cache_filename, 'rb') as file:
-                self._cache = pickle.load(file)
-        else:
-            self._cache = {}
-
-    def save(self):
-        """Save cache to a file."""
-        with open(self.cache_filename, 'wb') as file:
-            pickle.dump(self._cache, file)
-
-    def memoize(self, func):
-        """Decorator to memoize the function."""
-
-        def wrapper(*args):
-            cache_key = args[1:]  # Skip 'self' when caching instance method
-
-            if cache_key in self._cache:
-                # print("Fetching from cache")
-                return self._cache[cache_key]
-
-            # print("Computing and caching")
-            result = func(*args)  # Pass all args including 'self' to the function
-            self._cache[cache_key] = result
-            return result
-
-        return wrapper
-
-vector_queries_memoizer = FileMemoizer("cached_vector_queries.pkl")
-vector_queries_memoizer.load()
-
-ref_to_text_memoizer = FileMemoizer("cached_ref_to_text.pkl")
-ref_to_text_memoizer.load()
 class VectorDBPredictor(Predictor):
 
     def __init__(self, vector_db_dir, **hyperparameters):
@@ -234,6 +275,13 @@ class VectorDBPredictor(Predictor):
         text = get_ref_text_with_fallback(ref, 'en', auto_translate=True)
         return text
 
+    def _filter_irrelevent_slugs_by_llm(self, text, slugs):
+        sefaria_topics = [SefariaTopic.init(slugs) for slugs in slugs]
+        topic_objs = [make_llm_topic(sefaria_topic) for sefaria_topic in sefaria_topics]
+        filtered_topics = filter_topics_relevant_to_text(text, topic_objs, verbose=False)
+        filtered_slugs = [topic.slug for topic in filtered_topics]
+        return filtered_slugs
+
     def predict(self, refs):
         results = []
         for ref in refs:
@@ -242,7 +290,8 @@ class VectorDBPredictor(Predictor):
             recommended_slugs = self._get_recommended_slugs_weighted_frequency_map(docs, lambda score: self._euclidean_relevance_to_one_minus_sine(score, self.power_relevance_fun), ref)
             # recommended_slugs = self._get_recommended_slugs_weighted_frequency_map(docs, lambda score: self._euclidean_relevance_to_cosine_similarity(score), ref)
             best_slugs_sine = self._get_keys_above_mean(recommended_slugs, self.above_mean_threshold_factor)
-            results.append(LabelledRef(ref=ref, slugs=best_slugs_sine))
+            llm_filtered_slugs = self._filter_irrelevent_slugs_by_llm(text, best_slugs_sine)
+            results.append(LabelledRef(ref=ref, slugs=llm_filtered_slugs))
         results = add_implied_toc_slugs(results)
         return results
 
@@ -269,7 +318,7 @@ class Evaluator:
         refs_in_gold = [lr.ref for lr in gold_standard]
         predictions_filtered = [lr for lr in predictions if lr.ref in refs_in_gold]
         gold_filtered = [lr for lr in gold_standard if lr.ref in refs_in_pred]
-        result = self._compute_f1_score(gold_filtered, predictions_filtered)
+        result = self._compute_total_recall(gold_filtered, predictions_filtered)
         return result
 
     def _get_projection_of_labelled_refs(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
@@ -305,6 +354,18 @@ class Evaluator:
 
         f1_score = 2 * (precision * recall) / (precision + recall) if (precision + recall) > 0 else 0
         return f1_score
+
+    def _compute_weighted_f1_score(self, gold_standard: List[LabelledRef], predictions: List[LabelledRef], beta=1.0):
+        """
+        - beta (float): The weight of recall relative to precision (default is 1.0, i.e., F1 score).
+        """
+        precision = self._compute_total_precision(gold_standard, predictions)
+        recall = self._compute_total_recall(gold_standard, predictions)
+        if precision + recall == 0:
+            return 0.0
+        beta_squared = beta ** 2
+        weighted_f1 = (1 + beta_squared) * (precision * recall) / (beta_squared * precision + recall)
+        return weighted_f1
 
     def _compute_total_recall(self, gold_standard: List[LabelledRef], predictions: List[LabelledRef]):
         total_true_positives = 0
