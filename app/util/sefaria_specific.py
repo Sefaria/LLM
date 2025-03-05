@@ -3,9 +3,12 @@ Utilities that are dependent on Sefaria Project code
 """
 
 import django
+
+
 django.setup()
 from db_manager import MongoProdigyDBManager
 from sefaria.model.text import Ref
+from sefaria.model import Passage
 from sefaria.helper.normalization import NormalizerComposer
 from sefaria.helper.llm.topic_prompt import make_topic_prompt_source
 from sefaria_llm_interface.topic_prompt import TopicPromptSource
@@ -76,3 +79,7 @@ def remove_refs_from_same_category(refs: list[Ref], max_category_count: int) -> 
             continue
         out_refs.append(ref)
     return out_refs
+
+def get_passage_refs(tref: str) -> tuple[list[Ref], str]:
+    passage = Passage().containing_segment(Ref(tref))
+    return passage.ref_list, passage.full_ref

@@ -8,9 +8,8 @@ import pickle
 import os
 from langchain_openai import OpenAIEmbeddings
 from langchain_chroma import Chroma
-from util.sefaria_specific import get_ref_text_with_fallback
+from util.sefaria_specific import get_ref_text_with_fallback, get_passage_refs
 from sefaria.model import library
-from experiments.topic_source_curation.gather.source_gatherer import _get_items_relevant_to_topic
 from sefaria.helper.llm.topic_prompt import make_llm_topic
 from sefaria_llm_interface.common.topic import Topic
 from sefaria.model.topic import Topic as SefariaTopic
@@ -18,6 +17,7 @@ from experiments.topic_source_curation.common import get_topic_str_for_prompts
 from experiments.topic_source_curation.gather.source_gatherer import _is_text_about_topic
 from util.general import run_parallel
 import optuna
+from tqdm import tqdm
 
 toc = library.get_topic_toc_json_recursive()
 
@@ -295,6 +295,37 @@ class VectorDBPredictor(Predictor):
         results = add_implied_toc_slugs(results)
         return results
 
+class ContextVectorDBPredictor(VectorDBPredictor):
+
+    def _get_wider_context_ref_list(self, tref):
+        try:
+            ref_list, full_ref = get_passage_refs(tref)
+            return ref_list + [full_ref]
+        except:
+            return [tref]
+
+    def _predict_single_ref(self, ref):
+        text = self._get_en_text_for_ref(ref)
+        docs = self._get_closest_docs_by_text_similarity(text, self.docs_num)
+        recommended_slugs = self._get_recommended_slugs_weighted_frequency_map(docs, lambda
+            score: self._euclidean_relevance_to_one_minus_sine(score, self.power_relevance_fun), ref)
+        # recommended_slugs = self._get_recommended_slugs_weighted_frequency_map(docs, lambda score: self._euclidean_relevance_to_cosine_similarity(score), ref)
+        best_slugs_sine = self._get_keys_above_mean(recommended_slugs, self.above_mean_threshold_factor)
+        llm_filtered_slugs = self._filter_irrelevent_slugs_by_llm(text, best_slugs_sine)
+        return llm_filtered_slugs
+
+    def predict(self, refs):
+        results = []
+        for ref in tqdm(refs, desc="Tagging refs"):
+            tqdm.write(f"Tagging main ref: {ref}")
+            predicted_slugs = set()
+            ref_list = self._get_wider_context_ref_list(ref)
+            for expanded_ref in tqdm(ref_list, desc="Tagging expanded refs;"):
+                tqdm.write(f"tagging expanded ref: {expanded_ref}")
+                predicted_slugs.update(self._predict_single_ref(expanded_ref))
+            results.append(LabelledRef(ref=ref, slugs=list(predicted_slugs)))
+        results = add_implied_toc_slugs(results)
+        return results
 
 class PredictorFactory:
 
