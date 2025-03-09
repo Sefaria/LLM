@@ -44,16 +44,18 @@ if __name__ == '__main__':
     gold_standard = add_implied_toc_slugs(gold_standard, considered_labels)
     refs_to_evaluate = [labelled_ref.ref for labelled_ref in gold_standard]
     plot_evaluator = EvalPlot(gold_standard, considered_labels)
-    hyperparameters = {'docs_num': 10000*10, 'above_mean_threshold_factor': 0.1, 'power_relevance_fun': 1}
+    hyperparameters = {'docs_num': 57*10, 'above_mean_threshold_factor':  0.41284215935334045, 'power_relevance_fun': 3}
     # predictor = VectorDBPredictor(".chromadb_openai", **hyperparameters)
     # predictions = predictor.predict(refs_to_evaluate)
     # plot_evaluator.plot_table(predictions)
     # print("Recall:", plot_evaluator._compute_total_recall(gold_standard, predictions))
 
     predictor = ContextVectorDBPredictor(".chromadb_openai", **hyperparameters)
+    # refs_to_evaluate = ["Shenei Luchot HaBerit, Torah Shebikhtav, Vayeshev, Miketz, Vayigash, Torah Ohr 24"]
+    # predictor = PredictorWithCacheWrapper(predictor)
     predictions = predictor.predict(refs_to_evaluate)
     plot_evaluator.plot_table(predictions)
-    print("Recall:", plot_evaluator._compute_total_recall(gold_standard, predictions))
+    print("Recall:", plot_evaluator.evaluate(predictions))
     print(predictions)
 
 

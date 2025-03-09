@@ -29,6 +29,7 @@ toc = library.get_topic_toc_json_recursive()
 class LabelledRef:
     ref: str
     slugs: List[str]
+
     def __repr__(self):
         return f"LabelledRef(ref='{self.ref}', slugs={self.slugs})"
 
@@ -125,8 +126,8 @@ def filter_topics_relevant_to_text(text: str, topics: list[Topic], verbose=True)
     topic_descriptions = []
     for topic in topics:
         topic_descriptions += [get_topic_str_for_prompts(topic, verbose=False)]
-    unit_func = partial(_is_text_about_topic, text=text)
-    is_about_text_list = run_parallel(topic_descriptions, unit_func, 100,
+    unit_func = partial(_is_text_about_topic, text=text, connections_between_text_and_topic=["is about", "mentions implicitly or explicitly"])
+    is_about_text_list = run_parallel(topic_descriptions, unit_func, 50,
                                        desc="filter irrelevant topics", disable=not verbose)
     filtered_items = []
     if verbose:
@@ -238,6 +239,47 @@ class Predictor:
     def predict(self, refs):
         pass
 
+# class PredictorWithCacheWrapper:
+#     def __init__(self, predictor, cache_file="predictions_cache.json"):
+#         self.predictor = predictor
+#         self.cache_file = cache_file
+#         self._load_cache()
+#
+#     def _load_cache(self):
+#         if os.path.exists(self.cache_file):
+#             with open(self.cache_file, "r", encoding="utf-8") as f:
+#                 try:
+#                     self.cache = json.load(f)
+#                 except json.JSONDecodeError:
+#                     self.cache = {}
+#         else:
+#             self.cache = {}
+#
+#     def _save_cache(self):
+#         with open(self.cache_file, "w", encoding="utf-8") as f:
+#             json.dump(self.cache, f, ensure_ascii=False, indent=2)
+#
+#     def __getattr__(self, name):
+#         return getattr(self.predictor, name)
+#
+#     def predict(self, refs):
+#         results = []
+#         refs_to_predict = []
+#
+#         for ref in refs:
+#             if ref in self.cache:
+#                 tqdm.write(f"Loading cached prediction for: {ref}")
+#                 results.append(self.cache[ref])
+#             else:
+#                 refs_to_predict.append(ref)
+#
+#         if refs_to_predict:
+#             for ref in refs_to_predict:
+#                 prediction = self.predictor.predict([ref])
+#                 results.append(prediction)
+#                 self.cache[ref] = prediction
+#                 self._save_cache()
+#         return results
 
 class InRAMPredictor(Predictor):
 
@@ -270,7 +312,7 @@ class VectorDBPredictor(Predictor):
         docs = self._get_all_similar_docs(query)
         return docs[:k]
 
-    @ref_to_text_memoizer.memoize
+    # @ref_to_text_memoizer.memoize
     def _get_en_text_for_ref(self, ref):
         text = get_ref_text_with_fallback(ref, 'en', auto_translate=True)
         return text
@@ -346,9 +388,9 @@ class Evaluator:
     def evaluate(self, predictions: List[LabelledRef]):
         predictions = self._get_projection_of_labelled_refs(predictions)
         refs_in_pred = [lr.ref for lr in predictions]
-        refs_in_gold = [lr.ref for lr in gold_standard]
+        refs_in_gold = [lr.ref for lr in self.gold_standard]
         predictions_filtered = [lr for lr in predictions if lr.ref in refs_in_gold]
-        gold_filtered = [lr for lr in gold_standard if lr.ref in refs_in_pred]
+        gold_filtered = [lr for lr in self.gold_standard if lr.ref in refs_in_pred]
         result = self._compute_total_recall(gold_filtered, predictions_filtered)
         return result
 

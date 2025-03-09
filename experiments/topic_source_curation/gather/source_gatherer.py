@@ -311,11 +311,12 @@ def _get_items_relevant_to_topic(items: list[Any], key: Callable[[Any], str], to
         print('after filtering: ', len(filtered_items))
     return filtered_items
 
-def _is_text_about_topic(topic_description, text):
+def _is_text_about_topic(topic_description, text, connections_between_text_and_topic=["is about"]):
     llm = ChatOpenAI(model='gpt-4o', temperature=0)
-    system = SystemMessage(content="You are a Jewish scholar. Given a topic description wrapped in <topic> and a text, "
-                                   "wrapped in <text>, output 'Yes' if <text> is about <topic> and 'No' if <text> is "
-                                   "not about <topic>. Wrap output in <answer> tags.")
+    connection_conditions = " or ".join(f"if <topic> {conn} <text>" for conn in connections_between_text_and_topic)
+    system = SystemMessage(content=f"You are a Jewish scholar. Given a topic description wrapped in <topic> and a text "
+                                   f"wrapped in <text>, output 'Yes' {connection_conditions}, and 'No' otherwise. "
+                                   "Wrap the output in <answer> tags.")
     human = HumanMessage(content=f"<topic>{topic_description}</topic>\n<text>{text}</text>")
     try:
         response = llm([system, human])
