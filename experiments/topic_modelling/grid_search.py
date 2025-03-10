@@ -18,6 +18,7 @@ from experiments.topic_source_curation.gather.source_gatherer import _is_text_ab
 from util.general import run_parallel
 import optuna
 from tqdm import tqdm
+from collections import Counter
 
 toc = library.get_topic_toc_json_recursive()
 
@@ -301,6 +302,18 @@ class VectorDBPredictor(Predictor):
         self.vector_db = Chroma(persist_directory=vector_db_dir, embedding_function=embeddings)
 
 
+    def _count_slug_appearances(self):
+        all_docs = self.vector_db.get()
+        slug_counts = Counter()
+        for metadata in all_docs['metadatas']:  # Assuming docs is a list of (Document, score) tuples
+            slugs = metadata['Slugs']
+            if slugs:
+                for slug in slugs.split('$'):
+                    if slug == "":
+                        continue
+                    slug_counts[slug] += 1
+
+        return dict(slug_counts)
     @vector_queries_memoizer.memoize
     def _get_all_similar_docs(self, query):
         docs = self.vector_db.similarity_search_with_relevance_scores(
@@ -339,22 +352,50 @@ class VectorDBPredictor(Predictor):
 
 class ContextVectorDBPredictor(VectorDBPredictor):
 
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.total_frequency_map = self._count_slug_appearances()
+        self.slugs_frequency_partitions = self._partition_slugs_by_frequency()
+
+    def _partition_slugs_by_frequency(self):
+        slug_counts = self.total_frequency_map
+        # Step 1: Sort slugs by frequency (descending order)
+        sorted_slugs = sorted(slug_counts.items(), key=lambda x: x[1], reverse=True)
+
+        # Step 2: Determine the number of sets
+        num_sets = max(1, int(math.sqrt(len(slug_counts))))  # Ensure at least 1 set
+
+        # Step 3: Initialize sets
+        partitions = [set() for _ in range(num_sets)]
+
+        # Step 4: Distribute slugs into sets (round-robin fashion)
+        for i, (slug, count) in enumerate(sorted_slugs):
+            partitions[i % num_sets].add(slug)
+
+        return partitions
+
     def _get_wider_context_ref_list(self, tref):
         try:
             ref_list, full_ref = get_passage_refs(tref)
-            return ref_list + [full_ref]
+            # return ref_list + [full_ref]
+            return [full_ref, tref]
         except:
             return [tref]
 
     def _predict_single_ref(self, ref):
         text = self._get_en_text_for_ref(ref)
         docs = self._get_closest_docs_by_text_similarity(text, self.docs_num)
-        recommended_slugs = self._get_recommended_slugs_weighted_frequency_map(docs, lambda
-            score: self._euclidean_relevance_to_one_minus_sine(score, self.power_relevance_fun), ref)
-        # recommended_slugs = self._get_recommended_slugs_weighted_frequency_map(docs, lambda score: self._euclidean_relevance_to_cosine_similarity(score), ref)
-        best_slugs_sine = self._get_keys_above_mean(recommended_slugs, self.above_mean_threshold_factor)
-        llm_filtered_slugs = self._filter_irrelevent_slugs_by_llm(text, best_slugs_sine)
-        return llm_filtered_slugs
+        result = []
+        for slugs_partition in self.slugs_frequency_partitions:
+            all_recommended_slugs = self._get_recommended_slugs_weighted_frequency_map(docs, lambda
+                score: self._euclidean_relevance_to_one_minus_sine(score, self.power_relevance_fun), ref)
+            recommended_slugs = {slug: all_recommended_slugs[slug] for slug in all_recommended_slugs if slug in slugs_partition}
+            # recommended_slugs = self._get_recommended_slugs_weighted_frequency_map(docs, lambda score: self._euclidean_relevance_to_cosine_similarity(score), ref)
+            best_slugs_sine = self._get_keys_above_mean(recommended_slugs, self.above_mean_threshold_factor)
+            # llm_filtered_slugs = self._filter_irrelevent_slugs_by_llm(text, best_slugs_sine)
+            result += best_slugs_sine
+        return best_slugs_sine
 
     def predict(self, refs):
         results = []
