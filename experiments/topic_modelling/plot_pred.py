@@ -51,11 +51,12 @@ if __name__ == '__main__':
     # print("Recall:", plot_evaluator._compute_total_recall(gold_standard, predictions))
 
     predictor = ContextVectorDBPredictor(".chromadb_openai", **hyperparameters)
-    # refs_to_evaluate = ["Shenei Luchot HaBerit, Torah Shebikhtav, Vayeshev, Miketz, Vayigash, Torah Ohr 24"]
+    # refs_to_evaluate = ["Abudarham, Fasts, Prayers 35"]
     # predictor = PredictorWithCacheWrapper(predictor)
     predictions = predictor.predict(refs_to_evaluate)
     plot_evaluator.plot_table(predictions)
-    print("Recall:", plot_evaluator.evaluate(predictions))
+    print("Recall:", plot_evaluator.get_total_recall(predictions))
+    print("Precision:", plot_evaluator.get_total_precision(predictions))
     print(predictions)
 
 

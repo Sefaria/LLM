@@ -391,11 +391,14 @@ class ContextVectorDBPredictor(VectorDBPredictor):
             all_recommended_slugs = self._get_recommended_slugs_weighted_frequency_map(docs, lambda
                 score: self._euclidean_relevance_to_one_minus_sine(score, self.power_relevance_fun), ref)
             recommended_slugs = {slug: all_recommended_slugs[slug] for slug in all_recommended_slugs if slug in slugs_partition}
-            # recommended_slugs = self._get_recommended_slugs_weighted_frequency_map(docs, lambda score: self._euclidean_relevance_to_cosine_similarity(score), ref)
             best_slugs_sine = self._get_keys_above_mean(recommended_slugs, self.above_mean_threshold_factor)
-            # llm_filtered_slugs = self._filter_irrelevent_slugs_by_llm(text, best_slugs_sine)
             result += best_slugs_sine
-        return best_slugs_sine
+        ###without partitioning:
+        # all_recommended_slugs = self._get_recommended_slugs_weighted_frequency_map(docs, lambda
+        #     score: self._euclidean_relevance_to_one_minus_sine(score, self.power_relevance_fun), ref)
+        # best_slugs_sine = self._get_keys_above_mean(all_recommended_slugs, self.above_mean_threshold_factor)
+        # result = best_slugs_sine
+        return result
 
     def predict(self, refs):
         results = []
@@ -433,6 +436,23 @@ class Evaluator:
         predictions_filtered = [lr for lr in predictions if lr.ref in refs_in_gold]
         gold_filtered = [lr for lr in self.gold_standard if lr.ref in refs_in_pred]
         result = self._compute_total_recall(gold_filtered, predictions_filtered)
+        return result
+    def get_total_recall(self, predictions: List[LabelledRef]):
+        predictions = self._get_projection_of_labelled_refs(predictions)
+        refs_in_pred = [lr.ref for lr in predictions]
+        refs_in_gold = [lr.ref for lr in self.gold_standard]
+        predictions_filtered = [lr for lr in predictions if lr.ref in refs_in_gold]
+        gold_filtered = [lr for lr in self.gold_standard if lr.ref in refs_in_pred]
+        result = self._compute_total_recall(gold_filtered, predictions_filtered)
+        return result
+
+    def get_total_precision(self, predictions: List[LabelledRef]):
+        predictions = self._get_projection_of_labelled_refs(predictions)
+        refs_in_pred = [lr.ref for lr in predictions]
+        refs_in_gold = [lr.ref for lr in self.gold_standard]
+        predictions_filtered = [lr for lr in predictions if lr.ref in refs_in_gold]
+        gold_filtered = [lr for lr in self.gold_standard if lr.ref in refs_in_pred]
+        result = self._compute_total_precision(gold_filtered, predictions_filtered)
         return result
 
     def _get_projection_of_labelled_refs(self, lrs :List[LabelledRef]) -> List[LabelledRef]:
