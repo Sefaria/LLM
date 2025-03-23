@@ -241,7 +241,11 @@ class TopicPageSourceGetter:
 
     @staticmethod
     def get(topic: Topic) -> list[TopicPromptSource]:
-        return [make_topic_prompt_source(Ref(tref), '', with_commentary=False) for tref in get_top_trefs_from_slug(topic.slug, None)]
+        trefs = set(get_top_trefs_from_slug(topic.slug, None))
+        sources = [make_topic_prompt_source(Ref(tref), '', with_commentary=False) for tref in trefs]
+        seg_refs = reduce(lambda x, y: x + Ref(y.ref).all_segment_refs(), sources, [])
+        segment_level_sources = [make_topic_prompt_source(seg_ref, '', with_commentary=False) for seg_ref in seg_refs if seg_ref.normal() not in trefs]
+        return sources + segment_level_sources
 
 
 def filter_subset_refs(orefs: list[Ref]) -> list[Ref]:
