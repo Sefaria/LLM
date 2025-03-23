@@ -12,7 +12,7 @@ def hash_doc(mongo_doc, include_spans=True):
     return hash((
         mongo_doc['text'],
         mongo_doc['meta']['Ref'],
-        tuple(hash_span(span) for span in mongo_doc['spans']) if include_spans else None
+        tuple(hash_span(span) for span in sorted(mongo_doc['spans'], key=lambda span: span['start'])) if include_spans else None
     ))
 
 
@@ -51,9 +51,13 @@ if __name__ == '__main__':
         if modified_hash not in hashed_original:
             diff_docs += [modified_doc]
             modified_hash_wo_spans = hash_doc(modified_doc, include_spans=False)
-            num_diff_spans += get_num_diff_spans(hashed_original_wo_spans[modified_hash_wo_spans], modified_doc)
+            try:
+                num_diff_spans += get_num_diff_spans(hashed_original_wo_spans[modified_hash_wo_spans], modified_doc)
+            except KeyError:
+                print('key error')
 
     my_db = MongoProdigyDBManager(args.output_collection)
+    my_db.output_collection.delete_many({})
     my_db.output_collection.bulk_write([InsertOne(d) for d in diff_docs])
     print("Accuracy:", (total_spans-num_diff_spans)/total_spans)
 
