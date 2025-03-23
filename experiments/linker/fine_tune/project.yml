@@ -2,19 +2,19 @@ vars:
   script_dir: "../../../app/util/fine_tune"
   base_model: "gpt-4o-mini-2024-07-18"
 #  base_model: "davinci-002"
-#  input_collection: "rishonim_output_gold"
-  input_collection: "ner_en_gpt_gold"
+  input_collection: "rishonim_output_gold"
+#  input_collection: "ner_en_gpt_gold_sub_citation_merged"
 #  output_model_suffix: "en-entity-class"
-  output_model_suffix: "en-ner"
-  ner_task: "ref-part"
+#  output_model_suffix: "en-ref-part"
+  ner_task: "ref-people"
 #  output_model_suffix: "he-ner"
-#  output_model_suffix: "he-entity-class"
+  output_model_suffix: "he-entity-class"
 env:
   openai_api_key: OPENAI_API_KEY
 workflows:
   all:
-    - create_citation_ner_training
-#    - create_citation_classification_training
+#    - create_citation_ner_training
+    - create_citation_classification_training
     - upload_files
     - create_fine_tune
 
