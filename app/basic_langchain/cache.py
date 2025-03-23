@@ -50,6 +50,31 @@ def _get_query__values(cache_type, instance, messages):
 
 
 
+# def sqlite_cache(cache_type):
+#     """
+#     :param cache_type: valid types are 'chat', 'embedding'
+#     """
+#     def decorator_sqlite_cache(func):
+#         @wraps(func)
+#         def wrapper(self, messages: list):
+#             connection = sqlite3.connect('.llm_cache.db')
+#             cursor = connection.cursor()
+#             query, values, insert_query = _get_query__values(cache_type, self, messages)
+#             cursor.execute(query, values)
+#             cached_response = cursor.fetchone()
+#
+#             if cached_response and False:
+#                 response = pickle.loads(cached_response[0])
+#             else:
+#                 response = func(self, messages)
+#                 insert_values = tuple(list(values) + [pickle.dumps(response)])
+#                 cursor.execute(insert_query, insert_values)
+#                 connection.commit()
+#
+#             connection.close()
+#             return response
+#         return wrapper
+#     return decorator_sqlite_cache
 def sqlite_cache(cache_type):
     """
     :param cache_type: valid types are 'chat', 'embedding'
@@ -57,7 +82,8 @@ def sqlite_cache(cache_type):
     def decorator_sqlite_cache(func):
         @wraps(func)
         def wrapper(self, messages: list):
-            connection = sqlite3.connect('.llm_cache.db')
+            # Create a new connection for each thread
+            connection = sqlite3.connect('.llm_cache.db', check_same_thread=False)
             cursor = connection.cursor()
             query, values, insert_query = _get_query__values(cache_type, self, messages)
             cursor.execute(query, values)

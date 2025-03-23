@@ -8,12 +8,6 @@ from anthropic import BadRequestError
 random.seed(26)
 
 
-# def translate_segment(tref: str, context: str = None):
-#     oref = Ref(tref)
-#     text = get_normalized_ref_text(oref, 'he')
-#     return translate_text(text, context)
-
-
 def translate_text(text: str, context: str = None):
     context_prompt = "Context is provided in <context> tags. Use context to provide context to <input> " \
                      "text. Don't translate <context>. Only translate <input> text. "

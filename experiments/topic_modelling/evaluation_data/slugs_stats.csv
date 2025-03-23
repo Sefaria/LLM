@@ -1,0 +1,1335 @@
+,false_positive_refs,true_positive_refs,false_positive_num,false_negative_refs,true_positive_num,false_negative_num
+rabi,[],[],0,[],0,0
+ashur,[],['https://www.sefaria.org.il/Sanhedrin.94b.12'],0,[],1,0
+laws-of-immersion,[],['https://www.sefaria.org.il/Tosefta_Mikvaot.6.5'],0,[],1,0
+laws-of-gifts-to-the-priesthood,[],[],0,[],0,0
+laws-of-appraisals-of-people-and-their-value,[],[],0,[],0,0
+myrtles,[],[],0,"['https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18']",0,1
+horses,[],[],0,[],0,0
+dates,[],[],0,[],0,0
+rav-zera,[],[],0,['https://www.sefaria.org.il/Taanit.7a.6'],0,1
+laws-of-shaving-and-sacrifices-of-the-nazirite,[],[],0,[],0,0
+midian,[],[],0,[],0,0
+music,['https://www.sefaria.org.il/Sotah.27b.11-12'],"[""https://www.sefaria.org.il/Zohar,_Ha'Azinu.5.20""]",1,"['https://www.sefaria.org.il/II_Samuel.22.1', 'https://www.sefaria.org.il/Pesachim.117a.13-14']",1,2
+flour,['https://www.sefaria.org.il/Sefer_Chasidim.953.1'],[],1,"['https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Tosefta_Mikvaot.6.5']",0,3
+laws-of-preventative-separations,"['https://www.sefaria.org.il/Bach,_Even_HaEzer.6.10.1']",[],1,[],0,0
+giving-of-the-torah,[],"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Shemot_Rabbah.28.2']",0,"['https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",2,1
+cities,[],[],0,[],0,0
+the-throne-of-glory,[],[],0,[],0,0
+laws-of-those-that-transmit-impurity-via-beds-and-seats,[],[],0,['https://www.sefaria.org.il/Mishnah_Kelim.1.4'],0,1
+jacob,['https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2'],"['https://www.sefaria.org.il/Sforno_on_Genesis.35.10.1', 'https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Vayishlach.6.2', 'https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Vayeshev,_Miketz,_Vayigash,_Torah_Ohr.24']",1,"['https://www.sefaria.org.il/Berakhot.62b.14-16', 'https://www.sefaria.org.il/Rashi_on_Genesis.25.27.1-28.1', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Radak_on_Genesis.27.19.1']",3,4
+hannah,[],[],0,[],0,0
+joseph,[],"['https://www.sefaria.org.il/Genesis.42.19', 'https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Vayeshev,_Miketz,_Vayigash,_Torah_Ohr.24']",0,"['https://www.sefaria.org.il/Panekha_Avakesh.18.44', 'https://www.sefaria.org.il/On_Dreams,_Book_II.16.1']",2,2
+four-cups,[],[],0,[],0,0
+laws-of-kidnapping,[],[],0,"['https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13']",0,1
+laws-of-lost-objects,[],[],0,[],0,0
+non-jews,[],['https://www.sefaria.org.il/Bava_Batra.45a.6'],0,"[""https://www.sefaria.org.il/Shulchan_Arukh,_Yoreh_De'ah.124.17"", 'https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/II_Chronicles.2.2', 'https://www.sefaria.org.il/Sforno_on_Genesis.35.10.1', 'https://www.sefaria.org.il/Mishnah_Avodah_Zarah.1.8', 'https://www.sefaria.org.il/Tamid.27b.7', 'https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3', 'https://www.sefaria.org.il/Mishneh_Torah,_Tefillin,_Mezuzah_and_the_Torah_Scroll.10.8', 'https://www.sefaria.org.il/Ketubot.111a.19', 'https://www.sefaria.org.il/Ketubot.66b.13']",1,11
+oaths,[],"[""https://www.sefaria.org.il/Shulchan_Arukh,_Yoreh_De'ah.236.1-2""]",0,['https://www.sefaria.org.il/Sefer_Chasidim.953.1'],1,1
+twelve-tribes,['https://www.sefaria.org.il/Deuteronomy.3.15'],[],1,[],0,0
+batsheva3,[],[],0,[],0,0
+kal-vechomer,[],[],0,[],0,0
+laws-of-robbery,[],[],0,[],0,0
+covenant-with-the-patriarchs,[],[],0,['https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38'],0,1
+forbidden-incineration,[],[],0,[],0,0
+abner,[],[],0,[],0,0
+laws-of-fowl-sacrifice-disqualifications,[],[],0,[],0,0
+ones,[],[],0,[],0,0
+micah,[],[],0,[],0,0
+hunger,[],[],0,"['https://www.sefaria.org.il/Sanhedrin.94b.12', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1', 'https://www.sefaria.org.il/Genesis.42.19', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",0,4
+edom,[],[],0,['https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3'],0,1
+malachi,[],[],0,[],0,0
+syag,[],[],0,[],0,0
+souls1,"['https://www.sefaria.org.il/Eight_Chapters.3.3', 'https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10', 'https://www.sefaria.org.il/Machzor_Yom_Kippur_Ashkenaz_Linear,_Neilah;_Concluding_Service,_Sanctification_of_the_Day.230']","['https://www.sefaria.org.il/Sefer_HaIkkarim,_Maamar_4.35.2']",3,"['https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14']",1,3
+asa,[],[],0,[],0,0
+shekhinah,"['https://www.sefaria.org.il/Pesachim.117a.13-14', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1']",[],2,"['https://www.sefaria.org.il/Tikkunei_Zohar.36b.3', 'https://www.sefaria.org.il/Berakhot.30a.8-9', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14', 'https://www.sefaria.org.il/Sefer_HaIkkarim,_Maamar_4.35.2']",0,4
+workers,[],[],0,['https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3'],0,1
+laws-of-agents,[],[],0,"['https://www.sefaria.org.il/Teshuvot_Maharit,_I.63.1']",0,1
+moab,[],[],0,[],0,0
+laws-of-the-torah-scroll,"['https://www.sefaria.org.il/Mishneh_Torah,_Tefillin,_Mezuzah_and_the_Torah_Scroll.10.8']",[],1,[],0,0
+students,['https://www.sefaria.org.il/Berakhot.31a.13'],[],1,[],0,0
+hate,[],[],0,['https://www.sefaria.org.il/Leviticus.19.17'],0,1
+the-patriarchs,"['https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']",[],2,"['https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Vayishlach.6.2', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Radak_on_Genesis.27.19.1']",0,4
+hilchot-demai,[],[],0,[],0,0
+kindness,"['https://www.sefaria.org.il/Berakhot.31a.13', 'https://www.sefaria.org.il/Reshit_Chokhmah,_Gate_of_Fear.8.28']",['https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1'],2,"['https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1']",1,3
+ruth,[],[],0,[],0,0
+hilchot-kiddush-vehavdalah,[],[],0,[],0,0
+laws-of-eating-the-priestly-tithe,[],[],0,['https://www.sefaria.org.il/Mishnah_Terumot.5.9'],0,1
+mourning,[],[],0,"[""https://www.sefaria.org.il/Sha'ar_HaMitzvot,_Vayechi.18""]",0,1
+hilchot-neta-revai-veorlah,[],[],0,[],0,0
+conversion,[],[],0,['https://www.sefaria.org.il/Tosefta_Mikvaot.6.5'],0,1
+expertise,[],[],0,['https://www.sefaria.org.il/Eight_Chapters.3.3'],0,1
+burial,[],[],0,['https://www.sefaria.org.il/Berakhot.18b.7-9'],0,1
+benjamin,[],[],0,[],0,0
+trust,"['https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11']",[],1,"['https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Numbers.11.18-20', 'https://www.sefaria.org.il/Deuteronomy.18.14-15', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Exodus.6.6-7', 'https://www.sefaria.org.il/Genesis.42.19']",0,7
+laws-of-the-poor-tithe,[],[],0,[],0,0
+jacobs-oath,[],[],0,"[""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1""]",0,1
+laws-of-selling-ancestral-fields,[],[],0,[],0,0
+sacrifices-in-the-desert,['https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1'],[],1,['https://www.sefaria.org.il/Chagigah.6a.15'],0,1
+moses-birth,[],[],0,[],0,0
+laws-of-measures-and-weights,[],[],0,[],0,0
+laws-of-an-ox-that-kills-a-person,[],[],0,[],0,0
+financial-ramifications-of-marriage,[],[],0,"['https://www.sefaria.org.il/Shoel_uMeshiv_Mahadura_I.2.139.7', 'https://www.sefaria.org.il/Ketubot.66b.13']",0,2
+laws-of-reaping-on-shabbat,[],[],0,['https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20'],0,1
+yom-tov,[],[],0,[],0,0
+joash-(king-of-judah),[],[],0,[],0,0
+main-and-sub-categories-of-work,[],[],0,[],0,0
+the-four-rivers,[],[],0,[],0,0
+david-and-the-temple,[],[],0,['https://www.sefaria.org.il/II_Chronicles.2.2'],0,1
+laws-of-false-witnesses-and-colluding-witnesses,[],[],0,[],0,0
+modesty,[],[],0,"['https://www.sefaria.org.il/Rashi_on_Deuteronomy.22.5.1-3', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1']",0,2
+lions,[],[],0,[],0,0
+tzitzit,[],"['https://www.sefaria.org.il/Maaseh_Rokeach_on_Mishnah,_Seder_Nezikin,_Bava_Metzia.12']",0,['https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10'],1,1
+destruction-of-jerusalem,[],['https://www.sefaria.org.il/Taanit.29a.1-17'],0,[],1,0
+reuben,[],[],0,[],0,0
+naaman,[],[],0,[],0,0
+yitro,[],[],0,['https://www.sefaria.org.il/Berakhot.63b.12-64a.3'],0,1
+comfort,[],[],0,[],0,0
+dinei-techum-shabbat,[],[],0,[],0,0
+technology,"['https://www.sefaria.org.il/Gray_Matter_IV,_Technology,_Closing_a_Website_for_Shabbat_and_Yom_Tov.23']",[],1,[],0,0
+isaac-and-esau,[],['https://www.sefaria.org.il/Radak_on_Genesis.27.19.1'],0,"['https://www.sefaria.org.il/Rashi_on_Genesis.25.27.1-28.1', 'https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Vayishlach.6.2']",1,2
+neshama,[],[],0,"['https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14', 'https://www.sefaria.org.il/Sefer_HaIkkarim,_Maamar_4.35.2']",0,4
+candles,[],[],0,[],0,0
+laws-of-the-impurity-of-garments,[],[],0,[],0,0
+garden-of-eden,[],[],0,[],0,0
+rabbi-shimon-b-lakish,[],[],0,[],0,0
+rosh-hashanah,[],"['https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,[],1,0
+laws-of-impurity-of-tombs-and-burial,[],[],0,[],0,0
+aarons-death,[],[],0,[],0,0
+moses-prayer-after-the-sin-of-the-spies,[],[],0,[],0,0
+ownership,"['https://www.sefaria.org.il/Teshuvot_Maharit,_I.63.1', 'https://www.sefaria.org.il/Ahavat_David.14.55']",[],2,"['https://www.sefaria.org.il/Bava_Batra.45a.6', 'https://www.sefaria.org.il/Gittin.12b.12', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1', 'https://www.sefaria.org.il/Mishnah_Bava_Metzia.5.5', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8']",0,5
+jacobs-dream,"['https://www.sefaria.org.il/On_Dreams,_Book_II.16.1']",[],1,[],0,0
+pillar-of-cloud,[],['https://www.sefaria.org.il/Ramban_on_Exodus.13.21.1'],0,[],1,0
+altars,[],[],0,"['https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1']",0,2
+laws-of-the-impurity-of-a-metsora-and-his-purification,[],[],0,['https://www.sefaria.org.il/Mishnah_Kelim.1.4'],0,1
+laws-of-acceptance-of-testimony,"['https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Matot,_Masei,_Devarim,_Ner_Mitzvah.10']",[],1,[],0,0
+donations-for-the-tabernacle,[],[],0,[],0,0
+disability,[],[],0,[],0,0
+rabbi-yehoshua-b-levi,[],[],0,['https://www.sefaria.org.il/Berakhot.9a.4'],0,1
+wars,[],['https://www.sefaria.org.il/Jeremiah.48.14'],0,"['https://www.sefaria.org.il/Sanhedrin.94b.12', 'https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Vayishlach.6.2', 'https://www.sefaria.org.il/Rashi_on_II_Samuel.5.24.1-2']",1,3
+abraham-in-ur-kasdim-and-his-departure-from-there,[],[],0,[],0,0
+laws-of-fasts,[],[],0,"['https://www.sefaria.org.il/Abudarham,_Fasts,_Prayers.35']",0,1
+outside-of-israel,[],['https://www.sefaria.org.il/Shir_HaShirim_Rabbah.1.6.5'],0,['https://www.sefaria.org.il/Deuteronomy.3.15'],1,1
+shalom-bayit,[],[],0,[],0,0
+eruv,[],[],0,[],0,0
+humility,[],[],0,"['https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6']",0,3
+laws-of-comforting-the-mourners,[],[],0,[],0,0
+laws-of-selling-property-in-a-walled-city,[],[],0,[],0,0
+laws-of-litigant-oaths,[],[],0,[],0,0
+torah-study,[],"['https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6']",0,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Chagigah.12b.9', 'https://www.sefaria.org.il/Teshuvot_Maharit,_I.63.1', 'https://www.sefaria.org.il/Avodah_Zarah.35a.7', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Torah.771.2-3']",3,9
+gun-control,[],[],0,[],0,0
+uzziah,[],[],0,[],0,0
+ammon,[],[],0,[],0,0
+laws-of-setting-the-months-and-leap-years,[],[],0,[],0,0
+teshuvah,[],['https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13'],0,"['https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Ahavat_David.14.55', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",1,7
+kashrut,"['https://www.sefaria.org.il/HaElef_Lekha_Shlomo,_Yoreh_Deah.122.1']",['https://www.sefaria.org.il/The_Antiquities_of_the_Jews.10.10.2'],1,[],1,0
+chasidut,[],[],0,[],0,0
+noah-and-the-vineyard,[],[],0,"['https://www.sefaria.org.il/Maaseh_Rokeach_on_Mishnah,_Seder_Nezikin,_Bava_Metzia.12']",0,1
+work,[],['https://www.sefaria.org.il/Sefer_Chasidim.953.1'],0,"['https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Book_of_Jubilees.2.33', 'https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3', 'https://www.sefaria.org.il/Proverbs.26.14']",1,4
+lot,[],[],0,[],0,0
+laws-of-canaanite-gentile-slaves,[],[],0,"['https://www.sefaria.org.il/Gittin.12b.12', 'https://www.sefaria.org.il/Sefat_Emet,_Genesis,_Chayei_Sara.19.4']",0,2
+pluralism,[],[],0,[],0,0
+trees,[],['https://www.sefaria.org.il/Taanit.7a.6'],0,"['https://www.sefaria.org.il/Gittin.68a.10', 'https://www.sefaria.org.il/Chagigah.12b.9', 'https://www.sefaria.org.il/II_Chronicles.2.2', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Torah.771.2-3', 'https://www.sefaria.org.il/Rashi_on_II_Samuel.5.24.1-2']",1,6
+laws-of-the-impurity-of-earthenware-vessels,[],['https://www.sefaria.org.il/Mishnah_Kelim.4.1'],0,[],1,0
+thanks,[],['https://www.sefaria.org.il/Vayikra_Rabbah.30.5'],0,"['https://www.sefaria.org.il/II_Samuel.22.1', 'https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/LaKelal_VeLaPerat,_Volume_I,_3_The_Holy_Land.13.8', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Mishnah_Menachot.2.3', 'https://www.sefaria.org.il/Deuteronomy.8.7-10']",1,6
+song-of-the-sea1,"[""https://www.sefaria.org.il/Zohar,_Ha'Azinu.5.20""]",['https://www.sefaria.org.il/Sotah.27b.11-12'],1,"['https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",1,1
+zion,['https://www.sefaria.org.il/Taanit.29a.1-17'],[],1,['https://www.sefaria.org.il/Berakhot.30a.8-9'],0,1
+hilchot-kiddushin,[],[],0,['https://www.sefaria.org.il/Ahavat_David.14.55'],0,1
+general-laws-of-prohibited-work-on-shabbat,[],[],0,"['https://www.sefaria.org.il/Book_of_Jubilees.2.33', 'https://www.sefaria.org.il/Gray_Matter_IV,_Technology,_Closing_a_Website_for_Shabbat_and_Yom_Tov.23', 'https://www.sefaria.org.il/Devarim_Rabbah.3.1', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.9.7.7']",0,5
+laws-of-contracts-and-guarantors,[],[],0,[],0,0
+friendship,[],['https://www.sefaria.org.il/Mesillat_Yesharim.5.25'],0,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Berakhot.31a.13']",1,2
+amen,[],[],0,[],0,0
+the-four-expressions-of-redemption,[],[],0,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Exodus.6.6-7']",0,2
+the-four-parshiot,[],[],0,[],0,0
+gideon,[],[],0,[],0,0
+inclusion,[],[],0,[],0,0
+physicians,[],"['https://www.sefaria.org.il/Gittin.12b.12', 'https://www.sefaria.org.il/Berakhot.60a.28-29']",0,[],2,0
+gehinnom,[],[],0,['https://www.sefaria.org.il/Berakhot.28b.1-11'],0,1
+dinei-hallel,[],[],0,"['https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Sotah.27b.11-12']",0,2
+olam-haba,"['https://www.sefaria.org.il/Ketubot.111a.19', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']",['https://www.sefaria.org.il/Berakhot.28b.1-11'],2,"['https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",1,2
+abraham,[],['https://www.sefaria.org.il/Genesis.20.15-18'],0,"['https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Vayishlach.6.2', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Sefat_Emet,_Genesis,_Chayei_Sara.19.4', 'https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Ketubot.111a.19', 'https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Vayeshev,_Miketz,_Vayigash,_Torah_Ohr.24']",1,6
+mashiach,[],[],0,"['https://www.sefaria.org.il/Panekha_Avakesh.18.44', 'https://www.sefaria.org.il/Vayikra_Rabbah.30.5']",0,2
+positive-and-negative-commandments,[],[],0,[],0,0
+intention-and-interpretation-of-vows,[],[],0,[],0,0
+dinei-bikkurim,[],[],0,[],0,0
+nahum-of-gamzo,[],[],0,[],0,0
+hashgacha,[],[],0,"['https://www.sefaria.org.il/Berakhot.62b.14-16', 'https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Berakhot.60a.28-29', 'https://www.sefaria.org.il/Kalach_Pitchei_Chokhmah.115.8']",0,4
+shiva,[],[],0,[],0,0
+cains-sacrifice,[],[],0,[],0,0
+rabbi-yohanan-hasandlar,[],[],0,[],0,0
+laws-of-vessel-attachments,[],[],0,[],0,0
+neshama1,[],[],0,"['https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10']",0,1
+laws-of-purim,[],[],0,"['https://www.sefaria.org.il/Shulchan_Arukh,_Orach_Chayim.696.8']",0,1
+good,[],[],0,"['https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10', 'https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/Mesillat_Yesharim.5.25', 'https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",0,7
+education,[],[],0,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Rashi_on_Genesis.25.27.1-28.1', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Isaiah.58.1-2']",0,6
+sin-and-punishment-of-the-serpent,[],[],0,"['https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14']",0,2
+showbread,[],[],0,['https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2'],0,1
+dances1,[],[],0,[],0,0
+psychology,"['https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1']",[],1,['https://www.sefaria.org.il/Eight_Chapters.3.3'],0,1
+chanukkah,[],[],0,[],0,0
+fast-of-gedaliah,[],[],0,[],0,0
+yoav,[],[],0,[],0,0
+naomi,[],[],0,[],0,0
+shechem,[],[],0,[],0,0
+laws-of-grinding-on-shabbat,[],[],0,['https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20'],0,1
+physicality,[],[],0,['https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38'],0,1
+caleb,[],[],0,[],0,0
+sin-of-the-spies,[],[],0,['https://www.sefaria.org.il/Taanit.29a.1-17'],0,1
+hilchot-tsitsit,[],[],0,['https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10'],0,1
+bedikat-chametz-biur-chametz,[],[],0,[],0,0
+sennacherib,[],['https://www.sefaria.org.il/Sanhedrin.94b.12'],0,[],1,0
+samael,[],[],0,[],0,0
+the-great-assembly,[],[],0,[],0,0
+wealth,"['https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Ketubot.66b.13', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']",['https://www.sefaria.org.il/Deuteronomy.8.7-10'],3,"['https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",1,3
+astronomy,[],['https://www.sefaria.org.il/Eruvin.56a.5-7'],0,[],1,0
+calculation-principles-for-setting-the-months-and-years,[],[],0,[],0,0
+prophecy-of-abraham,[],[],0,[],0,0
+moses-and-the-priesthood,[],[],0,[],0,0
+shmuel-(amora),[],[],0,['https://www.sefaria.org.il/Sanhedrin.17b.5'],0,1
+plants,['https://www.sefaria.org.il/Taanit.7a.6'],['https://www.sefaria.org.il/Deuteronomy.8.7-10'],1,"['https://www.sefaria.org.il/Vayikra_Rabbah.30.5', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Pesachim.39a.1-15', 'https://www.sefaria.org.il/Tosefta_Mikvaot.6.5', 'https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18']",1,5
+oaths-of-speech-and-vain-oaths,[],[],0,"[""https://www.sefaria.org.il/Shulchan_Arukh,_Yoreh_De'ah.236.1-2""]",0,1
+jonah,[],[],0,[],0,0
+high-priest,['https://www.sefaria.org.il/Tamid.27b.7'],[],1,[],0,0
+darius,[],[],0,[],0,0
+zevulun,[],[],0,[],0,0
+hoshea-(the-prophet),[],[],0,[],0,0
+tefillin,[],[],0,['https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10'],0,1
+tamar-(absalom),[],[],0,[],0,0
+greece,[],[],0,[],0,0
+laws-of-the-sukkah,[],[],0,[],0,0
+elkanah,[],[],0,[],0,0
+laws-of-repentance,"['https://www.sefaria.org.il/Reshit_Chokhmah,_Gate_of_Fear.8.28']",[],1,"['https://www.sefaria.org.il/Ahavat_David.14.55', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,2
+spring,[],[],0,['https://www.sefaria.org.il/Leviticus.23.15-16'],0,1
+laws-of-oaths-over-deposits,[],[],0,['https://www.sefaria.org.il/Sefer_Chasidim.953.1'],0,1
+zeal,[],[],0,"['https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Mesillat_Yesharim.18.9', 'https://www.sefaria.org.il/Proverbs.26.14']",0,3
+nineveh,[],['https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13'],0,[],1,0
+binding-of-isaac,[],[],0,"['https://www.sefaria.org.il/Berakhot.62b.14-16', 'https://www.sefaria.org.il/Genesis.22.1-2']",0,2
+ahab,[],[],0,[],0,0
+abraham-and-the-angels,[],[],0,[],0,0
+elimelekh1,[],[],0,[],0,0
+en-dor,[],[],0,[],0,0
+water,['https://www.sefaria.org.il/Sotah.37a.3'],[],1,"['https://www.sefaria.org.il/Gittin.68a.10', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Mishneh_Torah,_Tefillin,_Mezuzah_and_the_Torah_Scroll.10.8', 'https://www.sefaria.org.il/Tosefta_Mikvaot.6.5', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Torah.771.2-3', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",0,8
+numbers,[],[],0,[],0,0
+destruction-of-babylonia,[],[],0,[],0,0
+joshua,[],[],0,"['https://www.sefaria.org.il/Panekha_Avakesh.18.44', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.1071.6']",0,2
+summer,[],[],0,['https://www.sefaria.org.il/Eruvin.56a.5-7'],0,1
+satan,[],[],0,[],0,0
+shimon-b-shetach,[],[],0,[],0,0
+laws-of-the-impurity-of-metal-vessels,[],[],0,[],0,0
+the-spies,[],[],0,['https://www.sefaria.org.il/Taanit.29a.1-17'],0,1
+korach,"['https://www.sefaria.org.il/Shabbat_Siddur_Sefard_Linear,_Maariv_Service_for_Shabbos_and_Yom_Tov,_Borechu.184']",[],1,[],0,0
+issachar,[],[],0,[],0,0
+pidyon-haben,[],[],0,"['https://www.sefaria.org.il/Shulchan_Arukh,_Orach_Chayim.696.8']",0,1
+rebecca,['https://www.sefaria.org.il/Radak_on_Genesis.27.19.1'],[],1,[],0,0
+judges-(שופט),['https://www.sefaria.org.il/Sifrei_Devarim.13.6'],[],1,[],0,0
+mercy,[],[],0,['https://www.sefaria.org.il/Sanhedrin.94b.12'],0,1
+borrowing-the-property-during-the-exodus-from-egypt,[],[],0,[],0,0
+laws-of-visiting-the-sick,[],[],0,[],0,0
+al-hanisim,[],[],0,[],0,0
+laws-of-the-impurity-of-treading,[],[],0,[],0,0
+yetzer-hara,[],[],0,"['https://www.sefaria.org.il/Reshit_Chokhmah,_Gate_of_Fear.8.28', 'https://www.sefaria.org.il/Ibn_Ezra_on_Numbers.5.31.1', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",0,3
+mount-sinai,[],['https://www.sefaria.org.il/Deuteronomy.4.10'],0,"['https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/Chagigah.6a.15']",1,3
+spices,['https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20'],"['https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18']",1,[],1,0
+responsibility,[],"['https://www.sefaria.org.il/Sifrei_Devarim.13.6', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3']",0,"[""https://www.sefaria.org.il/Shulchan_Arukh,_Yoreh_De'ah.236.1-2"", 'https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Matot,_Masei,_Devarim,_Ner_Mitzvah.10', 'https://www.sefaria.org.il/Maaseh_Rokeach_on_Mishnah,_Seder_Nezikin,_Bava_Metzia.12', 'https://www.sefaria.org.il/Horayot.6a.3', 'https://www.sefaria.org.il/Ibn_Ezra_on_Numbers.5.31.1', 'https://www.sefaria.org.il/Isaiah.58.1-2']",2,6
+image-of-god,[],[],0,[],0,0
+laws-of-the-shekel-coin-contribution,[],[],0,[],0,0
+rav-chisda,[],[],0,['https://www.sefaria.org.il/Sanhedrin.17b.5'],0,1
+name-pasuk,[],[],0,[],0,0
+laws-of-gifts,[],[],0,[],0,0
+laws-of-tefillin,[],[],0,['https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10'],0,1
+jacob-and-the-birthright,[],[],0,['https://www.sefaria.org.il/Rashi_on_Genesis.25.27.1-28.1'],0,1
+murder,[],[],0,['https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1'],0,1
+laws-of-the-rest-of-animals-and-slaves,[],[],0,[],0,0
+permissibility-for-a-woman-to-remarry-after-separation-from-or-death-of-husband,[],[],0,"['https://www.sefaria.org.il/Sefer_HaChinukh.598.5', 'https://www.sefaria.org.il/Gittin.82b.14']",0,2
+censuses,[],[],0,[],0,0
+nehemiah,[],[],0,[],0,0
+dinei-yibum,[],"['https://www.sefaria.org.il/Sefer_HaChinukh.598.5', 'https://www.sefaria.org.il/Gittin.82b.14']",0,[],2,0
+dinei-tumat-am-haarets,[],[],0,[],0,0
+rabbi-chanina-b-dosa,['https://www.sefaria.org.il/Derekh_Chayyim.3.9.1-2'],[],1,[],0,0
+rams,[],[],0,"['https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Isaiah.58.1-2']",0,2
+babylonian-exile,[],[],0,[],0,0
+jehoiakim,[],[],0,[],0,0
+laws-of-demolition-on-shabbat,[],[],0,[],0,0
+leadership,[],[],0,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Sotah.37a.3', 'https://www.sefaria.org.il/Sifrei_Devarim.13.6', 'https://www.sefaria.org.il/Tamid.27b.7', 'https://www.sefaria.org.il/Deuteronomy.18.14-15']",0,5
+creation-of-the-animals,[],[],0,[],0,0
+laws-of-damages-from-animals,[],[],0,"['https://www.sefaria.org.il/Tur,_Choshen_Mishpat.398.4']",0,1
+ecclesiastes,[],[],0,[],0,0
+samson,[],[],0,[],0,0
+relationships,"['https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1', 'https://www.sefaria.org.il/Bava_Metzia.59a.4']",[],2,"['https://www.sefaria.org.il/Mesillat_Yesharim.5.25', 'https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Ibn_Ezra_on_Numbers.5.31.1', 'https://www.sefaria.org.il/Mesillat_Yesharim.18.9', 'https://www.sefaria.org.il/Genesis.42.19']",0,5
+laws-of-the-synagogue,"['https://www.sefaria.org.il/Teshuvot_Maharit,_I.63.1']",[],1,['https://www.sefaria.org.il/Berakhot.30a.8-9'],0,1
+hagaddah,[],[],0,[],0,0
+laws-of-sacrifice-obligations,[],[],0,"['https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Mishneh_Torah,_Paschal_Offering.4.11', 'https://www.sefaria.org.il/Mishnah_Menachot.2.3', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1']",0,4
+the-ten-days-of-repentance,['https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13'],[],1,"['https://www.sefaria.org.il/Ahavat_David.14.55', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,2
+types-of-oaths-and-their-specifications,[],[],0,"[""https://www.sefaria.org.il/Shulchan_Arukh,_Yoreh_De'ah.236.1-2""]",0,1
+laws-of-appraisals-of-fields,[],[],0,[],0,0
+terumah,[],['https://www.sefaria.org.il/Mishnah_Terumot.5.9'],0,"['https://www.sefaria.org.il/Nazir.36a.3', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1""]",1,2
+jonadab-the-son-of-rechab,[],[],0,[],0,0
+laws-of-misappropriation-of-items-sanctified-for-the-altar,[],[],0,[],0,0
+kavanah,['https://www.sefaria.org.il/Berakhot.30a.8-9'],[],1,['https://www.sefaria.org.il/Pesachim.117a.13-14'],0,1
+laws-of-weaving-on-shabbat,[],[],0,[],0,0
+sacrifices,"['https://www.sefaria.org.il/Chagigah.6a.15', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1']",[],2,[],0,0
+priesthood,['https://www.sefaria.org.il/Sanhedrin.93b.10'],[],1,"['https://www.sefaria.org.il/Leviticus.10.8-10', 'https://www.sefaria.org.il/Tamid.27b.7', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']",0,3
+life,[],[],0,[],0,0
+hiddur-mitzvah,[],[],0,['https://www.sefaria.org.il/Mesillat_Yesharim.18.9'],0,1
+money,"['https://www.sefaria.org.il/Mishneh_Torah,_Paschal_Offering.4.11', 'https://www.sefaria.org.il/Teshuvot_Maharit,_I.63.1', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Ketubot.66b.13']",[],4,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Berakhot.62b.14-16', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1', 'https://www.sefaria.org.il/Genesis.20.15-18', 'https://www.sefaria.org.il/Pesach_Haggadah,_Nirtzah,_Chad_Gadya.3']",0,5
+crossing-the-jordan-river-and-setting-of-the-stones,[],[],0,[],0,0
+religion,"['https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']","['https://www.sefaria.org.il/Selichot_Nusach_Lita_Linear,_Third_Day.2.131']",2,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Derekh_Chayyim.3.9.1-2', 'https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/Mesillat_Yesharim.5.25', 'https://www.sefaria.org.il/Midrash_Tanchuma,_Noach.18.7', 'https://www.sefaria.org.il/Sefer_HaChinukh.214.3', 'https://www.sefaria.org.il/Machzor_Rosh_Hashanah_Ashkenaz_Linear,_The_Morning_Prayers,_Yehi_Kevod.127', 'https://www.sefaria.org.il/Leviticus.20.23', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Leviticus.10.8-10', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Deuteronomy.18.14-15', 'https://www.sefaria.org.il/Mesillat_Yesharim.18.9', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",1,16
+tikkun-soferim,[],[],0,[],0,0
+rachel,[],[],0,[],0,0
+challah,[],[],0,[],0,0
+rabbi-akiva,[],[],0,[],0,0
+the-house-of-david,['https://www.sefaria.org.il/Panekha_Avakesh.18.44'],[],1,['https://www.sefaria.org.il/II_Samuel.22.1'],0,1
+judith,[],[],0,[],0,0
+red-sea,[],['https://www.sefaria.org.il/Sotah.37a.3'],0,"['https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",1,1
+noahs-sacrifice,[],[],0,[],0,0
+temple-mount,[],[],0,"['https://www.sefaria.org.il/Berakhot.62b.14-16', 'https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Berakhot.30a.8-9', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']",0,4
+jacob-in-egypt,[],"['https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Vayeshev,_Miketz,_Vayigash,_Torah_Ohr.24']",0,[],1,0
+women,"['https://www.sefaria.org.il/Mishneh_Torah,_Tefillin,_Mezuzah_and_the_Torah_Scroll.10.8']",[],1,"['https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Mishnah_Niddah.5.9', 'https://www.sefaria.org.il/Ibn_Ezra_on_Numbers.5.31.1']",0,3
+gentile-practices-of-the-body-and-clothing,[],[],0,['https://www.sefaria.org.il/Leviticus.20.23'],0,1
+god-and-man,"['https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']","['https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/Mesillat_Yesharim.18.9']",3,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/II_Samuel.22.1', 'https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Midrash_Tanchuma,_Noach.18.7', 'https://www.sefaria.org.il/Berakhot.60a.28-29', ""https://www.sefaria.org.il/Otzar_Midrashim,_Midrash_on_Hallel_'Sefer_HaMa'asim'.1.7"", 'https://www.sefaria.org.il/Genesis.20.15-18', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14', 'https://www.sefaria.org.il/Midrash_Tehillim.104.1', 'https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Deuteronomy.18.14-15', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Exodus.6.6-7']",2,14
+definition-and-prohibition-of-idolatry,[],[],0,"['https://www.sefaria.org.il/Sefer_HaChinukh.214.3', 'https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13', 'https://www.sefaria.org.il/Leviticus.20.23', 'https://www.sefaria.org.il/Horayot.6a.3']",0,4
+in-the-beginning-of,"['https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10']",[],1,[],0,0
+laws-of-transferring-between-domains,[],[],0,['https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.9.7.7'],0,1
+parah-adumah,['https://www.sefaria.org.il/Mishnah_Parah.4.2'],[],1,[],0,0
+knowing-god,"['https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11']",[],1,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/II_Samuel.22.1', 'https://www.sefaria.org.il/Talmud_Eser_HaSefirot,_Section_XIV,_List_of_Questions_on_Terminology.84', 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Midrash_Tehillim.104.1', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Deuteronomy.18.14-15', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Mesillat_Yesharim.18.9', 'https://www.sefaria.org.il/Exodus.6.6-7']",0,11
+calendar,[],[],0,[],0,0
+bar-mitzvah,[],[],0,[],0,0
+laws-of-the-passover-night-seder,[],[],0,"['https://www.sefaria.org.il/Pesachim.39a.1-15', 'https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3']",0,2
+new-year,[],"['https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,[],1,0
+libations,[],"['https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32']",0,[],1,0
+juxtaposition,[],[],0,[],0,0
+tallit,[],"['https://www.sefaria.org.il/Maaseh_Rokeach_on_Mishnah,_Seder_Nezikin,_Bava_Metzia.12']",0,['https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10'],1,1
+chananiah-mishael-and-azariah,[],[],0,[],0,0
+the-book-of-ruth,[],[],0,[],0,0
+haftarah,[],[],0,[],0,0
+minhag,"['https://www.sefaria.org.il/Shir_HaShirim_Rabbah.1.6.5', 'https://www.sefaria.org.il/Shulchan_Arukh,_Orach_Chayim.696.8', 'https://www.sefaria.org.il/Berakhot.15b.12']",[],3,"[""https://www.sefaria.org.il/Sha'ar_HaMitzvot,_Vayechi.18""]",0,1
+kippah,[],[],0,[],0,0
+laws-of-damages-from-a-fire,[],[],0,[],0,0
+chosenness,[],[],0,"['https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Sforno_on_Genesis.35.10.1', ""https://www.sefaria.org.il/Otzar_Midrashim,_Midrash_on_Hallel_'Sefer_HaMa'asim'.1.7"", 'https://www.sefaria.org.il/Ketubot.66b.13', 'https://www.sefaria.org.il/Deuteronomy.18.14-15', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Exodus.6.6-7']",0,7
+egyptian-exile,[],"['https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Exodus.6.6-7', 'https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Vayeshev,_Miketz,_Vayigash,_Torah_Ohr.24']",0,['https://www.sefaria.org.il/Deuteronomy.6.20-21'],4,1
+aaron,[],['https://www.sefaria.org.il/Leviticus.10.8-10'],0,[],1,0
+second-temple,[],[],0,"['https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Sukkah.41a.6-8', 'https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/Tamid.27b.7', 'https://www.sefaria.org.il/Pesachim.109a.5']",0,5
+leviathan,[],[],0,[],0,0
+laws-of-feeding-workers-and-animals,[],[],0,[],0,0
+wolves,[],[],0,[],0,0
+amos,[],[],0,[],0,0
+covenant-of-abraham,[],[],0,[],0,0
+laws-of-vegetal-offerings,[],[],0,"['https://www.sefaria.org.il/Leviticus.23.15-16', 'https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Mishnah_Menachot.2.3']",0,3
+elazar,[],[],0,[],0,0
+laws-of-adjoining-properties,[],[],0,[],0,0
+efron,[],[],0,[],0,0
+chiuv-maaserot,[],[],0,"[""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1""]",0,1
+shofar,[],"['https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,"['https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",1,2
+belshatzar,[],[],0,[],0,0
+laws-of-dyeing-on-shabbat,[],[],0,[],0,0
+organ-donation,[],[],0,[],0,0
+ishmael,[],[],0,[],0,0
+birth,[],[],0,"['https://www.sefaria.org.il/Talmud_Eser_HaSefirot,_Section_XIV,_List_of_Questions_on_Terminology.84', 'https://www.sefaria.org.il/Mishneh_Torah,_Murderer_and_the_Preservation_of_Life.1.9']",0,2
+compassion,[],[],0,"['https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1', 'https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8']",0,4
+laws-of-oaths-in-court,[],[],0,[],0,0
+winds,[],[],0,['https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2'],0,1
+laws-of-court-punishments,"['https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13']",[],1,[],0,0
+esau,[],"['https://www.sefaria.org.il/Rashi_on_Genesis.25.27.1-28.1', 'https://www.sefaria.org.il/Radak_on_Genesis.27.19.1']",0,"['https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Vayishlach.6.2']",2,1
+laws-of-warping-on-shabbat,[],[],0,[],0,0
+noah,[],[],0,"['https://www.sefaria.org.il/Sefat_Emet,_Genesis,_Chayei_Sara.19.4', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1']",0,2
+intent-of-the-seller-and-the-purchaser,[],[],0,[],0,0
+sheva-berakhot,[],[],0,[],0,0
+niggun,[],[],0,['https://www.sefaria.org.il/Pesachim.117a.13-14'],0,1
+golems,[],[],0,[],0,0
+the-promise-to-jacob,[],[],0,"['https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Vayishlach.6.2']",0,1
+gods-blessing-and-promise-to-abraham,[],[],0,"['https://www.sefaria.org.il/Sforno_on_Genesis.35.10.1', 'https://www.sefaria.org.il/Deuteronomy.8.7-10']",0,2
+acronyms,[],[],0,[],0,0
+drinking,['https://www.sefaria.org.il/Bava_Batra.58b.2'],['https://www.sefaria.org.il/Pesachim.109a.5'],1,"['https://www.sefaria.org.il/Berakhot.9a.4', 'https://www.sefaria.org.il/Leviticus.10.8-10']",1,2
+journey-of-the-ark,[],[],0,[],0,0
+the-book-of-esther,[],[],0,[],0,0
+the-seven-nations,['https://www.sefaria.org.il/Leviticus.20.23'],[],1,[],0,0
+haggadah,[],[],0,"['https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3']",0,1
+birkat-hamazon,[],[],0,[],0,0
+laws-of-slaughter-on-shabbat,[],[],0,[],0,0
+mutual-responsibility-of-the-jewish-people,[],[],0,"['https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13', 'https://www.sefaria.org.il/Leviticus.19.17']",0,4
+laws-of-objects-of-foreign-worship,[],['https://www.sefaria.org.il/Sefer_HaChinukh.214.3'],0,"['https://www.sefaria.org.il/Leviticus.20.23', 'https://www.sefaria.org.il/Mishnah_Avodah_Zarah.1.8']",1,2
+laws-of-ignition-on-shabbat,[],[],0,[],0,0
+milk,[],[],0,['https://www.sefaria.org.il/Tosefta_Mikvaot.6.5'],0,1
+giving,"['https://www.sefaria.org.il/Teshuvot_Maharit,_I.63.1']","[""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1""]",1,"['https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1', 'https://www.sefaria.org.il/Berakhot.18b.7-9', 'https://www.sefaria.org.il/Genesis.20.15-18', 'https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1', 'https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",1,9
+tosafot,[],[],0,"['https://www.sefaria.org.il/Teshuvot_Maharit,_I.63.1', 'https://www.sefaria.org.il/Shoel_uMeshiv_Mahadura_I.2.139.7']",0,2
+prayer,"[""https://www.sefaria.org.il/Sha'ar_HaPesukim,_Parashat_Balak.56"", 'https://www.sefaria.org.il/Teshuvot_Maharit,_I.63.1', 'https://www.sefaria.org.il/Reshit_Chokhmah,_Gate_of_Fear.8.28', 'https://www.sefaria.org.il/Midrash_Tehillim.104.1']","['https://www.sefaria.org.il/Berakhot.9a.4', 'https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Sotah.27b.11-12', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Berakhot.30a.8-9', 'https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10', 'https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18', ""https://www.sefaria.org.il/Sha'ar_HaMitzvot,_Vayechi.18""]",4,"['https://www.sefaria.org.il/Selichot_Nusach_Lita_Linear,_Third_Day.2.131', 'https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Pesachim.117a.13-14', 'https://www.sefaria.org.il/Machzor_Rosh_Hashanah_Ashkenaz_Linear,_The_Morning_Prayers,_Yehi_Kevod.127', 'https://www.sefaria.org.il/Berakhot.60a.28-29', 'https://www.sefaria.org.il/Devarim_Rabbah.3.1', 'https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Vayishlach.6.2', 'https://www.sefaria.org.il/Genesis.20.15-18', 'https://www.sefaria.org.il/Mishnah_Megillah.4.2', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Shabbat_Siddur_Sefard_Linear,_Maariv_Service_for_Shabbos_and_Yom_Tov,_Borechu.184', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13', 'https://www.sefaria.org.il/Machzor_Yom_Kippur_Ashkenaz_Linear,_Neilah;_Concluding_Service,_Sanctification_of_the_Day.230', 'https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3']",8,19
+principle-concepts-of-marital-law,['https://www.sefaria.org.il/Mishnah_Niddah.5.9'],[],1,[],0,0
+ephraim,[],[],0,[],0,0
+hilchot-chol-hamoed,[],[],0,['https://www.sefaria.org.il/Mishnah_Megillah.4.2'],0,1
+ahaz,[],[],0,[],0,0
+parents,[],['https://www.sefaria.org.il/Ahavat_David.14.55'],0,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Radak_on_Genesis.27.19.1', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Pesach_Haggadah,_Nirtzah,_Chad_Gadya.3', ""https://www.sefaria.org.il/Sha'ar_HaMitzvot,_Vayechi.18"", 'https://www.sefaria.org.il/II_Kings.4.37']",1,7
+keturah,[],[],0,[],0,0
+laws-of-ownerless-property,[],[],0,[],0,0
+high-court-authority-and-insubordination-to-it,[],[],0,"['https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13']",0,1
+the-four-kingdoms,[],[],0,[],0,0
+bina2,"['https://www.sefaria.org.il/Talmud_Eser_HaSefirot,_Section_XIV,_List_of_Questions_on_Terminology.84']","['https://www.sefaria.org.il/Talmud_Eser_HaSefirot,_Section_XV,_List_of_Answers_on_Topics.231.1']",1,"['https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10']",1,1
+revenge,[],[],0,['https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1'],0,1
+naftali,[],[],0,[],0,0
+respect-and-awe-of-parents-and-insubordination-to-them,"['https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13']",[],1,"['https://www.sefaria.org.il/Radak_on_Genesis.27.19.1', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', ""https://www.sefaria.org.il/Sha'ar_HaMitzvot,_Vayechi.18""]",0,3
+laws-of-debt-collection,['https://www.sefaria.org.il/Sanhedrin.17b.5'],[],1,"['https://www.sefaria.org.il/Shoel_uMeshiv_Mahadura_I.2.139.7', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8']",0,2
+king-david,[],['https://www.sefaria.org.il/II_Samuel.22.1'],0,"['https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/II_Chronicles.2.2', 'https://www.sefaria.org.il/Midrash_Tehillim.119.28', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1', 'https://www.sefaria.org.il/Midrash_Tehillim.104.1', 'https://www.sefaria.org.il/Rashi_on_II_Samuel.5.24.1-2']",1,8
+the-hardening-of-pharaohs-heart,['https://www.sefaria.org.il/Pardes_Rimmonim.17.1.11'],[],1,[],0,0
+the-exodus-from-egypt,[],"['https://www.sefaria.org.il/Sotah.37a.3', 'https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3']",0,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Shabbat_Siddur_Sefard_Linear,_Maariv_Service_for_Shabbos_and_Yom_Tov,_Borechu.184', 'https://www.sefaria.org.il/Exodus.6.6-7', 'https://www.sefaria.org.il/Malbim_on_Exodus.4.1.2', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",2,7
+mountains,[],[],0,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Gittin.68a.10', 'https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/Sanhedrin.94b.12', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",0,9
+love,"['https://www.sefaria.org.il/Avodah_Zarah.35a.7', 'https://www.sefaria.org.il/Mesillat_Yesharim.18.9']",['https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1'],2,"['https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2', 'https://www.sefaria.org.il/Leviticus.19.17']",1,6
+the-effects-of-a-commandment,"['https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Ahavat_David.14.55', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",['https://www.sefaria.org.il/Devarim_Rabbah.3.1'],3,"['https://www.sefaria.org.il/Shir_HaShirim_Rabbah.1.6.5', 'https://www.sefaria.org.il/Pesachim.117a.13-14', 'https://www.sefaria.org.il/Maaseh_Rokeach_on_Mishnah,_Seder_Nezikin,_Bava_Metzia.12', 'https://www.sefaria.org.il/Midrash_Tehillim.119.28', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Ketubot.66b.13', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",1,10
+doeg,[],[],0,[],0,0
+rabbi-yehoshua-b-hananyah,[],[],0,['https://www.sefaria.org.il/Avodah_Zarah.35a.7'],0,1
+machloket,"['https://www.sefaria.org.il/Berakhot.9a.4', 'https://www.sefaria.org.il/Berakhot.15b.12']",['https://www.sefaria.org.il/Shabbat.140a.4'],2,[],1,0
+prophetess,[],[],0,['https://www.sefaria.org.il/Radak_on_Genesis.27.19.1'],0,1
+laws-of-impurity-of-a-tent-containing-a-corpse,[],[],0,"['https://www.sefaria.org.il/Mishnah_Kelim.1.4', 'https://www.sefaria.org.il/Berakhot.28b.1-11']",0,2
+rabbi-chiyya,[],[],0,[],0,0
+moses-rebuke,[],[],0,[],0,0
+shemaiah,[],[],0,[],0,0
+the-moon,[],[],0,[],0,0
+birthright,[],[],0,[],0,0
+the-future-to-come,"['https://www.sefaria.org.il/Panekha_Avakesh.18.44', 'https://www.sefaria.org.il/Midrash_Tehillim.104.1']",[],2,"['https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Ramban_on_Exodus.13.21.1', ""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17"", 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",0,4
+ham,"['https://www.sefaria.org.il/Maaseh_Rokeach_on_Mishnah,_Seder_Nezikin,_Bava_Metzia.12']",[],1,[],0,0
+laws-of-planting-on-shabbat,[],[],0,[],0,0
+ever-hayarden,[],[],0,[],0,0
+jesse,[],[],0,[],0,0
+laws-of-the-offerings-of-the-metsora,[],[],0,[],0,0
+plague-of-pestilence-(דבר-),[],[],0,[],0,0
+the-nile-river,[],[],0,[],0,0
+sons-of-aaron,[],[],0,[],0,0
+tikkun,[],[],0,"['https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Kalach_Pitchei_Chokhmah.115.8', 'https://www.sefaria.org.il/Sefat_Emet,_Genesis,_Chayei_Sara.19.4', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,4
+conquest-of-jericho,[],[],0,[],0,0
+springs,"['https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",['https://www.sefaria.org.il/Deuteronomy.8.7-10'],1,[],1,0
+learning,['https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2'],"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Chagigah.12b.9', 'https://www.sefaria.org.il/Berakhot.28b.1-11']",1,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/The_Antiquities_of_the_Jews.10.10.2', 'https://www.sefaria.org.il/Avodah_Zarah.35a.7', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Isaiah.58.1-2']",4,8
+egypt,[],['https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38'],0,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Numbers.11.18-20', 'https://www.sefaria.org.il/Sotah.37a.3', 'https://www.sefaria.org.il/Shabbat_Siddur_Sefard_Linear,_Maariv_Service_for_Shabbos_and_Yom_Tov,_Borechu.184', 'https://www.sefaria.org.il/Exodus.6.6-7', 'https://www.sefaria.org.il/Genesis.42.19', 'https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3', 'https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Vayeshev,_Miketz,_Vayigash,_Torah_Ohr.24']",1,10
+yochanan-ben-bag-bag,[],[],0,[],0,0
+levite-cities,[],[],0,[],0,0
+hoshana-rabbah,[],[],0,[],0,0
+laws-of-yom-kippur,[],[],0,[],0,0
+aron-habrit,[],[],0,[],0,0
+laws-of-hebrew-jewish-maidservants,[],[],0,['https://www.sefaria.org.il/Gittin.12b.12'],0,1
+visiting-the-sick,[],[],0,['https://www.sefaria.org.il/Berakhot.28b.1-11'],0,1
+the-sons-of-eli,[],[],0,[],0,0
+damascus,[],[],0,[],0,0
+israel,[],['https://www.sefaria.org.il/Leviticus.20.23'],0,"['https://www.sefaria.org.il/Shir_HaShirim_Rabbah.1.6.5', 'https://www.sefaria.org.il/Sanhedrin.94b.12', 'https://www.sefaria.org.il/Mishnah_Avodah_Zarah.1.8', 'https://www.sefaria.org.il/Berakhot.30a.8-9', 'https://www.sefaria.org.il/Berakhot.6b.24', 'https://www.sefaria.org.il/Midrash_Tehillim.104.1', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Ketubot.111a.19', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.1071.6', 'https://www.sefaria.org.il/Genesis.42.19', 'https://www.sefaria.org.il/Sanhedrin.17b.5']",1,11
+fertility,[],[],0,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Genesis.20.15-18']",0,2
+dogs,[],"['https://www.sefaria.org.il/Reshit_Chokhmah,_Gate_of_Fear.8.28']",0,"['https://www.sefaria.org.il/Mishnah_Tahorot.8.6', 'https://www.sefaria.org.il/Pesach_Haggadah,_Nirtzah,_Chad_Gadya.3', 'https://www.sefaria.org.il/Rashi_on_II_Samuel.5.24.1-2']",1,3
+idolatry,[],"['https://www.sefaria.org.il/Midrash_Tanchuma,_Noach.18.7', 'https://www.sefaria.org.il/Sefer_HaChinukh.214.3', 'https://www.sefaria.org.il/Leviticus.20.23']",0,"['https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13', 'https://www.sefaria.org.il/Horayot.6a.3', 'https://www.sefaria.org.il/Mishnah_Avodah_Zarah.1.8', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1']",3,5
+shimon-b-zoma,[],[],0,[],0,0
+laws-of-redemption-of-sanctified-property,[],[],0,[],0,0
+laws-of-judges-and-courts,['https://www.sefaria.org.il/Sanhedrin.93b.10'],[],1,"['https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Matot,_Masei,_Devarim,_Ner_Mitzvah.10', 'https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Sifrei_Devarim.13.6', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8']",0,5
+gad,[],[],0,[],0,0
+humanity,[],[],0,[],0,0
+marta-the-daughter-of-boethus,[],[],0,[],0,0
+imagination,[],[],0,"['https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', ""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17""]",0,2
+rome,[],[],0,"['https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3']",0,2
+laws-of-sacrificing-outside-the-temple,[],[],0,[],0,0
+aarons-sin,[],[],0,[],0,0
+ezra,[],[],0,['https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.1071.6'],0,1
+mental-health,[],[],0,['https://www.sefaria.org.il/Eight_Chapters.3.3'],0,1
+laws-for-the-protection-of-life,[],[],0,[],0,0
+harmful-forces,['https://www.sefaria.org.il/Gittin.68a.10'],[],1,[],0,0
+tachanun,[],[],0,"['https://www.sefaria.org.il/Machzor_Yom_Kippur_Ashkenaz_Linear,_Neilah;_Concluding_Service,_Sanctification_of_the_Day.230']",0,1
+malkhut1,"['https://www.sefaria.org.il/Talmud_Eser_HaSefirot,_Section_XIV,_List_of_Questions_on_Terminology.84']","['https://www.sefaria.org.il/Kalach_Pitchei_Chokhmah.115.8', 'https://www.sefaria.org.il/Talmud_Eser_HaSefirot,_Section_XV,_List_of_Answers_on_Topics.231.1']",1,"['https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10', 'https://www.sefaria.org.il/Tikkunei_Zohar.36b.3']",2,2
+honesty,[],"[""https://www.sefaria.org.il/Shulchan_Arukh,_Yoreh_De'ah.236.1-2""]",0,"['https://www.sefaria.org.il/Jeremiah.48.14', 'https://www.sefaria.org.il/Bava_Batra.45a.6', 'https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Matot,_Masei,_Devarim,_Ner_Mitzvah.10', 'https://www.sefaria.org.il/Rashi_on_Genesis.25.27.1-28.1', 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Radak_on_Genesis.27.19.1', 'https://www.sefaria.org.il/Genesis.42.19']",1,7
+birkot-hashachar,[],[],0,[],0,0
+nazir,[],['https://www.sefaria.org.il/Nazir.20b'],0,['https://www.sefaria.org.il/Nazir.36a.3'],1,1
+laws-of-presumptions-of-land-ownership,[],[],0,[],0,0
+halakha-lemoshe-mesinai,[],[],0,['https://www.sefaria.org.il/Chagigah.6a.15'],0,1
+additional-gifts-to-the-priesthood,[],[],0,[],0,0
+air,[],[],0,[],0,0
+laws-of-presumptions-of-ownership-of-movable-property,[],[],0,[],0,0
+that-it-was-good,[],[],0,"['https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10']",0,1
+laws-of-wood-boneware-and-leather-vessels,[],[],0,[],0,0
+sherets,"['https://www.sefaria.org.il/Mishnah_Kelim.4.1', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.9.7.7']",[],2,[],0,0
+laws-of-eglah-arufah,[],[],0,[],0,0
+talmud,['https://www.sefaria.org.il/Sanhedrin.17b.5'],[],1,[],0,0
+pigs,[],[],0,[],0,0
+rainbows,['https://www.sefaria.org.il/Tikkunei_Zohar.36b.3'],[],1,[],0,0
+tabernacles-making,[],[],0,"[""https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Beha'alotcha.4.1""]",0,1
+zedekiah,[],[],0,[],0,0
+the-idol-of-micha,[],[],0,[],0,0
+letters,"['https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10', 'https://www.sefaria.org.il/LaKelal_VeLaPerat,_Volume_I,_3_The_Holy_Land.13.8']",[],2,[],0,0
+punishment,[],['https://www.sefaria.org.il/Ibn_Ezra_on_Numbers.5.31.1'],0,"['https://www.sefaria.org.il/Shir_HaShirim_Rabbah.1.6.5', 'https://www.sefaria.org.il/Chagigah.12b.9', 'https://www.sefaria.org.il/Midrash_Tanchuma,_Noach.18.7', 'https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13', 'https://www.sefaria.org.il/Devarim_Rabbah.3.1', 'https://www.sefaria.org.il/Leviticus.20.23', 'https://www.sefaria.org.il/Numbers.11.18-20', 'https://www.sefaria.org.il/Sifrei_Devarim.13.6', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14', 'https://www.sefaria.org.il/Bava_Metzia.59a.4', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Exodus.6.6-7', 'https://www.sefaria.org.il/Genesis.42.19', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",1,15
+courage,"['https://www.sefaria.org.il/Jeremiah.48.14', 'https://www.sefaria.org.il/Rashi_on_II_Samuel.5.24.1-2']",[],2,['https://www.sefaria.org.il/Sotah.37a.3'],0,1
+piyyut,[],[],0,[],0,0
+hagar,[],[],0,[],0,0
+fruit,[],['https://www.sefaria.org.il/Deuteronomy.8.7-10'],0,"['https://www.sefaria.org.il/Devarim_Rabbah.3.1', 'https://www.sefaria.org.il/Tosefta_Mikvaot.6.5', 'https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18']",1,3
+jacobs-burial,[],[],0,[],0,0
+kitniyot,[],[],0,['https://www.sefaria.org.il/The_Antiquities_of_the_Jews.10.10.2'],0,1
+akavyah-b-mahalalel,[],[],0,[],0,0
+hezekiah,[],[],0,['https://www.sefaria.org.il/Sanhedrin.94b.12'],0,1
+gift-giving,[],[],0,[],0,0
+dinei-maaser-sheni,[],[],0,"[""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Pesachim.39a.1-15']",0,2
+man-and-wife,"['https://www.sefaria.org.il/Talmud_Eser_HaSefirot,_Section_XV,_List_of_Answers_on_Topics.231.1']",['https://www.sefaria.org.il/Shoel_uMeshiv_Mahadura_I.2.139.7'],1,"['https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Sefer_HaChinukh.598.5', 'https://www.sefaria.org.il/Nazir.20b', 'https://www.sefaria.org.il/Mishnah_Niddah.5.9', 'https://www.sefaria.org.il/Bach,_Even_HaEzer.6.10.1', 'https://www.sefaria.org.il/Bava_Metzia.59a.4', 'https://www.sefaria.org.il/Ahavat_David.14.55', 'https://www.sefaria.org.il/Gittin.82b.14']",1,8
+laws-of-those-forbidden-to-marry-priests,"['https://www.sefaria.org.il/Bach,_Even_HaEzer.6.10.1']",[],1,[],0,0
+innovation,[],"['https://www.sefaria.org.il/Gray_Matter_IV,_Technology,_Closing_a_Website_for_Shabbat_and_Yom_Tov.23']",0,[],1,0
+amram,[],[],0,[],0,0
+laws-of-hakhel,[],[],0,[],0,0
+queen-of-sheba,[],[],0,[],0,0
+love-your-neighbor-as-yourself,[],['https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1'],0,[],1,0
+laws-of-the-animal-tithe,[],[],0,[],0,0
+laws-of-threshing-on-shabbat,[],[],0,[],0,0
+achan,[],[],0,[],0,0
+daniel,[],['https://www.sefaria.org.il/The_Antiquities_of_the_Jews.10.10.2'],0,['https://www.sefaria.org.il/Sanhedrin.93b.10'],1,1
+bilhah,[],[],0,[],0,0
+extra-soul,"['https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",[],1,"['https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18']",0,1
+power,[],[],0,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Vayishlach.6.2', 'https://www.sefaria.org.il/Exodus.6.6-7']",0,4
+abels-sacrifice,[],[],0,['https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1'],0,1
+synagogues,"['https://www.sefaria.org.il/Teshuvot_Maharit,_I.63.1']",[],1,[],0,0
+inspiration,[],[],0,"['https://www.sefaria.org.il/Deuteronomy.4.10', ""https://www.sefaria.org.il/Zohar,_Ha'Azinu.5.20"", 'https://www.sefaria.org.il/II_Samuel.22.1', 'https://www.sefaria.org.il/Pesachim.117a.13-14', 'https://www.sefaria.org.il/On_Dreams,_Book_II.16.1', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1', 'https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3']",0,7
+homes,[],[],0,[],0,0
+destruction-of-the-land-of-israel,['https://www.sefaria.org.il/Taanit.29a.1-17'],[],1,[],0,0
+miracles,[],['https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2'],0,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Midrash_Tanchuma,_Noach.18.7', 'https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/Ramban_on_Exodus.13.21.1', 'https://www.sefaria.org.il/Sotah.37a.3', 'https://www.sefaria.org.il/Genesis.20.15-18', ""https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Beha'alotcha.4.1"", 'https://www.sefaria.org.il/Exodus.6.6-7', 'https://www.sefaria.org.il/Malbim_on_Exodus.4.1.2', 'https://www.sefaria.org.il/II_Kings.4.37']",1,10
+happiness,[],['https://www.sefaria.org.il/Pesachim.109a.5'],0,"['https://www.sefaria.org.il/Shulchan_Arukh,_Orach_Chayim.696.8', 'https://www.sefaria.org.il/Pesachim.117a.13-14', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1', 'https://www.sefaria.org.il/Deuteronomy.8.7-10']",1,4
+rabbi-elazar-b-azaryah,['https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.1071.6'],[],1,['https://www.sefaria.org.il/Berakhot.15b.12'],0,1
+tarshish,[],[],0,[],0,0
+laws-of-construction-on-shabbat,[],[],0,['https://www.sefaria.org.il/Devarim_Rabbah.3.1'],0,1
+yiftach,['https://www.sefaria.org.il/Deuteronomy.3.15'],[],1,[],0,0
+righteous,['https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13'],['https://www.sefaria.org.il/Midrash_Tehillim.119.28'],1,"['https://www.sefaria.org.il/Derekh_Chayyim.3.9.1-2', 'https://www.sefaria.org.il/Mesillat_Yesharim.5.25', 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Mesillat_Yesharim.18.9']",1,6
+ketubah,[],['https://www.sefaria.org.il/Shoel_uMeshiv_Mahadura_I.2.139.7'],0,['https://www.sefaria.org.il/Ketubot.66b.13'],1,1
+plague-of-wild-animals,[],[],0,[],0,0
+plague-of-lice,[],[],0,[],0,0
+laws-of-temple-workers,[],[],0,[],0,0
+tzedakah,[],[],0,"['https://www.sefaria.org.il/Berakhot.18b.7-9', 'https://www.sefaria.org.il/Teshuvot_Maharit,_I.63.1', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,7
+the-angel-of-death,[],['https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14'],0,[],1,0
+yom-yerushalayim,[],[],0,[],0,0
+elijah,[],[],0,[],0,0
+moses-knowledge,[],[],0,[],0,0
+moses-and-josephs-coffin,[],[],0,[],0,0
+poor,['https://www.sefaria.org.il/Ketubot.66b.13'],"['https://www.sefaria.org.il/Teshuvot_Maharit,_I.63.1']",1,"['https://www.sefaria.org.il/Berakhot.18b.7-9', 'https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",1,4
+demons,[],['https://www.sefaria.org.il/Gittin.68a.10'],0,"['https://www.sefaria.org.il/Midrash_Tanchuma,_Noach.18.7']",1,1
+machloket-lshem-shamayim,[],[],0,[],0,0
+shemoneh-esrei,[],[],0,"['https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1']",0,2
+laws-of-winnowing-on-shabbat,[],[],0,[],0,0
+sigd,[],[],0,[],0,0
+habakkuk,[],[],0,[],0,0
+sanhedrin,['https://www.sefaria.org.il/Sanhedrin.93b.10'],['https://www.sefaria.org.il/Derashot_HaRan.11.26'],1,"['https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13', 'https://www.sefaria.org.il/Sifrei_Devarim.13.6']",1,3
+general-laws-of-food,"[""https://www.sefaria.org.il/Shulchan_Arukh,_Yoreh_De'ah.124.17""]",[],1,"['https://www.sefaria.org.il/The_Antiquities_of_the_Jews.10.10.2', 'https://www.sefaria.org.il/Derashot_HaRan.11.26']",0,2
+sleep,['https://www.sefaria.org.il/Berakhot.9a.4'],['https://www.sefaria.org.il/Proverbs.26.14'],1,"['https://www.sefaria.org.il/Sanhedrin.93b.10', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/On_Dreams,_Book_II.16.1']",1,3
+laws-of-kiddush-mei-chatat,[],[],0,[],0,0
+philosophy,"['https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1']","['https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10', 'https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/Mesillat_Yesharim.5.25', 'https://www.sefaria.org.il/On_Dreams,_Book_II.16.1', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']",1,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Eight_Chapters.3.3', 'https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Selichot_Nusach_Lita_Linear,_Third_Day.2.131', 'https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Book_of_Jubilees.2.33', 'https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Matot,_Masei,_Devarim,_Ner_Mitzvah.10', 'https://www.sefaria.org.il/The_Antiquities_of_the_Jews.10.10.2', 'https://www.sefaria.org.il/Sforno_on_Genesis.35.10.1', 'https://www.sefaria.org.il/Machzor_Rosh_Hashanah_Ashkenaz_Linear,_The_Morning_Prayers,_Yehi_Kevod.127', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Leviticus.20.23', 'https://www.sefaria.org.il/Berakhot.18b.7-9', 'https://www.sefaria.org.il/Midrash_Tehillim.119.28', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Mishneh_Torah,_Murderer_and_the_Preservation_of_Life.1.9', 'https://www.sefaria.org.il/Avodah_Zarah.35a.7', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', ""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17"", 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13', 'https://www.sefaria.org.il/Leviticus.19.17', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",5,30
+chevruta,[],[],0,['https://www.sefaria.org.il/Berakhot.63b.12-64a.3'],0,1
+laws-of-skinning-on-shabbat,[],[],0,[],0,0
+laws-of-mutual-obligations-of-neighbors,[],[],0,[],0,0
+darkhei-shalom,[],[],0,[],0,0
+circumcision,[],[],0,[],0,0
+shemini-atzeret,[],[],0,[],0,0
+flax,[],[],0,[],0,0
+olam-hazeh,[],[],0,"['https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3']",0,2
+laws-of-erasing-on-shabbat,[],[],0,[],0,0
+moses-prophecy,[],['https://www.sefaria.org.il/Deuteronomy.18.14-15'],0,['https://www.sefaria.org.il/Malbim_on_Exodus.4.1.2'],1,1
+laws-of-the-reading-of-the-torah,[],['https://www.sefaria.org.il/Mishnah_Megillah.4.2'],0,"['https://www.sefaria.org.il/Mishneh_Torah,_Tefillin,_Mezuzah_and_the_Torah_Scroll.10.8']",1,1
+the-tree-of-knowledge,[],[],0,[],0,0
+the-written-torah-and-the-oral-torah,[],[],0,"['https://www.sefaria.org.il/Leviticus.23.15-16', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",0,2
+joy,[],"['https://www.sefaria.org.il/Pesachim.117a.13-14', 'https://www.sefaria.org.il/Pesachim.109a.5']",0,"['https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1']",2,1
+fish,[],[],0,"['https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20']",0,2
+tabernacles-journey,[],[],0,[],0,0
+the-four-species,[],['https://www.sefaria.org.il/Vayikra_Rabbah.30.5'],0,"['https://www.sefaria.org.il/Sukkah.41a.6-8', 'https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10']",1,2
+laws-of-those-disqualified-from-testimony,[],[],0,['https://www.sefaria.org.il/Deuteronomy.18.14-15'],0,1
+laws-of-chanukkah,[],[],0,[],0,0
+esther,[],[],0,[],0,0
+yehoshafat,[],[],0,[],0,0
+fresh-grain,[],['https://www.sefaria.org.il/Leviticus.23.15-16'],0,"['https://www.sefaria.org.il/Sukkah.41a.6-8', 'https://www.sefaria.org.il/Deuteronomy.8.7-10']",1,2
+actuality,[],"['https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10']",0,"['https://www.sefaria.org.il/Machzor_Rosh_Hashanah_Ashkenaz_Linear,_The_Morning_Prayers,_Yehi_Kevod.127']",1,1
+rabbinical-shabbat-prohibitions,[],[],0,"['https://www.sefaria.org.il/Shabbat.140a.4', 'https://www.sefaria.org.il/Gray_Matter_IV,_Technology,_Closing_a_Website_for_Shabbat_and_Yom_Tov.23', 'https://www.sefaria.org.il/Devarim_Rabbah.3.1']",0,3
+kol-nidrei4,[],[],0,[],0,0
+abel,[],[],0,['https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1'],0,1
+feminism,[],[],0,['https://www.sefaria.org.il/Shemot_Rabbah.28.2'],0,1
+animals,"[""https://www.sefaria.org.il/Otzar_Midrashim,_Midrash_on_Hallel_'Sefer_HaMa'asim'.1.7""]",[],1,"['https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Bava_Batra.45a.6', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20', 'https://www.sefaria.org.il/Horayot.6a.3', 'https://www.sefaria.org.il/Rashi_on_Genesis.25.27.1-28.1', 'https://www.sefaria.org.il/Mishnah_Bava_Metzia.5.5', 'https://www.sefaria.org.il/Pesach_Haggadah,_Nirtzah,_Chad_Gadya.3', 'https://www.sefaria.org.il/Ketubot.66b.13', 'https://www.sefaria.org.il/Rashi_on_II_Samuel.5.24.1-2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",0,10
+dinei-haget,[],[],0,[],0,0
+hilchot-pesach-sheni,[],[],0,[],0,0
+plague-of-locusts,[],[],0,[],0,0
+prozbul,[],[],0,[],0,0
+laws-of-blessings-of-thanksgiving,[],[],0,[],0,0
+laws-of-preservation-on-shabbat,[],[],0,[],0,0
+adoniah,[],[],0,[],0,0
+the-copper-altar,[],[],0,[],0,0
+stipulations-and-errors-in-a-divorce-bill,[],[],0,[],0,0
+adams-sin-and-his-punishment,[],['https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14'],0,['https://www.sefaria.org.il/Shemot_Rabbah.28.2'],1,1
+etrog,[],[],0,['https://www.sefaria.org.il/Vayikra_Rabbah.30.5'],0,1
+galil,[],[],0,[],0,0
+land,['https://www.sefaria.org.il/The_Book_of_Maccabees_I_(Kahana_Translation).5.66'],[],1,"['https://www.sefaria.org.il/Shir_HaShirim_Rabbah.1.6.5', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Deuteronomy.3.15', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.1071.6', 'https://www.sefaria.org.il/Eruvin.56a.5-7']",0,7
+sefirat-haomer,[],['https://www.sefaria.org.il/Leviticus.23.15-16'],0,['https://www.sefaria.org.il/Sukkah.41a.6-8'],1,1
+germany,[],[],0,[],0,0
+vines,[],[],0,['https://www.sefaria.org.il/Deuteronomy.8.7-10'],0,1
+purpose-of-life,"['https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']",[],2,[],0,0
+personal-injury-law,[],[],0,['https://www.sefaria.org.il/Gittin.12b.12'],0,1
+rav,[],['https://www.sefaria.org.il/Sanhedrin.17b.5'],0,[],1,0
+laws-of-the-release-of-loans,[],[],0,[],0,0
+mishloach-manot,[],[],0,[],0,0
+shabbat-candles,[],[],0,[],0,0
+isaac-and-rebecca,[],[],0,[],0,0
+torah,"['https://www.sefaria.org.il/Midrash_Tehillim.119.28', 'https://www.sefaria.org.il/Avodah_Zarah.35a.7', 'https://www.sefaria.org.il/Mishneh_Torah,_Tefillin,_Mezuzah_and_the_Torah_Scroll.10.8', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']","['https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",4,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Chagigah.12b.9', 'https://www.sefaria.org.il/Berakhot.28b.1-11', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Mishnah_Megillah.4.2', 'https://www.sefaria.org.il/Pesachim.39a.1-15', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6']",3,7
+boaz,[],[],0,[],0,0
+plague-of-darkness,[],[],0,[],0,0
+sins,"['https://www.sefaria.org.il/Midrash_Tehillim.119.28', 'https://www.sefaria.org.il/Ibn_Ezra_on_Numbers.5.31.1']",[],2,[],0,0
+environment,[],[],0,['https://www.sefaria.org.il/Deuteronomy.8.7-10'],0,1
+grass,[],[],0,['https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20'],0,1
+jubilee,[],[],0,[],0,0
+goats-(שעירים),[],[],0,"['https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Horayot.6a.3', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1']",0,3
+justice,[],[],0,[],0,0
+abortion,[],"['https://www.sefaria.org.il/Mishneh_Torah,_Murderer_and_the_Preservation_of_Life.1.9']",0,[],1,0
+gechazi,[],[],0,[],0,0
+thoughts,[],[],0,"['https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Leviticus.19.17']",0,2
+the-sale-of-joseph,[],[],0,[],0,0
+laws-of-eating-the-paschal-offering,[],[],0,[],0,0
+absalom,[],[],0,[],0,0
+knowing,"['https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8']","['https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1']",1,"['https://www.sefaria.org.il/Eight_Chapters.3.3', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', ""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17"", 'https://www.sefaria.org.il/Exodus.6.6-7']",1,4
+rituals1,['https://www.sefaria.org.il/Devarim_Rabbah.3.1'],[],1,"['https://www.sefaria.org.il/Leviticus.23.15-16', 'https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Book_of_Jubilees.2.33', 'https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Mishneh_Torah,_Paschal_Offering.4.11', 'https://www.sefaria.org.il/Pesachim.39a.1-15', 'https://www.sefaria.org.il/Berakhot.30a.8-9', 'https://www.sefaria.org.il/Ibn_Ezra_on_Numbers.5.31.1', 'https://www.sefaria.org.il/Leviticus.10.8-10', 'https://www.sefaria.org.il/Pesachim.109a.5', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4', ""https://www.sefaria.org.il/Sha'ar_HaMitzvot,_Vayechi.18"", 'https://www.sefaria.org.il/Mishnah_Parah.4.2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13', 'https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3']",0,15
+tu-bav,[],[],0,[],0,0
+willows,[],[],0,"['https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10']",0,2
+simeon,[],[],0,[],0,0
+middot,[],"['https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1']",0,"['https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1', 'https://www.sefaria.org.il/Bava_Metzia.59a.4', 'https://www.sefaria.org.il/Proverbs.26.14']",1,4
+rosh-chodesh,"['https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32']",[],1,['https://www.sefaria.org.il/Mishnah_Megillah.4.2'],0,1
+laws-of-interest-on-loans-and-in-commerce,[],[],0,[],0,0
+gematria,[],[],0,"['https://www.sefaria.org.il/Maaseh_Rokeach_on_Mishnah,_Seder_Nezikin,_Bava_Metzia.12']",0,1
+seth,[],[],0,[],0,0
+laws-of-processing-the-red-heifer,[],[],0,[],0,0
+fundamental-laws-of-scribes,[],[],0,['https://www.sefaria.org.il/Sefer_Chasidim.902.1'],0,1
+famine-in-egypt,[],[],0,[],0,0
+father,['https://www.sefaria.org.il/Ahavat_David.14.55'],[],1,[],0,0
+human-dignity,[],[],0,"['https://www.sefaria.org.il/Rashi_on_Deuteronomy.22.5.1-3', 'https://www.sefaria.org.il/Berakhot.6b.24', 'https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']",0,4
+laws-of-forbidden-sexual-relations,[],[],0,"['https://www.sefaria.org.il/Sefer_HaChinukh.598.5', 'https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13', 'https://www.sefaria.org.il/Ibn_Ezra_on_Numbers.5.31.1']",0,3
+jacob-and-the-sticks,[],[],0,[],0,0
+omer-offering,[],['https://www.sefaria.org.il/Leviticus.23.15-16'],0,"['https://www.sefaria.org.il/Sukkah.41a.6-8', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']",1,2
+jerusalem,[],['https://www.sefaria.org.il/Berakhot.30a.8-9'],0,"['https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/II_Chronicles.2.2', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']",1,3
+beauty,[],[],0,"['https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11']",0,1
+clothing,"['https://www.sefaria.org.il/Rashi_on_Deuteronomy.22.5.1-3', 'https://www.sefaria.org.il/Maaseh_Rokeach_on_Mishnah,_Seder_Nezikin,_Bava_Metzia.12']",[],2,[],0,0
+praise-of-god,"[""https://www.sefaria.org.il/Zohar,_Ha'Azinu.5.20""]","['https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Midrash_Tehillim.104.1']",1,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/II_Samuel.22.1', 'https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/Sotah.27b.11-12', 'https://www.sefaria.org.il/Machzor_Rosh_Hashanah_Ashkenaz_Linear,_The_Morning_Prayers,_Yehi_Kevod.127', ""https://www.sefaria.org.il/Otzar_Midrashim,_Midrash_on_Hallel_'Sefer_HaMa'asim'.1.7"", 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Isaiah.58.1-2']",2,10
+beit-din,[],[],0,"['https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8']",0,2
+laws-of-annulling-vows,[],[],0,['https://www.sefaria.org.il/Nazir.20b'],0,1
+hope,[],[],0,"['https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Exodus.6.6-7']",0,3
+the-ten-tribes,[],[],0,[],0,0
+rehoboam,[],[],0,[],0,0
+mikhal,[],[],0,[],0,0
+joseph-and-potiphars-wife,[],[],0,[],0,0
+tribes,['https://www.sefaria.org.il/Panekha_Avakesh.18.44'],[],1,"[""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Sotah.37a.3', 'https://www.sefaria.org.il/Deuteronomy.3.15']",0,3
+zelophehad,[],[],0,[],0,0
+freedom1,[],"['https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Exodus.6.6-7']",0,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10', 'https://www.sefaria.org.il/Shabbat_Siddur_Sefard_Linear,_Maariv_Service_for_Shabbos_and_Yom_Tov,_Borechu.184']",2,3
+adam-and-eve,[],[],0,['https://www.sefaria.org.il/Shemot_Rabbah.28.2'],0,1
+hermeneutical-rules-through-which-the-torah-is-interpreted,[],[],0,['https://www.sefaria.org.il/Berakhot.63b.12-64a.3'],0,1
+laws-of-presumptions-of-use-and-removal-of-hazards-among-neighbors,[],[],0,[],0,0
+love-of-god1,[],['https://www.sefaria.org.il/Mesillat_Yesharim.18.9'],0,"['https://www.sefaria.org.il/II_Samuel.22.1', 'https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Midrash_Tehillim.104.1', 'https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Isaiah.58.1-2']",1,6
+laws-of-the-recitation-of-shema,[],['https://www.sefaria.org.il/Berakhot.9a.4'],0,['https://www.sefaria.org.il/Sotah.27b.11-12'],1,1
+kabbalat-shabbat,[],[],0,[],0,0
+the-messianic-era,[],[],0,"['https://www.sefaria.org.il/Panekha_Avakesh.18.44', 'https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",0,3
+tzimtzum1,[],[],0,[],0,0
+laws-of-cursing,[],[],0,[],0,0
+race,[],[],0,[],0,0
+laws-of-writing-on-shabbat,[],[],0,[],0,0
+seas1,[],['https://www.sefaria.org.il/Sotah.37a.3'],0,"['https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",1,1
+cities-of-refuge,[],[],0,[],0,0
+asher,[],[],0,[],0,0
+noah-and-the-ark,[],[],0,[],0,0
+destruction-of-the-temple,[],['https://www.sefaria.org.il/Taanit.29a.1-17'],0,['https://www.sefaria.org.il/Sukkah.41a.6-8'],1,1
+man-and-animals,[],[],0,['https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1'],0,1
+ahasuerus,[],[],0,[],0,0
+rabbi-meir,[],[],0,"[""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1""]",0,1
+priestly-blessing,[],[],0,[],0,0
+laws-of-hekdesh-and-cherem,[],[],0,"['https://www.sefaria.org.il/Teshuvot_Maharit,_I.63.1']",0,1
+clouds,"['https://www.sefaria.org.il/Shabbat_Siddur_Sefard_Linear,_Maariv_Service_for_Shabbos_and_Yom_Tov,_Borechu.184']",['https://www.sefaria.org.il/Ramban_on_Exodus.13.21.1'],1,"['https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",1,1
+agriculture,"[""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1""]",[],1,"['https://www.sefaria.org.il/Leviticus.23.15-16', 'https://www.sefaria.org.il/Berakhot.18b.7-9', 'https://www.sefaria.org.il/Deuteronomy.8.7-10']",0,3
+simchat-torah,[],[],0,[],0,0
+adam,['https://www.sefaria.org.il/Avodah_Zarah.35a.7'],[],1,"['https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14']",0,2
+israel-in-egypt,['https://www.sefaria.org.il/Malbim_on_Exodus.4.1.2'],"['https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Exodus.6.6-7']",1,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Numbers.11.18-20', 'https://www.sefaria.org.il/Sotah.37a.3', 'https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Vayeshev,_Miketz,_Vayigash,_Torah_Ohr.24']",3,4
+figs,[],['https://www.sefaria.org.il/Deuteronomy.8.7-10'],0,['https://www.sefaria.org.il/Tosefta_Mikvaot.6.5'],1,1
+temple-vessels,[],"[""https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Beha'alotcha.4.1""]",0,[],1,0
+seder,[],[],0,"['https://www.sefaria.org.il/Pesachim.39a.1-15', 'https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3']",0,2
+health,"['https://www.sefaria.org.il/Berakhot.9a.4', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1']","['https://www.sefaria.org.il/Gittin.12b.12', 'https://www.sefaria.org.il/Berakhot.60a.28-29', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.4.13', 'https://www.sefaria.org.il/Proverbs.26.14']",2,"['https://www.sefaria.org.il/Eight_Chapters.3.3', 'https://www.sefaria.org.il/The_Antiquities_of_the_Jews.10.10.2', 'https://www.sefaria.org.il/Sanhedrin.93b.10', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Genesis.20.15-18', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Tosefta_Mikvaot.6.5', 'https://www.sefaria.org.il/On_Dreams,_Book_II.16.1', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Bava_Batra.58b.2']",4,10
+gratitude,['https://www.sefaria.org.il/Midrash_Tehillim.104.1'],"['https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Deuteronomy.8.7-10']",1,"['https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/LaKelal_VeLaPerat,_Volume_I,_3_The_Holy_Land.13.8', 'https://www.sefaria.org.il/Numbers.11.18-20', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Mishnah_Menachot.2.3', 'https://www.sefaria.org.il/II_Kings.4.37']",2,6
+political-thought,[],[],0,['https://www.sefaria.org.il/Panekha_Avakesh.18.44'],0,1
+laws-of-animal-sacrifice-disqualifications,[],[],0,"['https://www.sefaria.org.il/Chullin.125a.7', 'https://www.sefaria.org.il/Mishnah_Menachot.2.3']",0,2
+laws-of-plowing-on-shabbat,[],[],0,['https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20'],0,1
+cup-for-the-blessing,[],[],0,[],0,0
+zeresh,[],[],0,[],0,0
+dinei-chametz,[],[],0,[],0,0
+aram,[],[],0,[],0,0
+yannai,[],[],0,[],0,0
+vows,[],[],0,['https://www.sefaria.org.il/Nazir.20b'],0,1
+theodicy,"['https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10', 'https://www.sefaria.org.il/Pardes_Rimmonim.17.1.11']",[],2,['https://www.sefaria.org.il/Genesis.22.1-2'],0,1
+the-land-of-judah,[],[],0,[],0,0
+moses-staff,[],[],0,[],0,0
+moses-and-the-egyptian,[],[],0,"['https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10']",0,1
+general-principle,[],[],0,['https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20'],0,1
+laws-of-litigant-claims,[],[],0,[],0,0
+rabban-gamliel,[],[],0,[],0,0
+kaddish,[],"[""https://www.sefaria.org.il/Sha'ar_HaMitzvot,_Vayechi.18""]",0,[],1,0
+splitting-of-the-red-sea,[],['https://www.sefaria.org.il/Sotah.37a.3'],0,"['https://www.sefaria.org.il/Ramban_on_Exodus.13.21.1', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",1,2
+the-gatherer,[],[],0,[],0,0
+laws-of-agricultural-gifts-to-the-poor,[],[],0,[],0,0
+calculations-to-verify-the-sighting-of-the-new-moon-in-its-time,[],[],0,[],0,0
+laws-of-disqualified-sanctified-items,[],[],0,['https://www.sefaria.org.il/Chullin.125a.7'],0,1
+laws-of-disqualifications-of-thought,[],['https://www.sefaria.org.il/Mishnah_Menachot.2.3'],0,['https://www.sefaria.org.il/Chullin.125a.7'],1,1
+well-in-the-desert,[],"['https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",0,[],1,0
+the-prophecy-of-ezekiel,[],[],0,[],0,0
+book-of-life,[],[],0,"['https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,1
+abraham-and-the-hittites,[],[],0,[],0,0
+neighbors,[],['https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1'],0,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Mesillat_Yesharim.5.25']",1,2
+songs,"['https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Avodah_Zarah.35a.7']","[""https://www.sefaria.org.il/Zohar,_Ha'Azinu.5.20"", 'https://www.sefaria.org.il/Sotah.27b.11-12']",2,"['https://www.sefaria.org.il/II_Samuel.22.1', 'https://www.sefaria.org.il/Pesachim.117a.13-14', 'https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",2,5
+avodat-hashem,"['https://www.sefaria.org.il/Devarim_Rabbah.3.1', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']","['https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Mesillat_Yesharim.18.9']",2,"['https://www.sefaria.org.il/Mesillat_Yesharim.5.25', 'https://www.sefaria.org.il/Pesachim.117a.13-14', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Leviticus.20.23', 'https://www.sefaria.org.il/Berakhot.30a.8-9', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",2,11
+creation,[],[],0,"['https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Vayeshev,_Miketz,_Vayigash,_Torah_Ohr.24']",0,1
+halakhah,"['https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20', 'https://www.sefaria.org.il/Berakhot.15b.12']",[],2,[],0,0
+mishnah,"['https://www.sefaria.org.il/Introductions_to_Amoraic_Literature,_Part_I_(Introductions_to_Tractates_of_the_Babli),_Nazir.110', 'https://www.sefaria.org.il/Berakhot.15b.12']",[],2,[],0,0
+enoch1,[],[],0,[],0,0
+cats,[],[],0,"['https://www.sefaria.org.il/Pesach_Haggadah,_Nirtzah,_Chad_Gadya.3']",0,1
+ethics,"['https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1']",[],1,"['https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Matot,_Masei,_Devarim,_Ner_Mitzvah.10', 'https://www.sefaria.org.il/Mishneh_Torah,_Murderer_and_the_Preservation_of_Life.1.9', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Leviticus.19.17']",0,5
+zimri,[],[],0,[],0,0
+wheat,[],['https://www.sefaria.org.il/Deuteronomy.8.7-10'],0,[],1,0
+er-(firstborn-son-of-judah),[],[],0,[],0,0
+welcoming,[],[],0,['https://www.sefaria.org.il/Berakhot.63b.12-64a.3'],0,1
+laws-of-wars,[],[],0,[],0,0
+terach,[],[],0,[],0,0
+bikkurim,[],[],0,[],0,0
+laws-of-vows-and-their-release,[],[],0,['https://www.sefaria.org.il/Nazir.20b'],0,1
+lashon-hara,[],[],0,[],0,0
+priestly-garments,[],[],0,['https://www.sefaria.org.il/Tamid.27b.7'],0,1
+drashah,[],[],0,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Sotah.37a.3', 'https://www.sefaria.org.il/Taanit.7a.6']",0,3
+song-of-songs,['https://www.sefaria.org.il/Avodah_Zarah.35a.7'],[],1,[],0,0
+oppression,['https://www.sefaria.org.il/Taanit.29a.1-17'],[],1,"['https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10']",0,1
+laws-of-borrowers,[],[],0,['https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8'],0,1
+tower-of-babel,[],"['https://www.sefaria.org.il/Midrash_Tanchuma,_Noach.18.7']",0,[],1,0
+laws-of-the-sanctity-of-the-temple,[],[],0,[],0,0
+moses-prayer-after-the-sin-of-the-calf,[],[],0,[],0,0
+laws-of-tying-on-shabbat,[],[],0,[],0,0
+exile,['https://www.sefaria.org.il/Taanit.29a.1-17'],"['https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3', 'https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Vayeshev,_Miketz,_Vayigash,_Torah_Ohr.24']",1,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.1.6.5', 'https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14', 'https://www.sefaria.org.il/Exodus.6.6-7']",2,6
+maaser-sheni,[],"[""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1""]",0,[],1,0
+laws-of-gifts-from-someone-gravely-ill,[],[],0,[],0,0
+slaves,[],"['https://www.sefaria.org.il/Gittin.12b.12', 'https://www.sefaria.org.il/Sefat_Emet,_Genesis,_Chayei_Sara.19.4']",0,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3', 'https://www.sefaria.org.il/Exodus.6.6-7']",2,4
+elisha,[],[],0,"['https://www.sefaria.org.il/Pesachim.117a.13-14', 'https://www.sefaria.org.il/II_Kings.4.37']",0,2
+spirituality,[],"['https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",0,"[""https://www.sefaria.org.il/Zohar,_Ha'Azinu.5.20"", 'https://www.sefaria.org.il/Talmud_Eser_HaSefirot,_Section_XIV,_List_of_Questions_on_Terminology.84', 'https://www.sefaria.org.il/Pesachim.117a.13-14', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', ""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17"", 'https://www.sefaria.org.il/Isaiah.58.1-2']",1,6
+pregnancy,"['https://www.sefaria.org.il/Mishneh_Torah,_Murderer_and_the_Preservation_of_Life.1.9']",[],1,[],0,0
+laws-of-inherited-property,[],[],0,[],0,0
+laws-of-the-festival-offering,['https://www.sefaria.org.il/Chagigah.6a.15'],[],1,"['https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32']",0,1
+mikveh,[],[],0,[],0,0
+plague-of-hail,[],[],0,[],0,0
+blessing-of-levi,[],[],0,[],0,0
+truth,[],[],0,"['https://www.sefaria.org.il/Bava_Batra.45a.6', ""https://www.sefaria.org.il/Shulchan_Arukh,_Yoreh_De'ah.236.1-2"", 'https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Matot,_Masei,_Devarim,_Ner_Mitzvah.10', 'https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13', 'https://www.sefaria.org.il/Rashi_on_Genesis.25.27.1-28.1', 'https://www.sefaria.org.il/Radak_on_Genesis.27.19.1', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Genesis.42.19']",0,8
+lamentations,"[""https://www.sefaria.org.il/Sha'ar_HaPesukim,_Parashat_Balak.56""]",[],1,[],0,0
+laws-of-honoring-the-sages,[],['https://www.sefaria.org.il/Berakhot.31a.13'],0,"['https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6']",1,3
+peace,[],[],0,[],0,0
+meat,[],"['https://www.sefaria.org.il/HaElef_Lekha_Shlomo,_Yoreh_Deah.122.1']",0,"['https://www.sefaria.org.il/Chullin.125a.7', 'https://www.sefaria.org.il/The_Antiquities_of_the_Jews.10.10.2', 'https://www.sefaria.org.il/Numbers.11.18-20', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20', 'https://www.sefaria.org.il/Mishnah_Menachot.2.3', 'https://www.sefaria.org.il/Pesachim.109a.5', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']",1,7
+tzipporah,[],[],0,[],0,0
+laws-of-final-touches-on-shabbat,[],[],0,[],0,0
+processes-of-contracting-impurity-via-beds-and-seats,[],[],0,[],0,0
+shabbat-hagadol,[],[],0,[],0,0
+laws-of-substances-that-absorb-impurity,[],[],0,"['https://www.sefaria.org.il/Chullin.125a.7', 'https://www.sefaria.org.il/Nazir.36a.3']",0,2
+pirkei-avot,[],[],0,"['https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']",0,2
+vidui,"['https://www.sefaria.org.il/Reshit_Chokhmah,_Gate_of_Fear.8.28']",[],1,['https://www.sefaria.org.il/Isaiah.58.1-2'],0,1
+bread,[],[],0,"['https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Mishnah_Menachot.2.3', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",0,7
+revelation,[],['https://www.sefaria.org.il/Shemot_Rabbah.28.2'],0,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Midrash_Tanchuma,_Noach.18.7', 'https://www.sefaria.org.il/Deuteronomy.18.14-15', 'https://www.sefaria.org.il/Isaiah.58.1-2']",1,4
+retributions-during-the-exodus-from-egypt,[],[],0,['https://www.sefaria.org.il/Exodus.6.6-7'],0,1
+argument,['https://www.sefaria.org.il/Shabbat.140a.4'],[],1,[],0,0
+potiphar,[],[],0,[],0,0
+laws-of-the-guilt-offering,[],[],0,[],0,0
+olives,[],['https://www.sefaria.org.il/Deuteronomy.8.7-10'],0,[],1,0
+laws-of-questionable-impurity,[],[],0,[],0,0
+pharaohs-dream,[],[],0,[],0,0
+questions,[],"['https://www.sefaria.org.il/LaKelal_VeLaPerat,_Volume_I,_3_The_Holy_Land.13.8']",0,"['https://www.sefaria.org.il/Talmud_Eser_HaSefirot,_Section_XIV,_List_of_Questions_on_Terminology.84', 'https://www.sefaria.org.il/Avodah_Zarah.35a.7', 'https://www.sefaria.org.il/Isaiah.58.1-2']",1,3
+society,[],[],0,"['https://www.sefaria.org.il/Mesillat_Yesharim.5.25', 'https://www.sefaria.org.il/Sifrei_Devarim.13.6', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8']",0,3
+heavens,[],"[""https://www.sefaria.org.il/Otzar_Midrashim,_Midrash_on_Hallel_'Sefer_HaMa'asim'.1.7""]",0,"['https://www.sefaria.org.il/Chagigah.12b.9', 'https://www.sefaria.org.il/Ramban_on_Exodus.13.21.1', 'https://www.sefaria.org.il/Berakhot.28b.1-11']",1,3
+yavneh,[],[],0,[],0,0
+forgiveness-(מחילה),[],[],0,"['https://www.sefaria.org.il/Genesis.20.15-18', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Ahavat_David.14.55', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,6
+laws-of-trapping-on-shabbat,[],[],0,[],0,0
+rabban-yochanan-b-zakkai,[],['https://www.sefaria.org.il/Sukkah.41a.6-8'],0,"['https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Ketubot.66b.13']",1,2
+renewal,[],[],0,"['https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Sefer_HaIkkarim,_Maamar_4.35.2', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.1071.6', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,4
+the-tree-of-life,['https://www.sefaria.org.il/Taanit.7a.6'],[],1,[],0,0
+moriah,[],['https://www.sefaria.org.il/Genesis.22.1-2'],0,['https://www.sefaria.org.il/Berakhot.30a.8-9'],1,1
+days-of-cordoning,[],[],0,[],0,0
+bodies,"['https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.4.13']",[],1,[],0,0
+democracy,[],[],0,[],0,0
+laws-of-priestly-garments,[],[],0,['https://www.sefaria.org.il/Tamid.27b.7'],0,1
+arvit,[],[],0,"['https://www.sefaria.org.il/Berakhot.9a.4', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1']",0,2
+rav-rechumi,[],[],0,[],0,0
+asarah-betevet,"['https://www.sefaria.org.il/Abudarham,_Fasts,_Prayers.35']",[],1,[],0,0
+beersheba,[],[],0,[],0,0
+the-seven-noahide-laws,[],[],0,['https://www.sefaria.org.il/Sefer_HaChinukh.214.3'],0,1
+shimei,[],[],0,[],0,0
+god,"['https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']","['https://www.sefaria.org.il/Selichot_Nusach_Lita_Linear,_Third_Day.2.131', 'https://www.sefaria.org.il/Machzor_Rosh_Hashanah_Ashkenaz_Linear,_The_Morning_Prayers,_Yehi_Kevod.127', ""https://www.sefaria.org.il/Otzar_Midrashim,_Midrash_on_Hallel_'Sefer_HaMa'asim'.1.7""]",2,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Talmud_Eser_HaSefirot,_Section_XIV,_List_of_Questions_on_Terminology.84', 'https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10', 'https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Midrash_Tanchuma,_Noach.18.7', 'https://www.sefaria.org.il/Tikkunei_Zohar.36b.3', 'https://www.sefaria.org.il/Ramban_on_Exodus.13.21.1', 'https://www.sefaria.org.il/Sanhedrin.94b.12', 'https://www.sefaria.org.il/Leviticus.20.23', 'https://www.sefaria.org.il/Midrash_Tehillim.104.1', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Sefer_HaIkkarim,_Maamar_4.35.2', 'https://www.sefaria.org.il/Deuteronomy.18.14-15', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Exodus.6.6-7', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",3,19
+curiosity,[],[],0,[],0,0
+rabban-gamliel-hazaken-(i),[],[],0,[],0,0
+resurrection,[],"['https://www.sefaria.org.il/Sefer_HaIkkarim,_Maamar_4.35.2']",0,[],1,0
+shifrah-and-puah1,[],[],0,[],0,0
+gemorrah,[],[],0,[],0,0
+laws-of-sewing-on-shabbat,[],[],0,[],0,0
+miriam,[],[],0,['https://www.sefaria.org.il/Taanit.29a.1-17'],0,1
+shimon-b-azzai,[],[],0,[],0,0
+prohibitions-of-nazarite-vows-and-its-disruption,[],[],0,['https://www.sefaria.org.il/Nazir.36a.3'],0,1
+sarah,[],[],0,['https://www.sefaria.org.il/Genesis.20.15-18'],0,1
+laws-of-the-subcategories-of-impurity,[],['https://www.sefaria.org.il/Chullin.125a.7'],0,['https://www.sefaria.org.il/Mishnah_Kelim.1.4'],1,1
+shivah-asar-betammuz,[],[],0,[],0,0
+nachshon-ben-aminadav,[],['https://www.sefaria.org.il/Sotah.37a.3'],0,[],1,0
+yahrzeit,[],[],0,"[""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17""]",0,1
+laws-of-blessings-over-commandments,[],[],0,"['https://www.sefaria.org.il/Mishnah_Megillah.4.2', 'https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10']",0,2
+haman,[],[],0,[],0,0
+ben-sorer-umoreh,[],[],0,[],0,0
+menasseh-(king-of-judah),[],[],0,[],0,0
+civil-discourse,[],[],0,[],0,0
+melchizedek,[],[],0,[],0,0
+laws-of-prevention-of-impurity-in-a-tent-containing-a-corpse,[],[],0,[],0,0
+management,[],[],0,[],0,0
+grapes,[],[],0,['https://www.sefaria.org.il/Deuteronomy.8.7-10'],0,1
+decree-against-sons,[],[],0,[],0,0
+eli,[],[],0,[],0,0
+creation-of-plants,[],[],0,[],0,0
+forgiveness,[],[],0,"['https://www.sefaria.org.il/Genesis.20.15-18', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Ahavat_David.14.55', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,5
+plague-of-blood,[],[],0,[],0,0
+values,"['https://www.sefaria.org.il/Selichot_Nusach_Lita_Linear,_Third_Day.2.131', 'https://www.sefaria.org.il/Berakhot.9a.4', 'https://www.sefaria.org.il/Pardes_Rimmonim.17.1.11', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20', 'https://www.sefaria.org.il/Berakhot.15b.12', 'https://www.sefaria.org.il/Mishneh_Torah,_Tefillin,_Mezuzah_and_the_Torah_Scroll.10.8', 'https://www.sefaria.org.il/Rashi_on_II_Samuel.5.24.1-2', 'https://www.sefaria.org.il/Taanit.7a.6']","['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Jeremiah.48.14', 'https://www.sefaria.org.il/Talmud_Eser_HaSefirot,_Section_XIV,_List_of_Questions_on_Terminology.84', 'https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Shabbat.140a.4', 'https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10', 'https://www.sefaria.org.il/Chagigah.12b.9', 'https://www.sefaria.org.il/Derekh_Chayyim.3.9.1-2', 'https://www.sefaria.org.il/Book_of_Jubilees.2.33', 'https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/Mesillat_Yesharim.5.25', 'https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Pesachim.117a.13-14', ""https://www.sefaria.org.il/Shulchan_Arukh,_Yoreh_De'ah.236.1-2"", 'https://www.sefaria.org.il/LaKelal_VeLaPerat,_Volume_I,_3_The_Holy_Land.13.8', 'https://www.sefaria.org.il/Machzor_Rosh_Hashanah_Ashkenaz_Linear,_The_Morning_Prayers,_Yehi_Kevod.127', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1', 'https://www.sefaria.org.il/Devarim_Rabbah.3.1', 'https://www.sefaria.org.il/Midrash_Tehillim.119.28', 'https://www.sefaria.org.il/Teshuvot_Maharit,_I.63.1', 'https://www.sefaria.org.il/Berakhot.31a.13', 'https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Vayishlach.6.2', 'https://www.sefaria.org.il/Avodah_Zarah.35a.7', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Reshit_Chokhmah,_Gate_of_Fear.8.28', 'https://www.sefaria.org.il/Sotah.37a.3', 'https://www.sefaria.org.il/Sifrei_Devarim.13.6', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1', 'https://www.sefaria.org.il/Midrash_Tehillim.104.1', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', 'https://www.sefaria.org.il/Pesachim.109a.5', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Ahavat_David.14.55', 'https://www.sefaria.org.il/Mesillat_Yesharim.18.9', 'https://www.sefaria.org.il/Exodus.6.6-7', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13', 'https://www.sefaria.org.il/Leviticus.19.17', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",8,"['https://www.sefaria.org.il/Eight_Chapters.3.3', ""https://www.sefaria.org.il/Zohar,_Ha'Azinu.5.20"", 'https://www.sefaria.org.il/Berakhot.62b.14-16', 'https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/II_Samuel.22.1', 'https://www.sefaria.org.il/Sukkah.41a.6-8', 'https://www.sefaria.org.il/Shulchan_Arukh,_Orach_Chayim.696.8', 'https://www.sefaria.org.il/Bava_Batra.45a.6', 'https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Matot,_Masei,_Devarim,_Ner_Mitzvah.10', 'https://www.sefaria.org.il/Rashi_on_Deuteronomy.22.5.1-3', 'https://www.sefaria.org.il/Sotah.27b.11-12', 'https://www.sefaria.org.il/Nazir.20b', 'https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13', 'https://www.sefaria.org.il/The_Antiquities_of_the_Jews.10.10.2', 'https://www.sefaria.org.il/Sanhedrin.93b.10', 'https://www.sefaria.org.il/Sanhedrin.94b.12', 'https://www.sefaria.org.il/Maaseh_Rokeach_on_Mishnah,_Seder_Nezikin,_Bava_Metzia.12', 'https://www.sefaria.org.il/Kalach_Pitchei_Chokhmah.115.8', 'https://www.sefaria.org.il/Leviticus.20.23', 'https://www.sefaria.org.il/Berakhot.18b.7-9', 'https://www.sefaria.org.il/Numbers.11.18-20', 'https://www.sefaria.org.il/Horayot.6a.3', 'https://www.sefaria.org.il/Rashi_on_Genesis.25.27.1-28.1', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Genesis.20.15-18', 'https://www.sefaria.org.il/Mishnah_Megillah.4.2', 'https://www.sefaria.org.il/Pesachim.39a.1-15', 'https://www.sefaria.org.il/Berakhot.30a.8-9', 'https://www.sefaria.org.il/Radak_on_Genesis.27.19.1', 'https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Ibn_Ezra_on_Numbers.5.31.1', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Mishnah_Menachot.2.3', 'https://www.sefaria.org.il/Shabbat_Siddur_Sefard_Linear,_Maariv_Service_for_Shabbos_and_Yom_Tov,_Borechu.184', 'https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3', 'https://www.sefaria.org.il/Sefat_Emet,_Genesis,_Chayei_Sara.19.4', 'https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Sefer_HaIkkarim,_Maamar_4.35.2', 'https://www.sefaria.org.il/Bava_Metzia.59a.4', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.1071.6', ""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17"", 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Torah.771.2-3', 'https://www.sefaria.org.il/Deuteronomy.18.14-15', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4', 'https://www.sefaria.org.il/Genesis.42.19', 'https://www.sefaria.org.il/Malbim_on_Exodus.4.1.2', ""https://www.sefaria.org.il/Sha'ar_HaMitzvot,_Vayechi.18"", 'https://www.sefaria.org.il/Proverbs.26.14', 'https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3', 'https://www.sefaria.org.il/Sefer_Chasidim.902.1', 'https://www.sefaria.org.il/II_Kings.4.37']",46,56
+atzilut,[],[],0,[],0,0
+rain,[],[],0,"['https://www.sefaria.org.il/Berakhot.18b.7-9', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",0,4
+davids-sin,[],[],0,[],0,0
+yefet,"['https://www.sefaria.org.il/Maaseh_Rokeach_on_Mishnah,_Seder_Nezikin,_Bava_Metzia.12']",[],1,[],0,0
+sun,[],['https://www.sefaria.org.il/Eruvin.56a.5-7'],0,"['https://www.sefaria.org.il/Berakhot.6b.24', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",1,2
+joseph-in-egypt,[],"['https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Vayeshev,_Miketz,_Vayigash,_Torah_Ohr.24']",0,['https://www.sefaria.org.il/Genesis.42.19'],1,1
+isaiah,[],['https://www.sefaria.org.il/Isaiah.58.1-2'],0,[],1,0
+jonathan1,[],[],0,[],0,0
+sitra-achra,[],[],0,"['https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",0,1
+welcoming-guests,[],[],0,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Genesis.20.15-18']",0,2
+samuel-(prophet),[],[],0,[],0,0
+eye-for-an-eye,[],[],0,[],0,0
+lemekh1,[],[],0,[],0,0
+laws-of-partnerships,[],['https://www.sefaria.org.il/Mishnah_Bava_Metzia.5.5'],0,['https://www.sefaria.org.il/Sefer_Chasidim.953.1'],1,1
+knowledge,[],[],0,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Eight_Chapters.3.3', 'https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Avodah_Zarah.35a.7', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Isaiah.58.1-2']",0,10
+time,[],[],0,"['https://www.sefaria.org.il/Book_of_Jubilees.2.33', 'https://www.sefaria.org.il/Machzor_Rosh_Hashanah_Ashkenaz_Linear,_The_Morning_Prayers,_Yehi_Kevod.127', ""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17""]",0,3
+laws-of-the-confession-of-tithes,[],[],0,[],0,0
+laws-of-counting-the-omer,[],[],0,"['https://www.sefaria.org.il/Leviticus.23.15-16', 'https://www.sefaria.org.il/Sukkah.41a.6-8']",0,2
+obligation-of-the-priestly-tithe-and-its-separation,[],[],0,"[""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1""]",0,1
+the-priestly-service,[],[],0,[],0,0
+cedars,[],['https://www.sefaria.org.il/II_Chronicles.2.2'],0,[],1,0
+laws-of-honor-for-the-dead,[],[],0,[],0,0
+laws-of-circumcision,[],[],0,[],0,0
+distinctions-of-the-land-of-israel,"[""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Berakhot.30a.8-9']",['https://www.sefaria.org.il/Deuteronomy.8.7-10'],2,[],1,0
+jewish-people,['https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13'],['https://www.sefaria.org.il/Deuteronomy.4.10'],1,"['https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Sforno_on_Genesis.35.10.1', 'https://www.sefaria.org.il/Leviticus.20.23', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14', 'https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3', 'https://www.sefaria.org.il/Ketubot.111a.19', 'https://www.sefaria.org.il/Ketubot.66b.13', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Exodus.6.6-7']",1,10
+cain,[],[],0,[],0,0
+free-will,[],[],0,"['https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14']",0,2
+death,"['https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/Berakhot.18b.7-9', ""https://www.sefaria.org.il/Sha'ar_HaMitzvot,_Vayechi.18""]","['https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14', ""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17""]",3,"['https://www.sefaria.org.il/Eight_Chapters.3.3', 'https://www.sefaria.org.il/Sefer_HaChinukh.598.5', 'https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13', 'https://www.sefaria.org.il/Sefer_HaIkkarim,_Maamar_4.35.2', 'https://www.sefaria.org.il/Bava_Batra.58b.2', 'https://www.sefaria.org.il/Gittin.82b.14']",3,6
+meat-in-the-sinai-desert,[],['https://www.sefaria.org.il/Numbers.11.18-20'],0,[],1,0
+taharah,[],[],0,[],0,0
+laws-of-the-prohibitions-of-eating-vegetation,[],[],0,[],0,0
+the-ten-plagues,[],[],0,['https://www.sefaria.org.il/Exodus.6.6-7'],0,1
+blessings,['https://www.sefaria.org.il/Midrash_Tehillim.104.1'],['https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10'],1,"['https://www.sefaria.org.il/Devarim_Rabbah.3.1', 'https://www.sefaria.org.il/Mishnah_Megillah.4.2', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Shabbat_Siddur_Sefard_Linear,_Maariv_Service_for_Shabbos_and_Yom_Tov,_Borechu.184', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18']",1,6
+tzaddik,[],[],0,[],0,0
+laws-of-guardianship,[],[],0,[],0,0
+balaam,[],[],0,['https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1'],0,1
+elisha-ben-abuya,[],[],0,[],0,0
+netilat-yadayim,[],[],0,"['https://www.sefaria.org.il/Mishneh_Torah,_Tefillin,_Mezuzah_and_the_Torah_Scroll.10.8']",0,1
+incense,[],[],0,['https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2'],0,1
+angels,"['https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14', 'https://www.sefaria.org.il/On_Dreams,_Book_II.16.1']",['https://www.sefaria.org.il/Ramban_on_Exodus.13.21.1'],2,"['https://www.sefaria.org.il/Midrash_Tehillim.104.1', 'https://www.sefaria.org.il/Rashi_on_II_Samuel.5.24.1-2']",1,2
+pinchas,[],[],0,[],0,0
+michael,['https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1'],[],1,"['https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Vayishlach.6.2']",0,1
+moses-in-midian,[],[],0,['https://www.sefaria.org.il/Berakhot.63b.12-64a.3'],0,1
+laws-of-sorting-on-shabbat,[],[],0,[],0,0
+13-principles-of-faith,[],[],0,"['https://www.sefaria.org.il/Selichot_Nusach_Lita_Linear,_Third_Day.2.131', 'https://www.sefaria.org.il/Machzor_Rosh_Hashanah_Ashkenaz_Linear,_The_Morning_Prayers,_Yehi_Kevod.127']",0,2
+laws-of-additional-holiday-sacrifices,[],[],0,"['https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32']",0,1
+laws-of-desecrating-shabbat-for-the-sake-of-saving-lives,[],[],0,[],0,0
+fire,[],[],0,"['https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/Sefer_HaChinukh.214.3', 'https://www.sefaria.org.il/Ramban_on_Exodus.13.21.1', 'https://www.sefaria.org.il/Sefer_HaIkkarim,_Maamar_4.35.2', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', ""https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Beha'alotcha.4.1"", 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']",0,7
+partnership,[],[],0,"['https://www.sefaria.org.il/Mishneh_Torah,_Paschal_Offering.4.11', 'https://www.sefaria.org.il/Mishnah_Bava_Metzia.5.5']",0,2
+reincarnation,[],[],0,"['https://www.sefaria.org.il/Sefer_HaIkkarim,_Maamar_4.35.2']",0,1
+gabriel-the-angel,[],[],0,[],0,0
+moses-blessing,[],[],0,[],0,0
+generosity,[],[],0,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1', 'https://www.sefaria.org.il/Berakhot.18b.7-9', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,6
+yirat-shamayim,[],"['https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']",0,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Derekh_Chayyim.3.9.1-2', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Sotah.37a.3', 'https://www.sefaria.org.il/Genesis.22.1-2']",2,5
+rivers,[],[],0,"['https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Torah.771.2-3']",0,2
+amasa,[],[],0,[],0,0
+laws-of-untying-on-shabbat,[],[],0,[],0,0
+ushpizin,[],[],0,[],0,0
+mindfulness,[],[],0,[],0,0
+derekh-eretz,['https://www.sefaria.org.il/Berakhot.31a.13'],['https://www.sefaria.org.il/Sefer_Chasidim.953.1'],1,[],1,0
+order-of-inheritance,[],[],0,[],0,0
+laws-of-release-from-an-oath,[],[],0,[],0,0
+shiluach-haken,[],[],0,[],0,0
+achitofel,[],[],0,[],0,0
+laws-of-engagement-of-workers,[],[],0,[],0,0
+shaliach-tsibur,[],[],0,[],0,0
+balaams-prophecy,[],[],0,[],0,0
+kehillah,[],[],0,"['https://www.sefaria.org.il/Berakhot.30a.8-9', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,2
+protection,[],[],0,"['https://www.sefaria.org.il/II_Samuel.22.1', 'https://www.sefaria.org.il/Sforno_on_Genesis.35.10.1', 'https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Vayishlach.6.2', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8', 'https://www.sefaria.org.il/Rashi_on_II_Samuel.5.24.1-2', 'https://www.sefaria.org.il/Exodus.6.6-7', 'https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3']",0,7
+ants,[],[],0,[],0,0
+laws-of-animal-firstlings,[],[],0,[],0,0
+magicians-and-the-ten-plagues,[],[],0,[],0,0
+mayim-achronim,[],[],0,[],0,0
+vowing-about-eating-and-benefit,[],[],0,['https://www.sefaria.org.il/Nazir.20b'],0,1
+dinei-hefsed-ketubah,[],[],0,[],0,0
+rabbah-bar-bar-chanah,[],[],0,[],0,0
+shem,[],"['https://www.sefaria.org.il/Maaseh_Rokeach_on_Mishnah,_Seder_Nezikin,_Bava_Metzia.12']",0,[],1,0
+carefulness,['https://www.sefaria.org.il/Book_of_Jubilees.2.33'],['https://www.sefaria.org.il/Mesillat_Yesharim.5.25'],1,"['https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Mishnah_Menachot.2.3', 'https://www.sefaria.org.il/Bava_Metzia.59a.4', 'https://www.sefaria.org.il/Sefer_Chasidim.902.1']",1,4
+planting,[],[],0,"['https://www.sefaria.org.il/Berakhot.18b.7-9', 'https://www.sefaria.org.il/Deuteronomy.8.7-10']",0,2
+eliezer,[],[],0,"['https://www.sefaria.org.il/Sefat_Emet,_Genesis,_Chayei_Sara.19.4']",0,1
+zechariah,[],[],0,[],0,0
+laws-of-seventh-year-produce,[],[],0,[],0,0
+prophecy-of-the-patriarchs,[],[],0,['https://www.sefaria.org.il/Radak_on_Genesis.27.19.1'],0,1
+laws-of-accidental-killing,[],[],0,[],0,0
+trade,[],[],0,"['https://www.sefaria.org.il/II_Chronicles.2.2', 'https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8']",0,3
+magicians,[],[],0,['https://www.sefaria.org.il/Deuteronomy.18.14-15'],0,1
+journey-in-the-desert,[],['https://www.sefaria.org.il/Ramban_on_Exodus.13.21.1'],0,"['https://www.sefaria.org.il/Chagigah.6a.15', 'https://www.sefaria.org.il/Numbers.11.18-20', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",1,3
+davids-wars,[],[],0,['https://www.sefaria.org.il/Rashi_on_II_Samuel.5.24.1-2'],0,1
+laws-of-the-methods-of-acquisition,[],[],0,[],0,0
+agunah,"['https://www.sefaria.org.il/LaKelal_VeLaPerat,_Volume_I,_3_The_Holy_Land.13.8', 'https://www.sefaria.org.il/Shoel_uMeshiv_Mahadura_I.2.139.7']",[],2,[],0,0
+dew,['https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1'],[],1,[],0,0
+isaacs-blessing,[],['https://www.sefaria.org.il/Radak_on_Genesis.27.19.1'],0,[],1,0
+beit-el,[],[],0,[],0,0
+iddo,[],[],0,[],0,0
+joseph-and-the-wine-steward,[],[],0,[],0,0
+lilith,[],[],0,"['https://www.sefaria.org.il/Reshit_Chokhmah,_Gate_of_Fear.8.28']",0,1
+food-ethics,"['https://www.sefaria.org.il/Allegorical_Interpretation_of_Genesis,_Book_III,_Introduction.42']",[],1,"[""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Genesis.42.19']",0,2
+laws-of-damages-from-a-pit,[],"['https://www.sefaria.org.il/Tur,_Choshen_Mishpat.398.4']",0,[],1,0
+daughters-of-zelophehad,[],[],0,[],0,0
+ruach-hakodesh1,[],[],0,"[""https://www.sefaria.org.il/Zohar,_Ha'Azinu.5.20""]",0,1
+yom-hashoah,[],[],0,[],0,0
+action,['https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6'],['https://www.sefaria.org.il/Sotah.37a.3'],1,['https://www.sefaria.org.il/Derekh_Chayyim.3.9.1-2'],1,1
+beit-hamikdash,['https://www.sefaria.org.il/Taanit.29a.1-17'],[],1,"['https://www.sefaria.org.il/II_Chronicles.2.2', 'https://www.sefaria.org.il/Berakhot.30a.8-9']",0,2
+levels-and-enhancements-of-purity,[],[],0,[],0,0
+mitzvot,['https://www.sefaria.org.il/Chagigah.6a.15'],"['https://www.sefaria.org.il/Devarim_Rabbah.3.1', 'https://www.sefaria.org.il/Midrash_Tehillim.119.28', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Mesillat_Yesharim.18.9']",1,"['https://www.sefaria.org.il/Leviticus.23.15-16', 'https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.1.6.5', 'https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Shulchan_Arukh,_Orach_Chayim.696.8', 'https://www.sefaria.org.il/Derekh_Chayyim.3.9.1-2', ""https://www.sefaria.org.il/Shulchan_Arukh,_Yoreh_De'ah.236.1-2"", 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Mishneh_Torah,_Murderer_and_the_Preservation_of_Life.1.9', 'https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Sefat_Emet,_Genesis,_Chayei_Sara.19.4', 'https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8', 'https://www.sefaria.org.il/Pesachim.109a.5', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",5,18
+sefirot,[],['https://www.sefaria.org.il/Kalach_Pitchei_Chokhmah.115.8'],0,"['https://www.sefaria.org.il/Talmud_Eser_HaSefirot,_Section_XIV,_List_of_Questions_on_Terminology.84', 'https://www.sefaria.org.il/Talmud_Eser_HaSefirot,_Section_XV,_List_of_Answers_on_Topics.231.1', 'https://www.sefaria.org.il/Talmud_Eser_HaSefirot,_Section_XV,_List_of_Answers_on_Topics.231.1']",1,3
+bal-tashchit,['https://www.sefaria.org.il/Taanit.7a.6'],[],1,[],0,0
+laws-of-dissociation-from-idolatry-and-its-worshippers,[],['https://www.sefaria.org.il/Mishnah_Avodah_Zarah.1.8'],0,"[""https://www.sefaria.org.il/Shulchan_Arukh,_Yoreh_De'ah.124.17"", 'https://www.sefaria.org.il/Sefer_HaChinukh.214.3', 'https://www.sefaria.org.il/Leviticus.20.23', 'https://www.sefaria.org.il/Deuteronomy.18.14-15']",1,4
+monotheism,[],"['https://www.sefaria.org.il/Selichot_Nusach_Lita_Linear,_Third_Day.2.131']",0,"['https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13', 'https://www.sefaria.org.il/Machzor_Rosh_Hashanah_Ashkenaz_Linear,_The_Morning_Prayers,_Yehi_Kevod.127', 'https://www.sefaria.org.il/Leviticus.20.23', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1']",1,4
+fasting,[],"['https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13', 'https://www.sefaria.org.il/Abudarham,_Fasts,_Prayers.35']",0,[],2,0
+isaacs-wells,[],[],0,[],0,0
+purim,[],[],0,"['https://www.sefaria.org.il/Shulchan_Arukh,_Orach_Chayim.696.8', 'https://www.sefaria.org.il/Abudarham,_Fasts,_Prayers.35']",0,2
+laws-of-substitution-of-offerings,[],[],0,[],0,0
+sumkhos,[],[],0,[],0,0
+goats,"['https://www.sefaria.org.il/Mishnah_Bava_Metzia.5.5', 'https://www.sefaria.org.il/Pesach_Haggadah,_Nirtzah,_Chad_Gadya.3']",[],2,"['https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Horayot.6a.3']",0,2
+universalism,[],[],0,[],0,0
+blessings-(halakhah),[],['https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10'],0,"['https://www.sefaria.org.il/Mishnah_Megillah.4.2', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18']",1,4
+laws-of-the-prohibitions-of-eating-meat,[],[],0,"['https://www.sefaria.org.il/HaElef_Lekha_Shlomo,_Yoreh_Deah.122.1']",0,1
+laws-of-laundering-on-shabbat,[],[],0,[],0,0
+betzalel,[],[],0,[],0,0
+egyptian-subjugation,[],"['https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10']",0,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Pesachim.39a.1-15', 'https://www.sefaria.org.il/Exodus.6.6-7']",1,4
+laws-of-tsaraat-of-a-person,[],[],0,['https://www.sefaria.org.il/Mishnah_Kelim.1.4'],0,1
+divorce,[],[],0,['https://www.sefaria.org.il/Sefer_HaChinukh.598.5'],0,1
+tashlich,[],[],0,[],0,0
+wisdom,"['https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Berakhot.28b.1-11']","['https://www.sefaria.org.il/Talmud_Eser_HaSefirot,_Section_XIV,_List_of_Questions_on_Terminology.84', 'https://www.sefaria.org.il/Derekh_Chayyim.3.9.1-2', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6']",2,"['https://www.sefaria.org.il/Eight_Chapters.3.3', 'https://www.sefaria.org.il/Midrash_Tehillim.119.28', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', ""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17""]",4,5
+shema,[],['https://www.sefaria.org.il/Berakhot.9a.4'],0,['https://www.sefaria.org.il/Sotah.27b.11-12'],1,1
+eagles,[],[],0,[],0,0
+laws-of-the-jubilee,[],[],0,['https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3'],0,1
+the-tetragrammaton,['https://www.sefaria.org.il/Exodus.6.6-7'],[],1,[],0,0
+mules,[],[],0,[],0,0
+rest,[],['https://www.sefaria.org.il/Book_of_Jubilees.2.33'],0,['https://www.sefaria.org.il/Devarim_Rabbah.3.1'],1,1
+hallel,[],"['https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Sotah.27b.11-12']",0,[],2,0
+ecology,[],[],0,[],0,0
+dirt,[],[],0,"['https://www.sefaria.org.il/Mishneh_Torah,_Tefillin,_Mezuzah_and_the_Torah_Scroll.10.8']",0,1
+lulav,[],"['https://www.sefaria.org.il/Sukkah.41a.6-8', 'https://www.sefaria.org.il/Vayikra_Rabbah.30.5']",0,['https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10'],2,1
+shimon-bar-yochai,[],[],0,['https://www.sefaria.org.il/Berakhot.9a.4'],0,1
+holiness,"['https://www.sefaria.org.il/Devarim_Rabbah.3.1', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",[],2,"['https://www.sefaria.org.il/Selichot_Nusach_Lita_Linear,_Third_Day.2.131', 'https://www.sefaria.org.il/Book_of_Jubilees.2.33', 'https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Pesachim.117a.13-14', 'https://www.sefaria.org.il/Ramban_on_Exodus.13.21.1', 'https://www.sefaria.org.il/Leviticus.20.23', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Ibn_Ezra_on_Numbers.5.31.1', 'https://www.sefaria.org.il/Leviticus.10.8-10', 'https://www.sefaria.org.il/Mishneh_Torah,_Tefillin,_Mezuzah_and_the_Torah_Scroll.10.8', 'https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",0,14
+moses-and-the-tablets,[],['https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14'],0,['https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1'],1,1
+wild-animals,[],[],0,[],0,0
+yom-kippur,"['https://www.sefaria.org.il/Reshit_Chokhmah,_Gate_of_Fear.8.28']",[],1,"['https://www.sefaria.org.il/Mishnah_Megillah.4.2', ""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17"", 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4', 'https://www.sefaria.org.il/Abudarham,_Fasts,_Prayers.35']",0,4
+creation-of-light-and-luminaires,[],[],0,[],0,0
+laws-of-the-mixtures-of-priestly-tithe-and-non-sanctified-food,[],['https://www.sefaria.org.il/Mishnah_Terumot.5.9'],0,['https://www.sefaria.org.il/Nazir.36a.3'],1,1
+avtalyon,[],[],0,[],0,0
+yetzer-hatov,[],[],0,[],0,0
+commandments-concerning-demeanor,['https://www.sefaria.org.il/Mesillat_Yesharim.5.25'],[],1,"['https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1', 'https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1']",0,2
+laws-of-cutting-on-shabbat,[],[],0,[],0,0
+yael,[],[],0,[],0,0
+warnings-about-the-ten-plagues,[],[],0,[],0,0
+lambs,[],[],0,"['https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Mishnah_Menachot.2.3']",0,2
+zilpah,[],[],0,[],0,0
+bat-mitzvah,[],[],0,['https://www.sefaria.org.il/Mishnah_Niddah.5.9'],0,1
+kiddush-hashem,[],[],0,[],0,0
+laws-of-forbidden-mixtures-of-vineyards,[],[],0,[],0,0
+tisha-bav,[],[],0,"['https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/Abudarham,_Fasts,_Prayers.35']",0,2
+ein-sof1,[],[],0,[],0,0
+laws-of-matzah,[],[],0,"['https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3']",0,1
+laws-of-the-yom-kippur-service,[],[],0,[],0,0
+arbeh,[],['https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.9.7.7'],0,[],1,0
+the-concubine-of-givah,[],[],0,[],0,0
+curses,['https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1'],[],1,[],0,0
+gender,[],['https://www.sefaria.org.il/Rashi_on_Deuteronomy.22.5.1-3'],0,"['https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Shulchan_Arukh,_Orach_Chayim.696.8', 'https://www.sefaria.org.il/Mishnah_Niddah.5.9']",1,3
+partitions,[],[],0,[],0,0
+the-four-children,[],[],0,['https://www.sefaria.org.il/Deuteronomy.6.20-21'],0,1
+zachor,[],[],0,[],0,0
+worms,[],[],0,[],0,0
+tabernacle-inauguration,[],[],0,[],0,0
+laws-of-regular-and-additional-shabbat-sacrifices,[],[],0,[],0,0
+laws-of-betrothal,[],[],0,['https://www.sefaria.org.il/Ahavat_David.14.55'],0,1
+severity-of-oaths-and-carefulness-about-it,[],[],0,['https://www.sefaria.org.il/Sefer_Chasidim.953.1'],0,1
+dreams,[],"['https://www.sefaria.org.il/On_Dreams,_Book_II.16.1']",0,"['https://www.sefaria.org.il/The_Antiquities_of_the_Jews.10.10.2', 'https://www.sefaria.org.il/Berakhot.18b.7-9']",1,2
+hilchot-tereifot,[],[],0,[],0,0
+cyrus,[],[],0,[],0,0
+pharaoh,['https://www.sefaria.org.il/Pardes_Rimmonim.17.1.11'],[],1,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Exodus.6.6-7', 'https://www.sefaria.org.il/Malbim_on_Exodus.4.1.2']",0,4
+authority,['https://www.sefaria.org.il/Berakhot.15b.12'],['https://www.sefaria.org.il/Derashot_HaRan.11.26'],1,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13', 'https://www.sefaria.org.il/Sanhedrin.93b.10', 'https://www.sefaria.org.il/Machzor_Rosh_Hashanah_Ashkenaz_Linear,_The_Morning_Prayers,_Yehi_Kevod.127', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6']",1,5
+dan,[],[],0,[],0,0
+mistakes,[],[],0,[],0,0
+superstitions1,['https://www.sefaria.org.il/Leviticus.20.23'],[],1,[],0,0
+nadav-and-avihu,[],[],0,[],0,0
+laws-of-charity,[],[],0,[],0,0
+creation-of-water,[],[],0,[],0,0
+stipulations-of-a-purchased-acquisition,[],[],0,[],0,0
+tyre,['https://www.sefaria.org.il/II_Chronicles.2.2'],[],1,[],0,0
+perspective,[],[],0,"['https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Matot,_Masei,_Devarim,_Ner_Mitzvah.10', ""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17""]",0,2
+procedures-for-judges-and-conduct-towards-them,[],[],0,"['https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Matot,_Masei,_Devarim,_Ner_Mitzvah.10']",0,1
+tikkun-olam,[],[],0,[],0,0
+writing,"[""https://www.sefaria.org.il/Mishpetei_Uziel,_Volume_VI,_Yoreh_De'ah.73.63""]",[],1,[],0,0
+deborah,[],[],0,[],0,0
+rabbinic-authority,"['https://www.sefaria.org.il/Berakhot.9a.4', 'https://www.sefaria.org.il/Berakhot.15b.12', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.1071.6', 'https://www.sefaria.org.il/Sanhedrin.17b.5']",['https://www.sefaria.org.il/Derashot_HaRan.11.26'],4,"['https://www.sefaria.org.il/LaKelal_VeLaPerat,_Volume_I,_3_The_Holy_Land.13.8']",1,1
+creativity,[],[],0,"['https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1']",0,1
+converts,[],[],0,['https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1'],0,1
+tearing,[],[],0,[],0,0
+discernment,[],[],0,"['https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', ""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17""]",0,3
+shabbat-prayers,[],[],0,"['https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",0,2
+earth,[],[],0,['https://www.sefaria.org.il/Deuteronomy.8.7-10'],0,1
+beitar,[],[],0,[],0,0
+inauguration-of-the-temple,[],[],0,[],0,0
+plague-of-boils,[],[],0,[],0,0
+teaching,[],['https://www.sefaria.org.il/Berakhot.31a.13'],0,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",1,9
+honey,[],[],0,[],0,0
+food,"['https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.4.13']","['https://www.sefaria.org.il/Leviticus.23.15-16', 'https://www.sefaria.org.il/The_Antiquities_of_the_Jews.10.10.2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Pesachim.39a.1-15', 'https://www.sefaria.org.il/Allegorical_Interpretation_of_Genesis,_Book_III,_Introduction.42', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18', 'https://www.sefaria.org.il/Pesachim.109a.5', 'https://www.sefaria.org.il/Bava_Batra.58b.2', 'https://www.sefaria.org.il/HaElef_Lekha_Shlomo,_Yoreh_Deah.122.1']",2,"['https://www.sefaria.org.il/Gittin.68a.10', ""https://www.sefaria.org.il/Shulchan_Arukh,_Yoreh_De'ah.124.17"", 'https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Berakhot.9a.4', 'https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Sukkah.41a.6-8', 'https://www.sefaria.org.il/Chagigah.12b.9', 'https://www.sefaria.org.il/Gray_Matter_IV,_Technology,_Closing_a_Website_for_Shabbat_and_Yom_Tov.23', 'https://www.sefaria.org.il/Chullin.125a.7', 'https://www.sefaria.org.il/Nazir.36a.3', 'https://www.sefaria.org.il/Sanhedrin.94b.12', 'https://www.sefaria.org.il/Devarim_Rabbah.3.1', 'https://www.sefaria.org.il/Mishnah_Tahorot.8.6', 'https://www.sefaria.org.il/Berakhot.18b.7-9', 'https://www.sefaria.org.il/Numbers.11.18-20', 'https://www.sefaria.org.il/Mishneh_Torah,_Paschal_Offering.4.11', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Mishnah_Menachot.2.3', 'https://www.sefaria.org.il/Leviticus.10.8-10', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.9.7.7', 'https://www.sefaria.org.il/Tosefta_Mikvaot.6.5', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Genesis.42.19', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13', 'https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3', 'https://www.sefaria.org.il/Abudarham,_Fasts,_Prayers.35', 'https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Vayeshev,_Miketz,_Vayigash,_Torah_Ohr.24']",11,30
+torah-scrolls,[],"['https://www.sefaria.org.il/Mishneh_Torah,_Tefillin,_Mezuzah_and_the_Torah_Scroll.10.8']",0,"['https://www.sefaria.org.il/Mishnah_Megillah.4.2', 'https://www.sefaria.org.il/Sefer_Chasidim.902.1']",1,2
+laws-of-cancellation-of-a-transaction-and-the-sellers-responsibility,[],[],0,['https://www.sefaria.org.il/Bava_Batra.45a.6'],0,1
+tiberias,[],[],0,[],0,0
+jezebel,[],[],0,[],0,0
+wine,[],"['https://www.sefaria.org.il/Pesachim.109a.5', 'https://www.sefaria.org.il/Bava_Batra.58b.2']",0,"['https://www.sefaria.org.il/Gittin.68a.10', ""https://www.sefaria.org.il/Shulchan_Arukh,_Yoreh_De'ah.124.17"", 'https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Leviticus.10.8-10', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13', 'https://www.sefaria.org.il/Shenei_Luchot_HaBerit,_Torah_Shebikhtav,_Vayeshev,_Miketz,_Vayigash,_Torah_Ohr.24']",2,8
+jewish-unity,['https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1'],[],1,[],0,0
+sisera,[],[],0,[],0,0
+raising-up-and-anointing-the-tabernacle,[],[],0,[],0,0
+diversity,[],[],0,[],0,0
+safek,[],[],0,[],0,0
+social-justice,[],[],0,['https://www.sefaria.org.il/Sefer_Chasidim.953.1'],0,1
+moses-and-israel,['https://www.sefaria.org.il/Shemot_Rabbah.28.2'],[],1,"[""https://www.sefaria.org.il/Zohar,_Ha'Azinu.5.20"", 'https://www.sefaria.org.il/Sotah.27b.11-12', 'https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Exodus.6.6-7', 'https://www.sefaria.org.il/Malbim_on_Exodus.4.1.2']",0,6
+modernity,[],[],0,[],0,0
+counting-of-the-levites,[],[],0,[],0,0
+laws-of-the-impurity-of-vessel-exteriors-and-interiors,[],[],0,[],0,0
+pomegranates,[],[],0,['https://www.sefaria.org.il/Deuteronomy.8.7-10'],0,1
+nature,"['https://www.sefaria.org.il/Mishnah_Kelim.4.1', 'https://www.sefaria.org.il/Tikkunei_Zohar.36b.3', 'https://www.sefaria.org.il/Berakhot.60a.28-29', 'https://www.sefaria.org.il/Shabbat_Siddur_Sefard_Linear,_Maariv_Service_for_Shabbos_and_Yom_Tov,_Borechu.184', 'https://www.sefaria.org.il/The_Book_of_Maccabees_I_(Kahana_Translation).5.66']","['https://www.sefaria.org.il/II_Chronicles.2.2', 'https://www.sefaria.org.il/Ramban_on_Exodus.13.21.1', 'https://www.sefaria.org.il/Mishnah_Tahorot.8.6', 'https://www.sefaria.org.il/Midrash_Tehillim.119.28', ""https://www.sefaria.org.il/Otzar_Midrashim,_Midrash_on_Hallel_'Sefer_HaMa'asim'.1.7"", 'https://www.sefaria.org.il/Mishnah_Bava_Metzia.5.5', 'https://www.sefaria.org.il/Reshit_Chokhmah,_Gate_of_Fear.8.28', 'https://www.sefaria.org.il/Sotah.37a.3', 'https://www.sefaria.org.il/Berakhot.6b.24', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.9.7.7', 'https://www.sefaria.org.il/Pesach_Haggadah,_Nirtzah,_Chad_Gadya.3', ""https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Beha'alotcha.4.1"", 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2', 'https://www.sefaria.org.il/Taanit.7a.6', 'https://www.sefaria.org.il/Eruvin.56a.5-7']",5,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Gittin.68a.10', 'https://www.sefaria.org.il/Leviticus.23.15-16', 'https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.1.6.5', 'https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Chagigah.12b.9', 'https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/Bava_Batra.45a.6', 'https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/Sefer_HaChinukh.214.3', 'https://www.sefaria.org.il/Sanhedrin.94b.12', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Berakhot.18b.7-9', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20', 'https://www.sefaria.org.il/Horayot.6a.3', 'https://www.sefaria.org.il/Rashi_on_Genesis.25.27.1-28.1', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Pesachim.39a.1-15', 'https://www.sefaria.org.il/Mishnah_Menachot.2.3', 'https://www.sefaria.org.il/Deuteronomy.3.15', 'https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Mishneh_Torah,_Tefillin,_Mezuzah_and_the_Torah_Scroll.10.8', 'https://www.sefaria.org.il/Sefer_HaIkkarim,_Maamar_4.35.2', 'https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10', 'https://www.sefaria.org.il/Tosefta_Mikvaot.6.5', 'https://www.sefaria.org.il/Ketubot.111a.19', 'https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18', 'https://www.sefaria.org.il/Ketubot.66b.13', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.1071.6', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Torah.771.2-3', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Rashi_on_II_Samuel.5.24.1-2', 'https://www.sefaria.org.il/Malbim_on_Exodus.4.1.2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",17,42
+isaac,[],['https://www.sefaria.org.il/Berakhot.62b.14-16'],0,"['https://www.sefaria.org.il/Rashi_on_Genesis.25.27.1-28.1', 'https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Vayishlach.6.2', ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Radak_on_Genesis.27.19.1', 'https://www.sefaria.org.il/Genesis.22.1-2']",1,5
+laws-of-meal-offering-disqualifications,[],[],0,['https://www.sefaria.org.il/Mishnah_Menachot.2.3'],0,1
+rav-pappa,[],[],0,[],0,0
+redemption-of-captives,[],[],0,[],0,0
+laws-of-retraction-of-a-transaction-before-its-completion,[],[],0,[],0,0
+laws-of-property-damage,[],[],0,"['https://www.sefaria.org.il/Gittin.12b.12', 'https://www.sefaria.org.il/Tur,_Choshen_Mishpat.398.4']",0,2
+metatron,[],[],0,[],0,0
+beruriah,[],[],0,[],0,0
+fear-(פחד),"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Rashi_on_II_Samuel.5.24.1-2']","['https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Vayishlach.6.2']",3,"['https://www.sefaria.org.il/Sanhedrin.93b.10', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1']",1,2
+navot,[],[],0,[],0,0
+stars,[],[],0,[],0,0
+night,[],[],0,"['https://www.sefaria.org.il/Midrash_Tehillim.119.28', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1']",0,2
+evildoers,[],['https://www.sefaria.org.il/Mesillat_Yesharim.5.25'],0,"['https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Midrash_Tehillim.119.28', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",1,5
+laws-of-building-the-temple-and-its-furnishings,[],[],0,[],0,0
+elifaz1,[],[],0,[],0,0
+minyan,[],[],0,[],0,0
+the-ocean,[],[],0,[],0,0
+laws-of-mezuzah,[],[],0,[],0,0
+games,[],[],0,[],0,0
+bar-kokhba,[],[],0,[],0,0
+laws-of-voluntary-guardians,[],[],0,[],0,0
+slaughter,[],[],0,[],0,0
+shammai,[],[],0,[],0,0
+kush,[],[],0,[],0,0
+laws-of-divorce-by-agency,[],[],0,[],0,0
+encampment-of-israel,[],[],0,['https://www.sefaria.org.il/Ramban_on_Exodus.13.21.1'],0,1
+acceptance-of-nazarite-vows-and-its-duration,[],['https://www.sefaria.org.il/Nazir.20b'],0,[],1,0
+laws-of-tsaraat-of-clothing,[],[],0,[],0,0
+abraham-and-the-kings,[],[],0,"[""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1""]",0,1
+rava,['https://www.sefaria.org.il/Shabbat.140a.4'],[],1,[],0,0
+strangers,[],[],0,['https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1'],0,1
+sexuality,[],[],0,"['https://www.sefaria.org.il/Rashi_on_Deuteronomy.22.5.1-3', 'https://www.sefaria.org.il/Mishnah_Niddah.5.9']",0,2
+peppers,[],[],0,[],0,0
+ordeal-of-drinking-the-sotah-water,[],[],0,['https://www.sefaria.org.il/Ibn_Ezra_on_Numbers.5.31.1'],0,1
+leaders-(פרנס),[],['https://www.sefaria.org.il/Sifrei_Devarim.13.6'],0,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/II_Samuel.22.1', 'https://www.sefaria.org.il/Sanhedrin.94b.12', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Sotah.37a.3', 'https://www.sefaria.org.il/Genesis.42.19', 'https://www.sefaria.org.il/Sanhedrin.17b.5', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",1,10
+laws-of-absorption-of-impurity-in-foods,[],['https://www.sefaria.org.il/Mishnah_Tahorot.8.6'],0,['https://www.sefaria.org.il/Chullin.125a.7'],1,1
+laws-of-the-offerings-of-the-zava-and-the-woman-that-gave-birth,[],[],0,[],0,0
+laws-of-joy-on-sukkot,[],[],0,[],0,0
+identity,[],[],0,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Leviticus.20.23', 'https://www.sefaria.org.il/Sefat_Emet,_Genesis,_Chayei_Sara.19.4', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8']",0,5
+mah-tovu,[],[],0,[],0,0
+old-age,[],[],0,[],0,0
+laws-of-the-priestly-blessing,[],[],0,[],0,0
+marah,[],[],0,[],0,0
+king-saul,[],[],0,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/II_Samuel.22.1', 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Radak_on_Genesis.27.19.1']",0,4
+cave-of-the-patriarchs,[],[],0,[],0,0
+laws-of-mourning-on-shabbat-and-holidays,[],[],0,[],0,0
+alexandria,[],[],0,[],0,0
+sukkot,[],[],0,"['https://www.sefaria.org.il/Sukkah.41a.6-8', 'https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.1071.6']",0,4
+memory,[],[],0,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Sukkah.41a.6-8', 'https://www.sefaria.org.il/Berakhot.31a.13', ""https://www.sefaria.org.il/Sha'ar_HaMitzvot,_Vayechi.18"", 'https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3']",0,6
+jacobs-blessing,[],[],0,"[""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Radak_on_Genesis.27.19.1']",0,2
+abraham-and-sodom,[],[],0,[],0,0
+generation-of-the-dispersion,[],"['https://www.sefaria.org.il/Midrash_Tanchuma,_Noach.18.7']",0,[],1,0
+scorpions,[],[],0,['https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2'],0,1
+generation-of-the-desert,['https://www.sefaria.org.il/Ramban_on_Exodus.13.21.1'],['https://www.sefaria.org.il/Chagigah.6a.15'],1,"['https://www.sefaria.org.il/Numbers.11.18-20', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",1,2
+stringencies,[],[],0,[],0,0
+gedaliah,[],[],0,[],0,0
+rabbi-tarfon,[],[],0,[],0,0
+strength,"['https://www.sefaria.org.il/Pardes_Rimmonim.17.1.11', 'https://www.sefaria.org.il/Machzor_Rosh_Hashanah_Ashkenaz_Linear,_The_Morning_Prayers,_Yehi_Kevod.127']",[],2,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Jeremiah.48.14', 'https://www.sefaria.org.il/Pardes_Rimmonim.13.1.38', 'https://www.sefaria.org.il/Sanhedrin.93b.10', 'https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Vayishlach.6.2', 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Reshit_Chokhmah,_Gate_of_Fear.8.28', 'https://www.sefaria.org.il/Shabbat_Siddur_Sefard_Linear,_Maariv_Service_for_Shabbos_and_Yom_Tov,_Borechu.184', 'https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2']",0,10
+laws-of-forbidden-mixtures-of-animals,[],[],0,[],0,0
+josiah,[],[],0,[],0,0
+wholeness,[],"['https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",0,"['https://www.sefaria.org.il/Eight_Chapters.3.3', 'https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10', 'https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/The_Antiquities_of_the_Jews.10.10.2', 'https://www.sefaria.org.il/Kalach_Pitchei_Chokhmah.115.8']",1,5
+commandments-between-man-and-god-and-between-man-and-his-fellow,[],[],0,"['https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Leviticus.19.17']",0,3
+laws-of-rape-and-seduction,[],[],0,[],0,0
+creation-of-man,"['https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10']",[],1,"['https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11']",0,1
+laws-of-the-main-categories-of-impurity,['https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.9.7.7'],['https://www.sefaria.org.il/Chullin.125a.7'],1,['https://www.sefaria.org.il/Mishnah_Kelim.1.4'],1,1
+creation-of-heavens-and-earth,[],[],0,[],0,0
+naval,[],[],0,[],0,0
+laws-of-validation-of-contracts,[],[],0,[],0,0
+maaseh-hamerkavah,"[""https://www.sefaria.org.il/Otzar_Midrashim,_Midrash_on_Hallel_'Sefer_HaMa'asim'.1.7""]",[],1,[],0,0
+obadiah,[],[],0,[],0,0
+laws-of-the-offerings-of-the-zav,[],[],0,[],0,0
+david-and-the-ark,[],[],0,[],0,0
+laws-of-those-disqualified-from-service,['https://www.sefaria.org.il/Sanhedrin.93b.10'],[],1,['https://www.sefaria.org.il/Berakhot.6b.24'],0,1
+tekhelet,[],[],0,[],0,0
+silence,[],[],0,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Sanhedrin.93b.10', 'https://www.sefaria.org.il/Avodah_Zarah.35a.7', 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1']",0,4
+head-coverings,[],[],0,[],0,0
+sukkah,[],[],0,['https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.1071.6'],0,1
+camels,[],[],0,[],0,0
+tzaraat,[],[],0,[],0,0
+rabbi-eliezer-b-hyrcanus,[],[],0,['https://www.sefaria.org.il/Berakhot.28b.1-11'],0,1
+phrasing-of-scripture,[],[],0,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Sotah.27b.11-12', 'https://www.sefaria.org.il/Sefer_HaChinukh.214.3', 'https://www.sefaria.org.il/Pesachim.39a.1-15', 'https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1', 'https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",0,8
+chayot,[],[],0,[],0,0
+honoring-parents,[],[],0,"['https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13', 'https://www.sefaria.org.il/Radak_on_Genesis.27.19.1', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Ahavat_David.14.55', ""https://www.sefaria.org.il/Sha'ar_HaMitzvot,_Vayechi.18""]",0,5
+laws-of-intentional-(premeditated)-murder,[],[],0,[],0,0
+humor,[],[],0,[],0,0
+shavuot,[],[],0,"['https://www.sefaria.org.il/Leviticus.23.15-16', 'https://www.sefaria.org.il/Mishnah_Menachot.2.3']",0,2
+snakes1,[],[],0,['https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2'],0,1
+laws-of-shearing-on-shabbat,[],[],0,[],0,0
+peshat,[],[],0,[],0,0
+injury-law,[],[],0,['https://www.sefaria.org.il/Gittin.12b.12'],0,1
+alcohol,['https://www.sefaria.org.il/Bava_Batra.58b.2'],[],1,"['https://www.sefaria.org.il/Berakhot.9a.4', 'https://www.sefaria.org.il/Leviticus.10.8-10', 'https://www.sefaria.org.il/Pesachim.109a.5']",0,3
+burning-bush,[],[],0,[],0,0
+laws-of-the-four-species,[],[],0,"['https://www.sefaria.org.il/Sukkah.41a.6-8', 'https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10']",0,3
+the-elements,[],[],0,[],0,0
+poetry,['https://www.sefaria.org.il/Avodah_Zarah.35a.7'],[],1,[],0,0
+kings,['https://www.sefaria.org.il/Panekha_Avakesh.18.44'],[],1,[],0,0
+bat-kol,[],[],0,[],0,0
+the-sons-of-korach,[],[],0,[],0,0
+snow,[],[],0,[],0,0
+baseless-hatred1,[],[],0,[],0,0
+tumah,['https://www.sefaria.org.il/Mishnah_Kelim.1.4'],[],1,[],0,0
+rabbi-hananyah-b-teradyon,[],[],0,[],0,0
+plague-of-frogs,[],[],0,[],0,0
+lekha-dodi1,[],[],0,[],0,0
+sustainability,[],[],0,['https://www.sefaria.org.il/Deuteronomy.8.7-10'],0,1
+laws-of-hebrew-jewish-slaves,[],[],0,['https://www.sefaria.org.il/Gittin.12b.12'],0,1
+laws-of-division-of-shared-property,[],[],0,[],0,0
+laws-of-honoring-and-delighting-in-shabbat,[],[],0,"['https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Devarim_Rabbah.3.1', 'https://www.sefaria.org.il/Abudarham,_Fasts,_Prayers.35']",0,3
+choosing-sacrifices,[],[],0,[],0,0
+kiddush,[],[],0,[],0,0
+rebellions,[],[],0,[],0,0
+the-curtain,[],[],0,[],0,0
+dinah,[],[],0,[],0,0
+ezekiel,[],[],0,[],0,0
+shacharit,[],[],0,"['https://www.sefaria.org.il/Machzor_Rosh_Hashanah_Ashkenaz_Linear,_The_Morning_Prayers,_Yehi_Kevod.127', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10']",0,4
+oxen,[],[],0,[],0,0
+appointment-of-judges-for-the-generation-of-the-desert,[],[],0,[],0,0
+impulses,[],[],0,"['https://www.sefaria.org.il/Eight_Chapters.3.3', 'https://www.sefaria.org.il/Mesillat_Yesharim.5.25', 'https://www.sefaria.org.il/Numbers.11.18-20', 'https://www.sefaria.org.il/Reshit_Chokhmah,_Gate_of_Fear.8.28', 'https://www.sefaria.org.il/Ibn_Ezra_on_Numbers.5.31.1']",0,5
+moses-and-the-torah,['https://www.sefaria.org.il/Shemot_Rabbah.28.2'],[],1,"[""https://www.sefaria.org.il/Zohar,_Ha'Azinu.5.20"", ""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",0,3
+sichon1,[],[],0,[],0,0
+sages,"['https://www.sefaria.org.il/Berakhot.9a.4', 'https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.1071.6']",[],5,[],0,0
+leah,[],[],0,[],0,0
+laws-of-the-variable-offerings,[],[],0,[],0,0
+birthdays,[],[],0,[],0,0
+light,[],"['https://www.sefaria.org.il/Midrash_Tehillim.119.28', ""https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Beha'alotcha.4.1""]",0,['https://www.sefaria.org.il/Ramban_on_Exodus.13.21.1'],2,1
+shalosh-regalim,[],[],0,"['https://www.sefaria.org.il/Leviticus.23.15-16', 'https://www.sefaria.org.il/Pesachim.109a.5']",0,2
+tapuach,[],[],0,"['https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",0,1
+davids-census,[],[],0,[],0,0
+heretics,[],[],0,[],0,0
+eating,"['https://www.sefaria.org.il/Allegorical_Interpretation_of_Genesis,_Book_III,_Introduction.42', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.4.13']",[],2,"['https://www.sefaria.org.il/The_Antiquities_of_the_Jews.10.10.2', 'https://www.sefaria.org.il/Mishnah_Tahorot.8.6', 'https://www.sefaria.org.il/Numbers.11.18-20', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Pesachim.39a.1-15', 'https://www.sefaria.org.il/Mishnah_Menachot.2.3', 'https://www.sefaria.org.il/Deuteronomy.8.7-10', 'https://www.sefaria.org.il/Pesachim.109a.5', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Genesis.42.19', 'https://www.sefaria.org.il/Abudarham,_Fasts,_Prayers.35', 'https://www.sefaria.org.il/HaElef_Lekha_Shlomo,_Yoreh_Deah.122.1']",0,13
+vulnerability,[],[],0,"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Mesillat_Yesharim.5.25', 'https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Berakhot.6b.24', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8', 'https://www.sefaria.org.il/Exodus.6.6-7']",0,6
+josephs-dream,[],"['https://www.sefaria.org.il/On_Dreams,_Book_II.16.1']",0,[],1,0
+yesh-em-lemikra,[],[],0,[],0,0
+laws-of-the-king-messiah,[],[],0,[],0,0
+the-ten-commandments,[],[],0,"['https://www.sefaria.org.il/Book_of_Jubilees.2.33', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14']",0,2
+jehoiachin,[],[],0,[],0,0
+tu-bishvat,[],[],0,[],0,0
+birds,[],['https://www.sefaria.org.il/Mishnah_Tahorot.8.6'],0,"['https://www.sefaria.org.il/Rashi_on_Genesis.25.27.1-28.1', 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Berakhot.6b.24', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.9.7.7']",1,4
+hiram,[],[],0,['https://www.sefaria.org.il/II_Chronicles.2.2'],0,1
+shabbat,[],"['https://www.sefaria.org.il/Book_of_Jubilees.2.33', 'https://www.sefaria.org.il/Devarim_Rabbah.3.1', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",0,"['https://www.sefaria.org.il/Shabbat.140a.4', 'https://www.sefaria.org.il/Gray_Matter_IV,_Technology,_Closing_a_Website_for_Shabbat_and_Yom_Tov.23', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20', 'https://www.sefaria.org.il/Mishnah_Megillah.4.2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.9.7.7', 'https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2', 'https://www.sefaria.org.il/Eruvin.56a.5-7', 'https://www.sefaria.org.il/Abudarham,_Fasts,_Prayers.35']",3,9
+laughter,[],[],0,[],0,0
+sin-of-peor,[],[],0,[],0,0
+laws-of-accompanying-guests,[],[],0,[],0,0
+prophets,[],['https://www.sefaria.org.il/Deuteronomy.18.14-15'],0,"['https://www.sefaria.org.il/Radak_on_Genesis.27.19.1', 'https://www.sefaria.org.il/Sefer_HaIkkarim,_Maamar_4.35.2', 'https://www.sefaria.org.il/Malbim_on_Exodus.4.1.2']",1,3
+lilies,[],[],0,[],0,0
+conditions-that-forbid-one-from-entering-the-temple-and-serving-in-it,[],[],0,['https://www.sefaria.org.il/Leviticus.10.8-10'],0,1
+josephs-blessing,[],[],0,[],0,0
+laws-of-the-fixed-sin-offering,[],[],0,['https://www.sefaria.org.il/Horayot.6a.3'],0,1
+laws-of-shofar,[],[],0,"['https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,1
+vahavta,[],[],0,[],0,0
+vegetarianism,[],[],0,['https://www.sefaria.org.il/The_Antiquities_of_the_Jews.10.10.2'],0,1
+naaseh-venishma,[],[],0,[],0,0
+laws-of-extinguishing-on-shabbat,[],[],0,[],0,0
+generation-of-enosh,[],[],0,[],0,0
+folklore,[],[],0,[],0,0
+passover,[],"['https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3']",0,"['https://www.sefaria.org.il/Leviticus.23.15-16', 'https://www.sefaria.org.il/Mishneh_Torah,_Paschal_Offering.4.11', 'https://www.sefaria.org.il/Sotah.37a.3', 'https://www.sefaria.org.il/Pesachim.39a.1-15', 'https://www.sefaria.org.il/Pesach_Haggadah,_Nirtzah,_Chad_Gadya.3', 'https://www.sefaria.org.il/Exodus.6.6-7']",2,6
+laws-of-forbidden-mixtures-in-garments,[],[],0,"['https://www.sefaria.org.il/Shulchan_Arukh,_Orach_Chayim.696.8']",0,1
+laws-of-conductors-of-impurity-in-foods,['https://www.sefaria.org.il/Nazir.36a.3'],[],1,[],0,0
+har-gerizim-vehar-eival,[],[],0,[],0,0
+effect-of-sin,"['https://www.sefaria.org.il/Reshit_Chokhmah,_Gate_of_Fear.8.28', 'https://www.sefaria.org.il/Sifrei_Devarim.13.6', 'https://www.sefaria.org.il/Ahavat_David.14.55']",['https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3'],3,"['https://www.sefaria.org.il/Eight_Chapters.3.3', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.1.6.5', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Ibn_Ezra_on_Numbers.5.31.1', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14']",1,5
+ohel-moed,[],[],0,['https://www.sefaria.org.il/Leviticus.10.8-10'],0,1
+stopping-of-the-sun-in-gibeon,[],[],0,[],0,0
+edom-and-the-generation-of-the-desert,[],[],0,[],0,0
+babel,[],"['https://www.sefaria.org.il/Midrash_Tanchuma,_Noach.18.7']",0,"['https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/The_Antiquities_of_the_Jews.10.10.2', 'https://www.sefaria.org.il/Berakhot.6b.24', 'https://www.sefaria.org.il/Sanhedrin.17b.5']",1,4
+seven-species,[],[],0,['https://www.sefaria.org.il/Deuteronomy.8.7-10'],0,1
+four-questions,[],[],0,[],0,0
+serah-the-daughter-of-asher,[],[],0,[],0,0
+agency,[],[],0,"[""https://www.sefaria.org.il/Shulchan_Arukh,_Yoreh_De'ah.236.1-2"", 'https://www.sefaria.org.il/Teshuvot_Maharit,_I.63.1', 'https://www.sefaria.org.il/Sifrei_Devarim.13.6', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8', 'https://www.sefaria.org.il/Deuteronomy.18.14-15']",0,5
+menorah1,[],"[""https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Beha'alotcha.4.1""]",0,[],1,0
+laws-of-spinning-threads-on-shabbat,[],[],0,[],0,0
+rabbinically-forbidden-activities-on-shabbat,[],[],0,"['https://www.sefaria.org.il/Shabbat.140a.4', 'https://www.sefaria.org.il/Gray_Matter_IV,_Technology,_Closing_a_Website_for_Shabbat_and_Yom_Tov.23', 'https://www.sefaria.org.il/Devarim_Rabbah.3.1']",0,3
+atonement,[],['https://www.sefaria.org.il/Ahavat_David.14.55'],0,"['https://www.sefaria.org.il/Berakhot.62b.14-16', 'https://www.sefaria.org.il/Horayot.6a.3', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",1,8
+complaints-in-the-desert,[],['https://www.sefaria.org.il/Numbers.11.18-20'],0,[],1,0
+bo,[],[],0,[],0,0
+general-laws-of-blessings,[],[],0,"['https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10', 'https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18']",0,2
+laws-of-property-rentals,[],[],0,[],0,0
+the-copper-snake,[],[],0,[],0,0
+sea-monsters,[],[],0,[],0,0
+havdalah,[],"['https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18']",0,[],1,0
+tests-of-abraham,[],[],0,"['https://www.sefaria.org.il/Berakhot.62b.14-16', 'https://www.sefaria.org.il/Genesis.20.15-18', 'https://www.sefaria.org.il/Genesis.22.1-2']",0,3
+prophecy,[],['https://www.sefaria.org.il/Deuteronomy.18.14-15'],0,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Mishneh_Torah,_The_Sanhedrin_and_the_Penalties_within_Their_Jurisdiction.15.13', 'https://www.sefaria.org.il/Radak_on_Genesis.27.19.1', 'https://www.sefaria.org.il/Sefer_HaIkkarim,_Maamar_4.35.2', 'https://www.sefaria.org.il/Malbim_on_Exodus.4.1.2']",1,6
+children,['https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.1071.6'],[],1,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Pesach_Haggadah,_Nirtzah,_Chad_Gadya.3', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', ""https://www.sefaria.org.il/Sha'ar_HaMitzvot,_Vayechi.18"", 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13', 'https://www.sefaria.org.il/II_Kings.4.37']",0,8
+mishkan,['https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1'],[],1,"['https://www.sefaria.org.il/Leviticus.10.8-10', ""https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Beha'alotcha.4.1"", 'https://www.sefaria.org.il/Mishnah_Parah.4.2']",0,3
+jewish-identity,[],[],0,"['https://www.sefaria.org.il/Sforno_on_Genesis.35.10.1', 'https://www.sefaria.org.il/Leviticus.20.23']",0,2
+determinism,[],[],0,[],0,0
+laws-of-gathering-on-shabbat,[],[],0,[],0,0
+plague-of-the-firstborn,[],[],0,[],0,0
+laws-of-work-done-on-shabbat,[],[],0,"['https://www.sefaria.org.il/Gray_Matter_IV,_Technology,_Closing_a_Website_for_Shabbat_and_Yom_Tov.23', 'https://www.sefaria.org.il/Devarim_Rabbah.3.1']",0,2
+dinei-eruv-techumin,[],[],0,['https://www.sefaria.org.il/Eruvin.56a.5-7'],0,1
+ravens,[],[],0,[],0,0
+selichot,[],[],0,"['https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,1
+pharaohs-daughter,[],[],0,[],0,0
+the-children-of-the-angels,[],[],0,[],0,0
+art,"['https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10', 'https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Tikkunei_Zohar.36b.3', 'https://www.sefaria.org.il/LaKelal_VeLaPerat,_Volume_I,_3_The_Holy_Land.13.8', 'https://www.sefaria.org.il/Avodah_Zarah.35a.7', ""https://www.sefaria.org.il/Mishpetei_Uziel,_Volume_VI,_Yoreh_De'ah.73.63"", 'https://www.sefaria.org.il/Sefer_Chasidim.902.1']","[""https://www.sefaria.org.il/Zohar,_Ha'Azinu.5.20"", 'https://www.sefaria.org.il/Sotah.27b.11-12', 'https://www.sefaria.org.il/Berakhot.6b.24']",7,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/II_Samuel.22.1', 'https://www.sefaria.org.il/Pesachim.117a.13-14', 'https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/II_Chronicles.2.2', 'https://www.sefaria.org.il/Shir_HaShirim_Rabbah.5.2.1', 'https://www.sefaria.org.il/Tosefta_Mikvaot.6.5', ""https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Beha'alotcha.4.1"", 'https://www.sefaria.org.il/On_Dreams,_Book_II.16.1', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2', 'https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3']",3,12
+eve,[],[],0,['https://www.sefaria.org.il/Shemot_Rabbah.28.2'],0,1
+laws-of-blessings-on-pleasures,[],[],0,"['https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18']",0,1
+laws-of-damages-from-an-ox-that-gored,[],[],0,[],0,0
+asmakhta,[],[],0,[],0,0
+gazelles,[],[],0,[],0,0
+moses-signs,[],['https://www.sefaria.org.il/Malbim_on_Exodus.4.1.2'],0,[],1,0
+gods-will,[],[],0,"['https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10', 'https://www.sefaria.org.il/Duties_of_the_Heart,_Fourth_Treatise_on_Trust.3.11', 'https://www.sefaria.org.il/Midrash_Tanchuma,_Noach.18.7', 'https://www.sefaria.org.il/Berakhot.60a.28-29', 'https://www.sefaria.org.il/Shabbat_Siddur_Sefard_Linear,_Maariv_Service_for_Shabbos_and_Yom_Tov,_Borechu.184', 'https://www.sefaria.org.il/Ketubot.66b.13', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1', 'https://www.sefaria.org.il/Isaiah.58.1-2']",0,8
+laws-of-the-conditioning-of-food-for-impurity,['https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.9.7.7'],[],1,['https://www.sefaria.org.il/Mishnah_Tahorot.8.6'],0,1
+unity,"['https://www.sefaria.org.il/Selichot_Nusach_Lita_Linear,_Third_Day.2.131']",[],1,"['https://www.sefaria.org.il/Sotah.27b.11-12', 'https://www.sefaria.org.il/Berakhot.30a.8-9', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1', 'https://www.sefaria.org.il/Leviticus.19.17']",0,4
+hasmoneans,[],[],0,[],0,0
+emancipation1,[],[],0,[],0,0
+oils1,['https://www.sefaria.org.il/II_Kings.4.37'],[],1,[],0,0
+chametz,[],[],0,[],0,0
+commandments-pertaining-to-slaughter,[],[],0,[],0,0
+donkeys,[],[],0,"['https://www.sefaria.org.il/Bava_Batra.45a.6', 'https://www.sefaria.org.il/Mishnah_Bava_Metzia.5.5', 'https://www.sefaria.org.il/Ketubot.111a.19']",0,3
+matzah,[],[],0,"['https://www.sefaria.org.il/Mishneh_Torah,_Paschal_Offering.4.11', 'https://www.sefaria.org.il/Sefat_Emet,_Leviticus,_Passover.20.3']",0,2
+elisheva,[],[],0,[],0,0
+nimrod,[],[],0,[],0,0
+the-matriarchs,[],[],0,[],0,0
+sharon,[],[],0,[],0,0
+laws-of-one-who-defames,[],[],0,[],0,0
+the-tabernacle-in-shiloh,[],[],0,[],0,0
+the-tablets,[],[],0,"['https://www.sefaria.org.il/Chagigah.12b.9', 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14']",0,3
+moses-death-and-burial,[],[],0,[],0,0
+elul,[],[],0,[],0,0
+rahab,[],[],0,[],0,0
+empathy,[],['https://www.sefaria.org.il/Ramban_on_Leviticus.19.18.1'],0,[],1,0
+mice,[],[],0,[],0,0
+hilchot-eruv-chatzerot-and-shituf-mevoaot,[],[],0,[],0,0
+moses,"[""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17""]",[],1,"[""https://www.sefaria.org.il/Zohar,_Ha'Azinu.5.20"", 'https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Sotah.27b.11-12', 'https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/Numbers.11.18-20', 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', ""https://www.sefaria.org.il/Midrash_Tanchuma_Buber,_Beha'alotcha.4.1"", 'https://www.sefaria.org.il/Exodus.6.6-7', 'https://www.sefaria.org.il/Malbim_on_Exodus.4.1.2', 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",0,12
+listening,[],[],0,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Eight_Chapters.3.3', 'https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Avodah_Zarah.35a.7', 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Malbim_on_Exodus.4.1.2']",0,8
+science,['https://www.sefaria.org.il/Berakhot.60a.28-29'],[],1,['https://www.sefaria.org.il/Eruvin.56a.5-7'],0,1
+independence,[],[],0,[],0,0
+moses-at-the-bush,[],[],0,['https://www.sefaria.org.il/Malbim_on_Exodus.4.1.2'],0,1
+yokheved,[],[],0,[],0,0
+rachel-(rabbi-akiva),[],[],0,[],0,0
+hillel,[],[],0,[],0,0
+rabban-shimon-b-gamliel-(ii),[],[],0,[],0,0
+doves,[],[],0,[],0,0
+rav-sheshet,[],[],0,[],0,0
+barukh-ben-neriah,[],[],0,[],0,0
+abigail,[],[],0,[],0,0
+golden-calf,[],[],0,[],0,0
+laws-of-contracting-impurity-from-a-corpse,[],[],0,['https://www.sefaria.org.il/Mishnah_Kelim.1.4'],0,1
+war-with-midian,[],[],0,[],0,0
+beyond-the-letter-of-the-law,[],[],0,['https://www.sefaria.org.il/Mesillat_Yesharim.18.9'],0,1
+commandments-surrounding-loans-and-their-repayment,[],['https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8'],0,[],1,0
+rav-ashi,[],[],0,[],0,0
+laws-of-the-impurity-and-prohibition-of-a-menstruant-woman,[],[],0,"['https://www.sefaria.org.il/Mishneh_Torah,_Tefillin,_Mezuzah_and_the_Torah_Scroll.10.8']",0,1
+growth,"['https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.1.1']",[],1,"['https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1']",0,1
+laws-of-tearing-on-shabbat,[],[],0,[],0,0
+laws-of-the-sacrifice-of-the-paschal-offering,[],"['https://www.sefaria.org.il/Mishneh_Torah,_Paschal_Offering.4.11']",0,[],1,0
+the-waters-of-meribah,[],[],0,[],0,0
+moses-and-the-tent-of-meeting,[],[],0,[],0,0
+laws-of-tsaraat-of-a-house,[],[],0,[],0,0
+jericho,[],[],0,[],0,0
+oral-torah,"['https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8']",[],1,"[""https://www.sefaria.org.il/Midrash_Tanchuma,_Re'eh.14.1"", 'https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",0,2
+mentally-handicapped-people,[],[],0,[],0,0
+laws-of-splitting-threads-on-shabbat,[],[],0,[],0,0
+manna,['https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2'],[],1,"['https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",0,1
+laws-of-cooking-on-shabbat,[],[],0,"['https://www.sefaria.org.il/Gray_Matter_IV,_Technology,_Closing_a_Website_for_Shabbat_and_Yom_Tov.23', 'https://www.sefaria.org.il/Jerusalem_Talmud_Shabbat.7.2.20']",0,2
+majority,[],[],0,[],0,0
+yerovam-(son-of-nebat),[],[],0,['https://www.sefaria.org.il/Panekha_Avakesh.18.44'],0,1
+the-worship-of-molech,[],[],0,[],0,0
+chur,[],[],0,[],0,0
+women-in-tanakh1,[],[],0,[],0,0
+syria,[],[],0,"['https://www.sefaria.org.il/Shir_HaShirim_Rabbah.1.6.5', 'https://www.sefaria.org.il/Mishnah_Avodah_Zarah.1.8']",0,2
+yom-haatzmaut,[],[],0,[],0,0
+order-of-prayer,[],[],0,"['https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Sotah.27b.11-12', 'https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10', 'https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18', ""https://www.sefaria.org.il/Sha'ar_HaMitzvot,_Vayechi.18""]",0,5
+laws-of-work-on-the-field-and-on-trees-in-the-seventh-year,[],[],0,[],0,0
+war-with-amalek,[],[],0,[],0,0
+hitbodedut,[],[],0,[],0,0
+alacrity,[],[],0,"['https://www.sefaria.org.il/Shemot_Rabbah.28.2', 'https://www.sefaria.org.il/Mesillat_Yesharim.5.25', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Proverbs.26.14']",0,4
+migrants,[],[],0,[],0,0
+geniza,[],[],0,[],0,0
+laws-of-the-offerings-for-errors-of-the-court-or-the-anointed-priest-and-sin-offerings-of-the-leader,[],['https://www.sefaria.org.il/Horayot.6a.3'],0,[],1,0
+the-gold-altar,[],[],0,[],0,0
+azazel,[],[],0,[],0,0
+beit-midrash,[],[],0,"['https://www.sefaria.org.il/Berakhot.63b.12-64a.3', 'https://www.sefaria.org.il/Sefer_HaTashbetz,_Part_IV.1.42.8', 'https://www.sefaria.org.il/Berakhot.28b.1-11']",0,3
+goliath,[],[],0,[],0,0
+maror,[],['https://www.sefaria.org.il/Pesachim.39a.1-15'],0,"['https://www.sefaria.org.il/Mishneh_Torah,_Paschal_Offering.4.11']",1,1
+mezuzah,[],[],0,[],0,0
+laws-of-the-challah-tithe,[],[],0,['https://www.sefaria.org.il/Shir_HaShirim_Rabbah.1.6.5'],0,1
+human-knowledge,[],[],0,"['https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Genesis.22.1-2', ""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17"", 'https://www.sefaria.org.il/Isaiah.58.1-2']",0,5
+deserts,[],[],0,"['https://www.sefaria.org.il/Sefat_Emet,_Numbers,_Chukat.16.2']",0,1
+books,['https://www.sefaria.org.il/Sefer_Chasidim.902.1'],[],1,[],0,0
+laws-of-shabbat-lights,[],[],0,"['https://www.sefaria.org.il/Gray_Matter_IV,_Technology,_Closing_a_Website_for_Shabbat_and_Yom_Tov.23']",0,1
+abaye,['https://www.sefaria.org.il/Shabbat.140a.4'],[],1,[],0,0
+mourners-kaddish,[],"[""https://www.sefaria.org.il/Sha'ar_HaMitzvot,_Vayechi.18""]",0,[],1,0
+shemitah,[],[],0,[],0,0
+weather,[],[],0,"['https://www.sefaria.org.il/Berakhot.18b.7-9', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",0,2
+medicine,[],[],0,"['https://www.sefaria.org.il/Eight_Chapters.3.3', 'https://www.sefaria.org.il/Gittin.12b.12', 'https://www.sefaria.org.il/Berakhot.60a.28-29', 'https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.4.13', 'https://www.sefaria.org.il/Tosefta_Mikvaot.6.5', 'https://www.sefaria.org.il/Bava_Batra.58b.2']",0,6
+laws-of-those-forbidden-to-marry-into-the-congregation,[],[],0,[],0,0
+conquest-and-division,[],[],0,"['https://www.sefaria.org.il/Deuteronomy.3.15', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.1071.6']",0,2
+vashti,[],[],0,[],0,0
+laws-of-forbidden-mixtures-of-seeds-and-trees,[],[],0,['https://www.sefaria.org.il/Pesachim.39a.1-15'],0,1
+sadness,"['https://www.sefaria.org.il/Taanit.29a.1-17', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",[],2,[],0,0
+og,['https://www.sefaria.org.il/Deuteronomy.3.15'],[],1,[],0,0
+laws-of-purification-by-mei-chatat,[],[],0,[],0,0
+niddah,[],[],0,"['https://www.sefaria.org.il/Mishneh_Torah,_Tefillin,_Mezuzah_and_the_Torah_Scroll.10.8', 'https://www.sefaria.org.il/Tosefta_Mikvaot.6.5']",0,2
+lag-baomer,[],[],0,[],0,0
+tefillat-haderekh,[],[],0,[],0,0
+infertility,[],[],0,['https://www.sefaria.org.il/Genesis.20.15-18'],0,1
+laws-of-kneading-on-shabbat,[],[],0,[],0,0
+business,[],[],0,"['https://www.sefaria.org.il/Bava_Batra.45a.6', 'https://www.sefaria.org.il/Mishnah_Bava_Metzia.5.5', 'https://www.sefaria.org.il/Sefer_Chasidim.953.1', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8']",0,4
+sodom,[],[],0,[],0,0
+deceit,[],['https://www.sefaria.org.il/Radak_on_Genesis.27.19.1'],0,"['https://www.sefaria.org.il/Bava_Batra.45a.6', 'https://www.sefaria.org.il/Rashi_on_Genesis.25.27.1-28.1', 'https://www.sefaria.org.il/Ibn_Ezra_on_Numbers.5.31.1', 'https://www.sefaria.org.il/Genesis.42.19', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",1,5
+masculinity,[],[],0,[],0,0
+midrash,[],[],0,[],0,0
+jacob-and-the-angel,[],[],0,['https://www.sefaria.org.il/Sforno_on_Genesis.35.10.1'],0,1
+gog-and-magog,[],[],0,['https://www.sefaria.org.il/Vayikra_Rabbah.30.5'],0,1
+mordekhai,[],[],0,[],0,0
+diaspora,[],['https://www.sefaria.org.il/Shir_HaShirim_Rabbah.1.6.5'],0,"['https://www.sefaria.org.il/Avodat_HaKodesh_(Ibn_Gabbai).2.21.14', 'https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3']",1,2
+the-temple-building,[],[],0,[],0,0
+order-and-practice-of-prayer,[],[],0,"['https://www.sefaria.org.il/Vayikra_Rabbah.30.5', 'https://www.sefaria.org.il/Sotah.27b.11-12', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Siddur_Ashkenaz,_Weekday,_Shacharit,_Amidah,_Knowledge.1', 'https://www.sefaria.org.il/Tosefta_Berakhot_(Lieberman).6.10', 'https://www.sefaria.org.il/Abudarham,_Shabbat_Prayers,_The_Conclusion_of_Shabbat.18', ""https://www.sefaria.org.il/Sha'ar_HaMitzvot,_Vayechi.18""]",0,7
+poverty,[],[],0,"['https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8']",0,2
+nephilim,[],[],0,[],0,0
+order-of-the-torah,[],[],0,[],0,0
+gods-existence,"['https://www.sefaria.org.il/Selichot_Nusach_Lita_Linear,_Third_Day.2.131', ""https://www.sefaria.org.il/Otzar_Midrashim,_Midrash_on_Hallel_'Sefer_HaMa'asim'.1.7""]",[],2,[],0,0
+abraham-in-egypt,[],[],0,[],0,0
+flood,['https://www.sefaria.org.il/Tikkunei_Zohar.36b.3'],[],1,[],0,0
+laws-of-misappropriation-of-items-sanctified-for-temple-maintenance,[],[],0,[],0,0
+jeremiah,"[""https://www.sefaria.org.il/Sha'ar_HaPesukim,_Parashat_Balak.56""]",[],1,[],0,0
+devekut,[],[],0,"['https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Mesillat_Yesharim.18.9', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",0,4
+governments,[],[],0,"['https://www.sefaria.org.il/Panekha_Avakesh.18.44', 'https://www.sefaria.org.il/Sanhedrin.93b.10']",0,2
+laws-of-animal-sacrifices,[],[],0,"['https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32', 'https://www.sefaria.org.il/Chullin.125a.7', 'https://www.sefaria.org.il/Chagigah.6a.15', 'https://www.sefaria.org.il/Ramban_on_Leviticus.1.9.1']",0,4
+rav-huna,['https://www.sefaria.org.il/Berakhot.31a.13'],[],1,['https://www.sefaria.org.il/Sanhedrin.17b.5'],0,1
+nebuchadnezzar,[],[],0,['https://www.sefaria.org.il/Taanit.29a.1-17'],0,1
+respect,"['https://www.sefaria.org.il/Berakhot.31a.13', 'https://www.sefaria.org.il/Leviticus.19.17']",[],2,"['https://www.sefaria.org.il/Nazir.20b', 'https://www.sefaria.org.il/LaKelal_VeLaPerat,_Volume_I,_3_The_Holy_Land.13.8', 'https://www.sefaria.org.il/Berakhot.28b.1-11', 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Yalkut_Shimoni_on_Nach.870.6', 'https://www.sefaria.org.il/Tosefta_Bava_Metzia_(Lieberman).10.8', 'https://www.sefaria.org.il/Sefer_Chasidim.902.1', 'https://www.sefaria.org.il/II_Kings.4.37']",0,8
+colors,['https://www.sefaria.org.il/Tikkunei_Zohar.36b.3'],['https://www.sefaria.org.il/Berakhot.6b.24'],1,['https://www.sefaria.org.il/Tosefta_Mikvaot.6.5'],1,1
+frogs,[],[],0,[],0,0
+huldah,[],[],0,[],0,0
+laws-of-sifting-on-shabbat,[],[],0,[],0,0
+three-weeks,[],[],0,[],0,0
+tabernacle-courtyard,[],[],0,[],0,0
+high-holidays,[],"['https://www.sefaria.org.il/Mishneh_Torah,_Repentance.3.4']",0,"[""https://www.sefaria.org.il/Al_Kapot_HaMan'ul;_Homilies_for_the_Days_of_Awe,_A_Reflection_into_the_Future.17"", 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",1,3
+proper-moral-and-hygienic-conduct,[],"['https://www.sefaria.org.il/Mishneh_Torah,_Human_Dispositions.4.13']",0,"['https://www.sefaria.org.il/Eight_Chapters.3.3', 'https://www.sefaria.org.il/Berakhot.60a.28-29', 'https://www.sefaria.org.il/Bava_Batra.58b.2']",1,3
+travel,[],[],0,[],0,0
+roosters,['https://www.sefaria.org.il/Berakhot.6b.24'],[],1,[],0,0
+evil,[],"['https://www.sefaria.org.il/Derekh_HaMelekh,_Torah,_Chayei_Sara.2.10']",0,"['https://www.sefaria.org.il/Derekh_Chayyim.3.9.1-2', 'https://www.sefaria.org.il/Mesillat_Yesharim.5.25', 'https://www.sefaria.org.il/Shem_MiShmuel,_Shemot.7.10', 'https://www.sefaria.org.il/Midrash_Tehillim.119.28', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Kohelet_Rabbah.10.20.1', 'https://www.sefaria.org.il/Reshit_Chokhmah,_Gate_of_Fear.8.28', 'https://www.sefaria.org.il/Ibn_Ezra_on_Numbers.5.31.1', 'https://www.sefaria.org.il/Or_HaChaim_on_Leviticus.25.39.1-3', 'https://www.sefaria.org.il/Pesikta_DeRav_Kahana.25.3', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13', 'https://www.sefaria.org.il/Shem_MiShmuel,_Chayei_Sara.5.15']",1,12
+mincha-(קרבן),[],[],0,"['https://www.sefaria.org.il/Siddur_Sefard,_Holidays,_Yom_Tov_Musaf_Amidah.32']",0,1
+natan,[],[],0,[],0,0
+judahs-blessing,[],[],0,['https://www.sefaria.org.il/Sotah.37a.3'],0,1
+king-solomon,[],['https://www.sefaria.org.il/II_Chronicles.2.2'],0,['https://www.sefaria.org.il/Gittin.68a.10'],1,1
+laws-of-oaths-over-testimony,[],[],0,[],0,0
+avishai,[],[],0,[],0,0
+rebuke,['https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13'],[],1,"['https://www.sefaria.org.il/Avodah_Zarah.35a.7', 'https://www.sefaria.org.il/Sifrei_Devarim.13.6', 'https://www.sefaria.org.il/Leviticus.19.17']",0,3
+tamar,[],[],0,[],0,0
+ewes,[],[],0,[],0,0
+aleinu,[],[],0,[],0,0
+ulla,[],[],0,[],0,0
+faith,[],['https://www.sefaria.org.il/Sotah.37a.3'],0,"['https://www.sefaria.org.il/Deuteronomy.4.10', 'https://www.sefaria.org.il/Deuteronomy.6.20-21', 'https://www.sefaria.org.il/Machzor_Rosh_Hashanah_Ashkenaz_Linear,_The_Morning_Prayers,_Yehi_Kevod.127', 'https://www.sefaria.org.il/Numbers.11.18-20', 'https://www.sefaria.org.il/Derashot_HaRan.11.26', 'https://www.sefaria.org.il/Genesis.22.1-2', 'https://www.sefaria.org.il/Deuteronomy.18.14-15', 'https://www.sefaria.org.il/Midrash_Shmuel_on_Avot.5.5.2', 'https://www.sefaria.org.il/Isaiah.58.1-2', 'https://www.sefaria.org.il/Exodus.6.6-7', 'https://www.sefaria.org.il/Malbim_on_Exodus.4.1.2', 'https://www.sefaria.org.il/Jerusalem_Talmud_Taanit.2.1.8-13']",1,12
+generation-of-the-flood,[],[],0,[],0,0
