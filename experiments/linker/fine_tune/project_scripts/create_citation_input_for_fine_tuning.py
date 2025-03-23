@@ -7,7 +7,7 @@ import srsly
 from app.util.sefaria_specific import load_mongo_docs
 from experiments.linker.fine_tune.project_scripts import constants
 from langchain_community.adapters.openai import convert_message_to_dict
-from langchain.schema import HumanMessage, SystemMessage, AIMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 
 
 SPAN_LABEL_TO_CLASSICATION_TAG = {
@@ -19,6 +19,12 @@ SPAN_LABEL_TO_CLASSICATION_TAG = {
     "מקור": "Citation",
     "בן-אדם": "Person",
     "קבוצה": "Group",
+    'title': 'title',
+    'number': 'number',
+    'ibid': 'ibid',
+    'range-symbol': 'range-symbol',
+    'DH': 'DH',
+    'dir-ibid': 'dir-ibid',
 }
 
 
