@@ -27,12 +27,12 @@ random.seed(45612)
 TOPICS_TO_CURATE_CSV_PATH = 'input/Topic project plan - 1000 topics pages product - list of all topic slugs.csv'
 
 
-def get_topics_to_curate() -> list[Topic]:
+def get_topics_to_curate(return_all=False) -> list[Topic]:
     topics = []
     with open(TOPICS_TO_CURATE_CSV_PATH, "r") as fin:
         cin = csv.DictReader(fin)
         for row in cin:
-            if len(row['curated'].strip()) > 0:
+            if len(row['curated'].strip()) > 0 and not return_all:
                 continue
             slug = row['slug'].strip()
             try:
@@ -71,7 +71,7 @@ def curate_topic(topic: Topic) -> list[TopicPromptSource]:
             )
 
 
-def get_topics_that_havent_been_curated_yet() -> list[Topic]:
+def get_topics_that_havent_been_curated_yet(root=None) -> list[Topic]:
     """
     Get all filenames from output folder
     :return:
@@ -80,7 +80,11 @@ def get_topics_that_havent_been_curated_yet() -> list[Topic]:
     from os.path import isfile, join
     import re
     slugs_curated = {re.sub(r"curation_(.*)\.json", r"\1", f) for f in listdir("output") if isfile(join("output", f)) and re.match("curation_(.*)\.json", f)}
-    topics_to_curate = get_topics_to_curate()
+    if root is None:
+        topics_to_curate = get_topics_to_curate(return_all=True)
+    else:
+        topics_to_curate = [make_llm_topic(t) for t in root.topics_by_link_type_recursively(only_leaves=True)]
+
     topics_not_yet_curated = []
     for topic in topics_to_curate:
         if topic.slug in slugs_curated:
