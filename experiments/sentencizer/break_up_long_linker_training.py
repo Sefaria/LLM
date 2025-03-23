@@ -108,9 +108,10 @@ def best_substring_match_index(long_string, short_string):
 
 def run():
     nlp = load_spacy_model("/Users/nss/sefaria/models/ref_he")
-    docs = load_mongo_docs(0, False, 'achronim_output')
+    docs = load_mongo_docs(0, False, 'ner_he_input')
+    docs = docs[2000:3000]
     docs = break_up_docs(docs, nlp)
-    my_db = MongoProdigyDBManager('achronim_output_broken')
+    my_db = MongoProdigyDBManager('ner_he_input_broken')
     my_db.output_collection.delete_many({})
     my_db.output_collection.insert_many(docs)
 
