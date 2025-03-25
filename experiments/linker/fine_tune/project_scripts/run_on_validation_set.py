@@ -35,7 +35,7 @@ random.seed(613)
 # entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-entity-class:AGhwTqKL"
 # entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-ref-part:AMglNq8l"
 # entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-ref-part-class:ALTYw0jR"
-entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-ner:B756XarP"
+entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-ner:BEGp9KpL"
 entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-entity-class:B7qRll0M"
 
 nlp = English()
@@ -254,6 +254,7 @@ def realign_entities(original_text: str, doc: EntityDoc) -> EntityDoc:
 
 
 def tag_example(example: dict):
+    tagger = EntityTagger('ref-people', recognizer_is_chat=True, classifier_is_chat=True)
     try:
         doc = tagger.predict(example)
     except (AssertionError, AttributeError) as e:
@@ -264,12 +265,10 @@ def tag_example(example: dict):
     return doc
 
 
-if __name__ == '__main__':
-    # webpages_output = "/Users/nss/sefaria/ML/spacy_projects/torah_ner/scripts/output/webpages_output.json"
-    tagger = EntityTagger('ref-people', recognizer_is_chat=True, classifier_is_chat=True)
-    my_db = MongoProdigyDBManager("ner_he_gpt_copper")
+def run_llm_linker(input_collection, output_collection):
+    my_db = MongoProdigyDBManager(output_collection)
     my_db.output_collection.delete_many({})
-    generator = ExampleGenerator(["ner_he_input_broken"], files=[], skip=0, sentencizer_type=False)
+    generator = ExampleGenerator([input_collection], files=[], skip=0, sentencizer_type=False)
     examples = list(generator.get())[:20000]
     docs = run_parallel(examples, tag_example, max_workers=50, desc="Tagging examples")
     for doc in docs:
@@ -281,6 +280,11 @@ if __name__ == '__main__':
             print(e)
             continue
         my_db.output_collection.insert_one(mongo_doc)
+
+
+if __name__ == '__main__':
+    # webpages_output = "/Users/nss/sefaria/ML/spacy_projects/torah_ner/scripts/output/webpages_output.json"
+    run_llm_linker("ner_he_input_broken", "ner_he_gpt_copper")
 
 """
 prodigy ner-recipe ref_tagging ner_en_gpt_copper ner_en_gpt_silver Citation,Person,Group -lang en -dir ltr --view-id ner_manual
