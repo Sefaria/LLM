@@ -48,11 +48,11 @@ def spacy_doc_to_mongo_doc(spacy_doc: Doc, orig_mongo_doc: dict) -> dict:
     }
 
 
-def run_linker_on_collection(input_collection, output_collection):
+def run_linker_on_collection(input_collection, output_collection, lang):
     my_db = MongoProdigyDBManager(output_collection)
     my_db.output_collection.delete_many({})
     mongo_docs = list(load_mongo_docs(input_collection))
-    linker: Linker = library.get_linker('en')
+    linker: Linker = library.get_linker(lang)
     linker_docs = linker.bulk_link([d['text'] for d in mongo_docs], verbose=True)
     new_mongo_docs = [linker_doc_to_mongo_doc(linker_doc, mongo_doc) for linker_doc, mongo_doc in zip(linker_docs, mongo_docs)]
     my_db.output_collection.insert_many(new_mongo_docs)
