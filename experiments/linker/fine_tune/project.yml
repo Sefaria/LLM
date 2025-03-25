@@ -7,14 +7,14 @@ vars:
 #  output_model_suffix: "en-entity-class"
 #  output_model_suffix: "en-ref-part"
   ner_task: "ref-people"
-#  output_model_suffix: "he-ner"
-  output_model_suffix: "he-entity-class"
+  output_model_suffix: "he-ner"
+#  output_model_suffix: "he-entity-class"
 env:
   openai_api_key: OPENAI_API_KEY
 workflows:
   all:
-#    - create_citation_ner_training
-    - create_citation_classification_training
+    - create_citation_ner_training
+#    - create_citation_classification_training
     - upload_files
     - create_fine_tune
 
