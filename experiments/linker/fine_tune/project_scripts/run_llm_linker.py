@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from sefaria.helper.normalization import NormalizerComposer, RegexNormalizer, AbstractNormalizer
 from experiments.linker.fine_tune.project_scripts.create_citation_input_for_fine_tuning import GptEntityClassificationTrainingGenerator, SPAN_LABEL_TO_CLASSICATION_TAG, GptNerTrainingGenerator
 import re
+import srsly
 import random
 from util.sefaria_specific import load_mongo_docs
 from util.general import get_removal_list, run_parallel
@@ -35,7 +36,7 @@ random.seed(613)
 # entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-entity-class:AGhwTqKL"
 # entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-ref-part:AMglNq8l"
 # entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-ref-part-class:ALTYw0jR"
-entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-ner:BEGp9KpL"
+entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-ner:BEcibyTD"
 entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-entity-class:B7qRll0M"
 
 nlp = English()
@@ -265,12 +266,9 @@ def tag_example(example: dict):
     return doc
 
 
-def run_llm_linker(input_collection, output_collection):
-    my_db = MongoProdigyDBManager(output_collection)
+def _save_docs_to_collection(collection, docs):
+    my_db = MongoProdigyDBManager(collection)
     my_db.output_collection.delete_many({})
-    generator = ExampleGenerator([input_collection], files=[], skip=0, sentencizer_type=False)
-    examples = list(generator.get())[:20000]
-    docs = run_parallel(examples, tag_example, max_workers=50, desc="Tagging examples")
     for doc in docs:
         if not doc:
             continue
@@ -282,9 +280,30 @@ def run_llm_linker(input_collection, output_collection):
         my_db.output_collection.insert_one(mongo_doc)
 
 
+def run_llm_linker_on_mongo(input_collection, output_collection):
+    generator = ExampleGenerator([input_collection], files=[], skip=0, sentencizer_type=False)
+    examples = list(generator.get())[:20000]
+    docs = run_parallel(examples, tag_example, max_workers=50, desc="Tagging examples")
+    _save_docs_to_collection(output_collection, docs)
+
+
+def run_llm_linker_on_gpt_file(input_file, output_collection):
+    """
+    Run the LLM linker on a file of GPT examples. Examples are expected to be in the format that GPT fine tuning accepts: a list of objects where each object is of form: {"messages": [{"role": str, "content": str}]}
+    :param input_file:
+    :param output_collection:
+    :return:
+    """
+    examples = srsly.read_jsonl(input_file)
+    # transform examples into the format that the tagger expects
+    examples = [{"text": ex['messages'][1]['content'], "meta": {"Ref": "N/A"}} for ex in examples]
+    docs = run_parallel(examples, tag_example, max_workers=50, desc="Tagging examples")
+    _save_docs_to_collection(output_collection, docs)
+
+
 if __name__ == '__main__':
     # webpages_output = "/Users/nss/sefaria/ML/spacy_projects/torah_ner/scripts/output/webpages_output.json"
-    run_llm_linker("ner_he_input_broken", "ner_he_gpt_copper")
+    run_llm_linker_on_mongo("ner_he_input_broken", "ner_he_gpt_copper")
 
 """
 prodigy ner-recipe ref_tagging ner_en_gpt_copper ner_en_gpt_silver Citation,Person,Group -lang en -dir ltr --view-id ner_manual
