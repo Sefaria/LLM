@@ -36,7 +36,7 @@ random.seed(613)
 # entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-entity-class:AGhwTqKL"
 # entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-ref-part:AMglNq8l"
 # entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-ref-part-class:ALTYw0jR"
-entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-ner:BEcibyTD"
+entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-ner:BFU9Emis"
 entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-entity-class:B7qRll0M"
 
 nlp = English()
