@@ -10,7 +10,7 @@ class EvalPlot(Evaluator):
     #     gold_filtered = [lr for lr in gold_standard if lr.ref in refs_in_pred]
     #     result = self._compute_f1_score(gold_filtered, predictions_filtered)
     #     return result
-    def get_table(self, predictions: List[LabelledRef]):
+    def get_table(self, predictions: List[LabelledRef], with_lengths=False):
         predictions = self._get_projection_of_labelled_refs(predictions)
         refs_in_pred = [lr.ref for lr in predictions]
         refs_in_gold = [lr.ref for lr in gold_standard]
@@ -28,9 +28,14 @@ class EvalPlot(Evaluator):
                 "False Positives": set(p_lr.slugs)-set(g_lr.slugs),
                 "False Negatives": set(g_lr.slugs)-set(p_lr.slugs),
             })
+            if with_lengths:
+                table[-1]["Gold Slugs Length"] = len(g_lr.slugs)
+                table[-1]["Predicted Slugs Length"] = len(p_lr.slugs)
+                table[-1]["False Positives Length"] = len(set(p_lr.slugs)-set(g_lr.slugs))
+                table[-1]["False Negatives Length"] = len(set(g_lr.slugs)-set(p_lr.slugs))
         return table
-    def plot_table(self, predictions: List[LabelledRef], filename='output.csv'):
-        table = self.get_table(predictions)
+    def plot_table(self, predictions: List[LabelledRef], filename='output.csv', with_lengths=False):
+        table = self.get_table(predictions, with_lengths)
         with open(filename, mode='w', newline='') as file:
             # Get the fieldnames from the first dictionary (keys)
             fieldnames = table[0].keys()
@@ -54,7 +59,7 @@ if __name__ == '__main__':
     # refs_to_evaluate = ["Abudarham, Fasts, Prayers 35"]
     # predictor = PredictorWithCacheWrapper(predictor)
     predictions = predictor.predict(refs_to_evaluate)
-    plot_evaluator.plot_table(predictions)
+    plot_evaluator.plot_table(predictions, with_lengths=True)
     print("Recall:", plot_evaluator.get_total_recall(predictions))
     print("Precision:", plot_evaluator.get_total_precision(predictions))
     print(predictions)
