@@ -94,17 +94,36 @@ def print_random_segs():
         print(item['metadata']['ref'])
 
 
+def get_all_toc_slugs_recursive(node):
+    slugs = []
+    if 'slug' in node:
+        slugs += [node['slug']]
+    for child in node.get('children', []):
+        slugs += get_all_toc_slugs_recursive(child)
+    return slugs
+
+
+def get_all_toc_slugs():
+    return get_all_toc_slugs_recursive({'children': library.get_topic_toc()})
+
+
 def get_metadata_value_ranges():
     export = read_jsonl(en_export_filename)
-    fields = ['docType', 'primaryDocCategory', 'authorIDs', 'authorNames', 'dataOrigin', 'compositionPlace', 'associatedTopicIDs', 'associatedTopicNames', 'isTranslation']
+    fields = ['docType', 'primaryDocCategory', 'authorIDs', 'authorNames', 'dataOrigin', 'compositionPlace', 'associatedTopicIDs', 'associatedTopicNames', 'isTranslation', 'eraName']
     unique_values = defaultdict(set)
+    toc_slugs = set(get_all_toc_slugs())
     for item in export:
         for field in fields:
             value = item['metadata'][field]
             if isinstance(value, list):
-                unique_values[field] |= set(value)
+                value_set = set(value)
+                if field == 'associatedTopicIDs':
+                    # only including topics that appear in toc
+                    value_set = value_set.intersection(toc_slugs)
+                unique_values[field] |= value_set
             else:
                 unique_values[field].add(value)
+    unique_values['associatedTopicNames'] = {Topic.init(slug).get_primary_title('en') for slug in unique_values['associatedTopicIDs']}
     out = {field: list(values) for field, values in unique_values.items()}
     with open('output/metadata_ranges.json', 'w') as fout:
         json.dump(out, fout, ensure_ascii=False, indent=2)

@@ -11,23 +11,32 @@ import re
 import random
 from util.sefaria_specific import load_mongo_docs
 from util.general import get_removal_list, run_parallel
-from util.sentencizer import sentencize
+from util.sentencizer import sentencize, claude_sentencizer
 from db_manager import MongoProdigyDBManager
 
 import langchain
 from langchain_community.cache import SQLiteCache
 from sefaria.spacy_function_registry import inner_punct_tokenizer_factory
+import json
 import spacy
 from spacy.tokens import Doc
 from spacy.lang.en import English
+import logging
 
+# Set the logging level for 'httpx' to WARNING
+httpx_logger = logging.getLogger('httpx')
+httpx_logger.setLevel(logging.WARNING)
 
 langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 random.seed(613)
 
-entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-ner:9qKKSIH1"
-entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-entity-class:9oqXg238"
+# entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-ner:AGOjNn8z"
+# entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-entity-class:AGhwTqKL"
+# entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-ref-part:AMglNq8l"
+# entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-ref-part-class:ALTYw0jR"
+entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-ner:B756XarP"
+entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-entity-class:B7qRll0M"
 
 nlp = English()
 nlp.tokenizer = inner_punct_tokenizer_factory()(nlp)
@@ -35,25 +44,43 @@ nlp.tokenizer = inner_punct_tokenizer_factory()(nlp)
 
 class ExampleGenerator:
 
-    def __init__(self, collections, skip=0, limit=None):
+    def __init__(self, collections, files=None, skip=0, limit=None, sentencizer_type='stanza'):
+        """
+
+        :param collections:
+        :param skip:
+        :param limit:
+        :param sentencizer_type: False, 'stanza' or 'claude'
+        """
+        self._sentencizer_type = sentencizer_type
         docs_list = []
         for collection in collections:
             docs = list(load_mongo_docs(collection))[skip:]
             if limit:
-                docs = docs[:skip+limit]
+                docs = docs[:limit]
             docs = list(filter(self._filter_bad_sentences, docs))
             random.shuffle(docs)
             docs_list += [docs]
+        if files:
+            for file in files:
+                with open(file, 'r') as fin:
+                    docs = json.load(fin)
+                    docs_list += [docs]
         min_count = min(len(d) for d in docs_list)
         self._data = []
         for docs in docs_list:
             self._data += docs[:min_count]
         random.shuffle(self._data)
 
-    @staticmethod
-    def _sentencize_doc(doc):
+    def _get_sentencizer(self):
+        if self._sentencizer_type == 'stanza':
+            return sentencize
+        elif self._sentencizer_type == 'claude':
+            return claude_sentencizer
+
+    def _sentencize_doc(self, doc):
         docs = []
-        for sent in sentencize(doc['text']):
+        for sent in self._get_sentencizer()(doc['text']):
             curr_doc = doc.copy()
             curr_doc['text'] = sent
             docs += [curr_doc]
@@ -66,13 +93,11 @@ class ExampleGenerator:
             return False
         return True
 
-    def get(self, sentencize=True):
-        for doc in self._data:
-            if sentencize:
-                for sent_doc in self._sentencize_doc(doc):
-                    yield sent_doc
-            else:
-                yield doc
+    def get(self):
+        if self._sentencizer_type:
+            return reduce(lambda a, b: a + b, run_parallel(self._data, self._sentencize_doc, max_workers=40, desc='sentencizing'), [])
+        else:
+            return self._data
 
 
 @dataclass
@@ -167,7 +192,8 @@ class EntityParser(BaseOutputParser[EntityDoc]):
 
 class EntityTagger:
 
-    def __init__(self, recognizer_is_chat=False, classifier_is_chat=False):
+    def __init__(self, subtask, recognizer_is_chat=False, classifier_is_chat=False):
+        self.subtask = subtask
         self.recognizer_is_chat = recognizer_is_chat
         self.classifier_is_chat = classifier_is_chat
         recognizer_model = ChatOpenAI if recognizer_is_chat else OpenAI
@@ -182,7 +208,7 @@ class EntityTagger:
         return doc
 
     def _recognize_entities(self, spacy_doc):
-        gen = GptNerTrainingGenerator()
+        gen = GptNerTrainingGenerator(self.subtask)
         prompt = gen.generate_one(spacy_doc, is_labeled=False)
         if self.recognizer_is_chat:
             output = self._llm_recognizer.invoke(prompt)
@@ -199,7 +225,7 @@ class EntityTagger:
         return doc
 
     def _classify_entity(self, text, entity: Entity) -> str:
-        generator = GptEntityClassificationTrainingGenerator()
+        generator = GptEntityClassificationTrainingGenerator(self.subtask)
         data = ({'text': text}, {'start': entity.start, 'end': entity.end})
         prompt = generator.generate_one(data, is_labeled=False)
         if self.classifier_is_chat:
@@ -239,16 +265,21 @@ def tag_example(example: dict):
 
 
 if __name__ == '__main__':
-    tagger = EntityTagger(recognizer_is_chat=True, classifier_is_chat=True)
+    # webpages_output = "/Users/nss/sefaria/ML/spacy_projects/torah_ner/scripts/output/webpages_output.json"
+    tagger = EntityTagger('ref-people', recognizer_is_chat=True, classifier_is_chat=True)
     my_db = MongoProdigyDBManager("ner_he_gpt_copper")
     my_db.output_collection.delete_many({})
-    generator = ExampleGenerator(['achronim_output_broken'], skip=0)
-    examples = list(generator.get(sentencize=False))[:50]
+    generator = ExampleGenerator(["ner_he_input_broken"], files=[], skip=0, sentencizer_type=False)
+    examples = list(generator.get())[:20000]
     docs = run_parallel(examples, tag_example, max_workers=50, desc="Tagging examples")
     for doc in docs:
         if not doc:
             continue
-        mongo_doc = doc.spacy_serialize()
+        try:
+            mongo_doc = doc.spacy_serialize()
+        except Exception as e:
+            print(e)
+            continue
         my_db.output_collection.insert_one(mongo_doc)
 
 """

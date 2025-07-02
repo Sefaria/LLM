@@ -8,7 +8,7 @@ from sefaria.model.topic import Topic as SefariaTopic
 from sefaria.model.text import Ref
 from sefaria.helper.llm.topic_prompt import make_llm_topic
 from collections import defaultdict
-import csv
+import csv, os, glob, re, json
 
 
 def count_cats(slug):
@@ -238,13 +238,50 @@ def _make_cluster_and_penalties_html_wrapper(topic, chosen_sources, penalties, p
     """
 
 
+def load_all_gathered_sources():
+    file_pattern = os.path.join("_cache", 'gathered_sources_*')
+    slugs = [re.search(r"gathered_sources_(.*)\.json", filename).group(1) for filename in glob.glob(file_pattern)]
+    for slug in slugs:
+        topic = SefariaTopic.init(slug)
+        if topic is None:
+            continue
+        yield load_sources(make_llm_topic(topic)), slug
+
+
+def export_gathered_sources():
+    rows_by_ref = {}
+    slugs_by_ref = defaultdict(list)
+    count = 0
+    for sources, slug in load_all_gathered_sources():
+        count += 1
+        for source in sources:
+            assert isinstance(source, SummarizedSource)
+            s = source.source
+            assert isinstance(s, TopicPromptSource)
+            slugs_by_ref[s.ref].append(slug)
+            rows_by_ref[s.ref] = {
+                "Ref": s.ref,
+                "Slugs": [],
+                "English": s.text['en']
+            }
+    rows = []
+    for ref, row in rows_by_ref.items():
+        row['Slugs'] = slugs_by_ref[ref]
+        rows.append(row)
+    print("len", len(rows))
+    print('num slugs', count)
+    with open('output/topic_modelling_training_set.json', 'w') as fout:
+        json.dump(rows, fout, ensure_ascii=False, indent=2)
+
+
 if __name__ == '__main__':
     slugs = ['abraham-in-egypt']
     # count_cats(slug)
     # print_clusters(slug)
     # slugs = ['ants', 'ulla', 'achitofel', 'friendship', 'david-and-the-temple', 'cains-sacrifice', 'abraham-in-egypt']
     # slugs = ['war-with-midian', 'medicine']
-    for slug in slugs:
-        print(slug)
-        save_clusters_to_csv(slug)
-        save_clusters_to_html(slug)
+    # for slug in slugs:
+    #     print(slug)
+    #     save_clusters_to_csv(slug)
+    #     save_clusters_to_html(slug)
+    export_gathered_sources()
