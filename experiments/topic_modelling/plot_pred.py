@@ -1,5 +1,5 @@
 from grid_search import *
-
+from dataclasses import asdict
 class EvalPlot(Evaluator):
 
     # def evaluate(self, predictions: List[LabelledRef]):
@@ -43,6 +43,13 @@ class EvalPlot(Evaluator):
             writer.writeheader()
             writer.writerows(table)
 
+    def dump_predictions_jsonl(self, predictions: List[LabelledRef], out_path):
+        with open(out_path, "w", encoding="utf-8") as fh:
+            for lr in predictions:
+                json_line = json.dumps(asdict(lr), ensure_ascii=False)
+                fh.write(json_line + "\n")
+        return out_path
+
 if __name__ == '__main__':
     considered_labels = file_to_slugs("evaluation_data/all_slugs_in_training_set.csv")
     gold_standard = jsonl_to_labelled_refs("evaluation_data/revised_gold.jsonl")
@@ -59,6 +66,7 @@ if __name__ == '__main__':
     # refs_to_evaluate = ["Abudarham, Fasts, Prayers 35"]
     # predictor = PredictorWithCacheWrapper(predictor)
     predictions = predictor.predict(refs_to_evaluate)
+    plot_evaluator.dump_predictions_jsonl(predictions, "evaluation_data/predictions.jsonl")
     plot_evaluator.plot_table(predictions, with_lengths=True)
     print("Recall:", plot_evaluator.get_total_recall(predictions))
     print("Precision:", plot_evaluator.get_total_precision(predictions))
