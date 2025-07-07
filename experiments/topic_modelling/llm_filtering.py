@@ -118,11 +118,11 @@ if __name__ == "__main__":
 
     # 4. Optional full-text lookup
     def sefaria_en(ref_str: str) -> str:
-        return Ref(ref_str).text("en")
+        return Ref(ref_str).text("en").text
 
 
     # 5. Run (still sequential, just wrapped)
-    kept = filterer.filter_refs(predicted[:3], text_lookup=sefaria_en)
+    kept = filterer.filter_refs(predicted[50:52], text_lookup=sefaria_en)
 
     for ref, slugs in kept.items():
         print(f"{ref} → {slugs}")
