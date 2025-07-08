@@ -8,7 +8,11 @@ from langchain_openai import ChatOpenAI      # lightweight OpenAI chat wrapper
 import django
 django.setup()
 from sefaria.model import Ref
-from utils import DataHandler
+from experiments.topic_modelling.utils import DataHandler
+from langchain.cache import SQLiteCache
+from langchain.globals import set_llm_cache
+set_llm_cache(SQLiteCache(database_path=".langchain.db"))
+
 # only needed if you want full text
 
 # --------------------------- OBJECT ---------------------------------- #
@@ -118,7 +122,7 @@ if __name__ == "__main__":
 
     # 4. Optional full-text lookup
     def sefaria_en(ref_str: str) -> str:
-        return Ref(ref_str).text("en").text
+        return Ref(ref_str).text().text
 
 
     # 5. Run (still sequential, just wrapped)
