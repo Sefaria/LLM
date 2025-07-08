@@ -3,7 +3,6 @@ from __future__ import annotations
 import json, textwrap
 from dataclasses import dataclass
 from typing import List, Callable
-
 from langchain_openai import ChatOpenAI      # lightweight OpenAI chat wrapper
 import django
 django.setup()
@@ -11,6 +10,8 @@ from sefaria.model import Ref
 from experiments.topic_modelling.utils import DataHandler
 from langchain.cache import SQLiteCache
 from langchain.globals import set_llm_cache
+from util.sefaria_specific import get_ref_text_with_fallback, get_passage_refs
+
 set_llm_cache(SQLiteCache(database_path=".langchain.db"))
 
 # only needed if you want full text
@@ -18,10 +19,7 @@ set_llm_cache(SQLiteCache(database_path=".langchain.db"))
 # --------------------------- OBJECT ---------------------------------- #
 @dataclass
 class SequentialRefTopicFilter:
-    """
-    Sequentially keep ≤ `max_topics` relevant slugs out of each LabelledRef.
-    The object’s only dependencies are ChatOpenAI and json.
-    """
+
     llm: ChatOpenAI
     max_topics: int = 25
     debug: bool = False     # print prompt and raw reply for every call
@@ -78,8 +76,8 @@ class SequentialRefTopicFilter:
     def filter_ref(
         self,
         lr: "LabelledRef",
-        *,
-        text_lookup: Callable[[str], str] | None = None,
+        # *,
+        # text_lookup: Callable[[str], str] | None = None,
     ) -> List[str]:
         """
         Filter slugs for a single LabelledRef.
@@ -91,7 +89,7 @@ class SequentialRefTopicFilter:
                       Pass None to fall back to the ref string itself.
         """
         context = (
-            text_lookup(lr.ref) if text_lookup else lr.ref
+            get_ref_text_with_fallback(lr.ref, 'en')
         )
         prompt = self._build_prompt(context, lr.slugs)
         return self._call_llm(prompt)
@@ -99,14 +97,12 @@ class SequentialRefTopicFilter:
     def filter_refs(
         self,
         lrs: List["LabelledRef"],
-        *,
-        text_lookup: Callable[[str], str] | None = None,
     ) -> dict[str, List[str]]:
         """
         Sequentially filter many LabelledRefs.
         Returns {ref_str: kept_slugs}.
         """
-        return {lr.ref: self.filter_ref(lr, text_lookup=text_lookup) for lr in lrs}
+        return {lr.ref: self.filter_ref(lr) for lr in lrs}
 
 if __name__ == "__main__":
     # 1. Read predictions
