@@ -11,6 +11,7 @@ from experiments.topic_modelling.utils import DataHandler
 from langchain.cache import SQLiteCache
 from langchain.globals import set_llm_cache
 from util.sefaria_specific import get_ref_text_with_fallback, get_passage_refs
+from sefaria.model import Topic, TopicSet
 
 set_llm_cache(SQLiteCache(database_path=".langchain.db"))
 
@@ -27,19 +28,34 @@ class SequentialRefTopicFilter:
     # -- private helpers ------------------------------------------------
     def _build_prompt(self, context: str, slugs: List[str]) -> str:
         """Return the plain prompt string sent to the LLM."""
+        # Look up the Topic objects
+        topics = TopicSet({"slug": {"$in": slugs}}).array()
+
+        # Build “slug — title” strings for the prompt
+        lines = [
+            f"{topic.slug} — {topic.get_primary_title('en') or ''}"
+            for topic in topics
+        ]
+        if not lines:  # just in case
+            lines.append("")
+
+        # Craft the prompt
         return textwrap.dedent(f"""
-        SYSTEM: You are an expert Judaic librarian who tags texts with topical slugs.
+            SYSTEM: You are an expert Judaic librarian who tags texts with topical slugs.
 
-        TEXT (reference or excerpt):
-        \"\"\"{context}\"\"\"
+            TEXT (reference or excerpt):
+            \"\"\"{context}\"\"\"
 
-        CANDIDATE SLUGS:
-        {', '.join(sorted(slugs))}
+            CANDIDATE TOPICS (slug — title):
+            {chr(10).join(sorted(lines))}
 
-        TASK ▾
-        • Return **up to {self.max_topics}** slugs that are actually relevant,
-          in descending order of relevance.
-        • Reply *only* with a JSON array of strings, no prose.
+            TASK ▾
+            • Return **up to {self.max_topics}** *slugs* (the identifiers before the “—”),
+              in descending order of relevance. Choose only the most relevant slugs.
+              Think about a user who is looking for a text on a specific topic—would
+              they want to see this slug?
+            • Reply *only* with a JSON array of strings, no prose. Example:
+              ["laws-of-prayer", "shema"]
         """).strip()
 
     def _extract_json_array(self, raw: str) -> list:
@@ -76,20 +92,9 @@ class SequentialRefTopicFilter:
     def filter_ref(
         self,
         lr: "LabelledRef",
-        # *,
-        # text_lookup: Callable[[str], str] | None = None,
     ) -> List[str]:
-        """
-        Filter slugs for a single LabelledRef.
-
-        Parameters
-        ----------
-        lr : LabelledRef
-        text_lookup : optional callable that maps a ref string → full text.
-                      Pass None to fall back to the ref string itself.
-        """
         context = (
-            get_ref_text_with_fallback(lr.ref, 'en')
+            f"Ref: {lr.ref}: {get_ref_text_with_fallback(lr.ref, 'en')}"
         )
         prompt = self._build_prompt(context, lr.slugs)
         return self._call_llm(prompt)
@@ -122,7 +127,7 @@ if __name__ == "__main__":
 
 
     # 5. Run (still sequential, just wrapped)
-    kept = filterer.filter_refs(predicted[50:52], text_lookup=sefaria_en)
+    kept = filterer.filter_refs(predicted[50:52])
 
     for ref, slugs in kept.items():
         print(f"{ref} → {slugs}")

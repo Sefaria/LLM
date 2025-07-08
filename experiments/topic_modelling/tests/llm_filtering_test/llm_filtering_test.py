@@ -7,8 +7,6 @@ from experiments.topic_modelling.utils import DataHandler
 
 
 
-
-
 llm_filter = SequentialRefTopicFilter(llm = ChatOpenAI(model="gpt-4o-mini", temperature=0), max_topics=10)
 dh = DataHandler( predicted_filename= "../../evaluation_data/predictions.jsonl")
 predicted = dh.get_predicted()  #
