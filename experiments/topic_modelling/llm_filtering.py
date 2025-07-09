@@ -93,8 +93,12 @@ class SequentialRefTopicFilter:
         self,
         lr: "LabelledRef",
     ) -> List[str]:
+        content_text = get_ref_text_with_fallback(lr.ref, 'en')
+        # if len(content_text.split()) <= 5:
+        #     # If the text is too short, return empty list
+        #     return []
         context = (
-            f"Ref: {lr.ref}: {get_ref_text_with_fallback(lr.ref, 'en')}"
+            f"Ref: {lr.ref}: {content_text}"
         )
         prompt = self._build_prompt(context, lr.slugs)
         return self._call_llm(prompt)
