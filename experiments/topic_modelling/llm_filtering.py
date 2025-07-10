@@ -1,45 +1,56 @@
 # simple_ref_topic_filter.py
 from __future__ import annotations
 import json, textwrap
-from dataclasses import dataclass
-from typing import List, Callable
-from langchain_openai import ChatOpenAI      # lightweight OpenAI chat wrapper
+from dataclasses import dataclass, field
+from typing import List
+from langchain_openai import ChatOpenAI        # lightweight OpenAI chat wrapper
+
+# -------------- Django / Sefaria boot-strap ----------------------------------
 import django
 django.setup()
-from sefaria.model import Ref
+from sefaria.model import Ref, TopicSet
+
 from experiments.topic_modelling.utils import DataHandler
 from langchain.cache import SQLiteCache
 from langchain.globals import set_llm_cache
-from util.sefaria_specific import get_ref_text_with_fallback, get_passage_refs
-from sefaria.model import Topic, TopicSet
+from util.sefaria_specific import get_ref_text_with_fallback
 
 set_llm_cache(SQLiteCache(database_path=".langchain.db"))
 
-# only needed if you want full text
-
-# --------------------------- OBJECT ---------------------------------- #
+# ----------------------------- FILTERER --------------------------------------
 @dataclass
 class SequentialRefTopicFilter:
+    """
+    • First pass – regular filtering: ask the LLM to pick the most relevant
+      slugs out of the candidate list.
+
+    • Second pass – for any slug in `overly_general_slugs` that survived the
+      first pass, prompt the LLM with a *yes/no* question: “Is this slug truly
+      **specifically** relevant to the passage, or is it merely a very general
+      tag that could apply to almost anything?”  Only keep the slug if the
+      model answers `true`.
+    """
 
     llm: ChatOpenAI
     max_topics: int = 25
-    debug: bool = False     # print prompt and raw reply for every call
+    overly_general_slugs: List[str] = field(
+        default_factory=lambda: [
+            # ✱ customise as you wish
+            "avodat-hashem", "beliefs", "creation", "faith", "food", "god", "halakhah", "halakhic-principles",
+            "history", "israel", "jewish-people", "laws", "laws-of-the-calendar", "learning", "life", "mitzvot",
+            "sacrifices", "social-issues", "stories", "talmudic-figures", "teshuvah", "values", "women"
+        ]
+    )
+    debug: bool = False  # print prompt / reply for every call
 
-    # -- private helpers ------------------------------------------------
+    # ---- first-pass prompt ---------------------------------------------------
     def _build_prompt(self, context: str, slugs: List[str]) -> str:
-        """Return the plain prompt string sent to the LLM."""
-        # Look up the Topic objects
         topics = TopicSet({"slug": {"$in": slugs}}).array()
-
-        # Build “slug — title” strings for the prompt
         lines = [
             f"{topic.slug} — {topic.get_primary_title('en') or ''}"
             for topic in topics
-        ]
-        if not lines:  # just in case
-            lines.append("")
+        ] or [""]
 
-        # Craft the prompt
         return textwrap.dedent(f"""
             SYSTEM: You are an expert Judaic librarian who tags texts with topical slugs.
 
@@ -58,80 +69,105 @@ class SequentialRefTopicFilter:
               ["laws-of-prayer", "shema"]
         """).strip()
 
-    def _extract_json_array(self, raw: str) -> list:
+    # ---- second-pass prompt --------------------------------------------------
+    def _build_confirm_prompt(self, context: str, slug: str) -> str:
+        return textwrap.dedent(f"""
+            SYSTEM: You are an expert Judaic librarian.
+
+            TEXT (reference or excerpt):
+            \"\"\"{context}\"\"\"
+
+            CANDIDATE SLUG:
+            {slug}
+
+            QUESTION ▾
+            The slug above is very broad and could apply to many passages.
+            Considering the *specific* content of this passage,
+            **should we still tag it with this slug?**
+            • Answer with only one word `true` or `false`, no prose.
+        """).strip()
+
+    # ---- utilities -----------------------------------------------------------
+    def _extract_json(self, raw: str):
         """
-        Return the first JSON array found in `raw`.
-        Raises ValueError if none present or if it isn't valid JSON.
+        Return the first JSON value (array or bool) found in `raw`.
         """
         try:
-            start = raw.index("[")
-            # naive but works because the model never uses nested ] in this task
-            end = raw.index("]", start) + 1
-            return json.loads(raw[start:end])
-        except (ValueError, json.JSONDecodeError) as exc:
-            raise ValueError("Could not parse JSON array from model output") from exc
-    def _call_llm(self, prompt: str) -> List[str]:
-        """Send prompt → model, parse JSON list, return Python list."""
-        response = self.llm.invoke(prompt)
+            start = raw.index("[") if "[" in raw else raw.index("t")  # 't' or 'f'
+        except ValueError:
+            raise ValueError("No JSON value found")
 
+        if raw[start] == "[":
+            end = raw.index("]", start) + 1
+        else:  # boolean
+            end = start + 4 if raw[start:start + 4].lower() == "true" else start + 5
+
+        return json.loads(raw[start:end])
+
+    def _call_llm(self, prompt: str):
+        resp = self.llm.invoke(prompt)
         if self.debug:
             print("\n" + "=" * 70)
             print("PROMPT\n" + "-" * 70 + "\n" + prompt)
-            print("RAW REPLY\n" + "-" * 70 + f"\n{response.content}")
+            print("RAW REPLY\n" + "-" * 70 + f"\n{resp.content}")
+        return resp.content
 
+    # ---- core public methods -------------------------------------------------
+    def filter_ref(self, lr: "LabelledRef") -> List[str]:
+        """Filter one labelled ref, applying the two-step logic."""
+        passage_text = get_ref_text_with_fallback(lr.ref, "en")
+        context = f"{lr.ref}: {passage_text}"
+
+        # -- 1️⃣  first pass ----------------------------------------------------
+        first_prompt = self._build_prompt(context, lr.slugs)
         try:
-            data = self._extract_json_array(response.content)  # extract JSON array from the response
-            if not isinstance(data, list):
-                raise ValueError("Model did not return a JSON array")
-            return data
-        except Exception as err:
-            print("⚠️  JSON parse error:", err)
+            raw_first = self._call_llm(first_prompt)
+            chosen_slugs: List[str] = self._extract_json(raw_first)
+        except Exception as e:
+            print("⚠️  first-pass parse error:", e)
             return []
 
-    # -- public API -----------------------------------------------------
-    def filter_ref(
-        self,
-        lr: "LabelledRef",
-    ) -> List[str]:
-        content_text = get_ref_text_with_fallback(lr.ref, 'en')
-        # if len(content_text.split()) <= 5:
-        #     # If the text is too short, return empty list
-        #     return []
-        context = (
-            f"Ref: {lr.ref}: {content_text}"
-        )
-        prompt = self._build_prompt(context, lr.slugs)
-        return self._call_llm(prompt)
+        # -- 2️⃣  second pass for overly general slugs -------------------------
+        final_slugs: List[str] = []
+        for slug in chosen_slugs:
+            if slug not in self.overly_general_slugs:
+                final_slugs.append(slug)
+                continue
 
-    def filter_refs(
-        self,
-        lrs: List["LabelledRef"],
-    ) -> dict[str, List[str]]:
-        """
-        Sequentially filter many LabelledRefs.
-        Returns {ref_str: kept_slugs}.
-        """
+            confirm_prompt = self._build_confirm_prompt(context, slug)
+            try:
+                raw_second = self._call_llm(confirm_prompt)
+                keep = True if raw_second == 'true' else False
+            except Exception as e:
+                print(f"⚠️  confirm-pass parse error for {slug}:", e)
+                keep = False
+
+            if keep:
+                final_slugs.append(slug)
+
+        return final_slugs
+
+    def filter_refs(self, lrs: List["LabelledRef"]) -> dict[str, List[str]]:
+        """Sequentially filter a list of LabelledRefs. Returns {ref_str: kept_slugs}."""
         return {lr.ref: self.filter_ref(lr) for lr in lrs}
 
+# ------------------------------ CLI DEMO -------------------------------------
 if __name__ == "__main__":
     # 1. Read predictions
-    dh = DataHandler("evaluation_data/gold.jsonl", "evaluation_data/predictions.jsonl", "evaluation_data/all_slugs.csv")
+    dh = DataHandler(
+        "evaluation_data/gold.jsonl",
+        "evaluation_data/predictions.jsonl",
+        "evaluation_data/all_slugs.csv",
+    )
     predicted = dh.get_predicted()  # List[LabelledRef]
 
-    # 2. Init the chat model
+    # 2. Init chat model
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
-    # 3. Create the sequential filter (turn on debug if you want full logs)
+    # 3. Create filterer (debug=True ↔︎ verbose logging)
     filterer = SequentialRefTopicFilter(llm, max_topics=25, debug=True)
 
-
-    # 4. Optional full-text lookup
-    def sefaria_en(ref_str: str) -> str:
-        return Ref(ref_str).text().text
-
-
-    # 5. Run (still sequential, just wrapped)
+    # 4. Run for a few refs
     kept = filterer.filter_refs(predicted[50:52])
-
     for ref, slugs in kept.items():
         print(f"{ref} → {slugs}")

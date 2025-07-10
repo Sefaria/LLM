@@ -35,8 +35,10 @@ if __name__ == '__main__':
 
     pr_scores = pagerank(list(graph.items()))
     sorted_scores = sorted(pr_scores.items(), key=lambda x: x[1], reverse=True)
-    for slug, score in sorted_scores[:50]:
-        print(f"{slug:20} {score:.6f}")
+    for slug, score in sorted_scores[:100]:
+        # print(f"{slug:20} {score:.6f}")
+        print(f"{slug}")
+
     index = None
     for i , (slug, score) in enumerate(sorted_scores):
         if slug == "life":
