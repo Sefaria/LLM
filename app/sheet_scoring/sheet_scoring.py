@@ -1,19 +1,15 @@
-from .openai_sheets_scorer import SheetScorer
+from sheet_scoring.openai_sheets_scorer import SheetScorer
 import os
 from pathlib import Path
 from sefaria_llm_interface.scoring_io import (
     SheetScoringInput,
     SheetScoringOutput,
 )
-from dotenv import load_dotenv
 
-load_dotenv(Path(__file__).parent / "secrets.env")   # adjust path if needed
 
 def score_one_sheet(inp: SheetScoringInput) -> SheetScoringOutput:
-
     scorer = SheetScorer(
-            api_key=os.getenv("OPENAI_API_KEY"),
-        )
+        api_key=os.getenv("OPENAI_API_KEY"))
     result = scorer.process_sheet_by_content(sheet=inp.sheet_content)
     if not result:
         return SheetScoringOutput(
@@ -24,7 +20,7 @@ def score_one_sheet(inp: SheetScoringInput) -> SheetScoringOutput:
             title_interest_reason="",
             language="",
             creativity_score=0,
-            processed_at=None,
+            processed_datetime=None,
         )
     return SheetScoringOutput(
         sheet_id=result[scorer.SHEET_ID_FIELD],
@@ -34,7 +30,5 @@ def score_one_sheet(inp: SheetScoringInput) -> SheetScoringOutput:
         title_interest_reason=result[scorer.TITLE_INTEREST_REASON_FIELD],
         language=result[scorer.LANGUAGE_FIELD],
         creativity_score=result[scorer.CREATIVITY_SCORE_FIELD],
-        processed_at=result["processed_at"].isoformat(),
+        processed_datetime=result["processed_datetime"].isoformat(),
     )
-
-

@@ -3,17 +3,17 @@ import html
 from typing import Dict, List, Tuple, Any
 
 TAG_RE = re.compile(r"<[^>]+>")
-TOKEN_RE = re.compile(r"\b\w+\b",re.UNICODE)
+TOKEN_RE = re.compile(r"\b\w+\b", re.UNICODE)
 
 
 def strip_html(raw: str) -> str:
     """Remove tags & entities, collapse whitespace."""
     if not raw:
         return ""
-    text = TAG_RE.sub("",raw)
+    text = TAG_RE.sub("", raw)
     text = html.unescape(text)
-    text = re.sub(r"\s+\n","\n",text)  # trim spaces before newlines
-    text = re.sub(r"[ \t]{2,}"," ",text)  # collapse runs of blanks
+    text = re.sub(r"\s+\n", "\n", text)  # trim spaces before newlines
+    text = re.sub(r"[ \t]{2,}", " ", text)  # collapse runs of blanks
     return text.strip()
 
 
@@ -39,13 +39,13 @@ def sheet_to_text_views(
     creativity_score   float – user_token_count / total_token_count
     """
 
-    quotes:     List[str] = []
-    no_quotes:  List[str] = []
-    with_quotes:List[str] = []
+    quotes: List[str] = []
+    no_quotes: List[str] = []
+    with_quotes: List[str] = []
 
     original_tokens = 0
-    quoted_tokens   = 0
-    has_original    = False
+    quoted_tokens = 0
+    has_original = False
 
     title = strip_html(sheet.get("title", "")).strip()
     if title:
@@ -75,7 +75,7 @@ def sheet_to_text_views(
                     with_quotes.append(txt)
 
         if "text" in blk:
-            ref   = blk.get("ref", "").strip()
+            ref = blk.get("ref", "").strip()
             canon = strip_html(blk["text"].get(default_lang, "")).strip()
 
             # show ref label in all views
@@ -106,11 +106,11 @@ def sheet_to_text_views(
                 with_quotes.append(txt)
 
     joiner = "\n\n"
-    quotes_only  = joiner.join(quotes)
-    commentary   = joiner.join(no_quotes)
-    full_sheet   = joiner.join(with_quotes)
+    quotes_only = joiner.join(quotes)
+    commentary = joiner.join(no_quotes)
+    full_sheet = joiner.join(with_quotes)
 
     total_tokens = original_tokens + quoted_tokens or 1  # avoid div‑by‑zero
-    creativity   = original_tokens / total_tokens
+    creativity = original_tokens / total_tokens
 
     return quotes_only, commentary, full_sheet, has_original, creativity
