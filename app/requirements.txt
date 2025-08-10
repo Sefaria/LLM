@@ -10,7 +10,7 @@ tqdm~=4.66.1
 celery[redis]~=5.2.7
 diff-match-patch
 dnspython~=2.5.0
-tiktoken~=0.4.0
+tiktoken
 readability_lxml
 tenacity==8.3.0
 requests
