@@ -1,6 +1,6 @@
 from celery import shared_task
 from sheet_scoring.sheet_scoring import score_one_sheet
-from sefaria_llm_interface.scoring_io import (
+from sefaria_llm_interface.sheet_scoring import (
     SheetScoringInput
 )
 from dataclasses import asdict

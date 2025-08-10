@@ -77,7 +77,7 @@ class SheetScorer:
     LANGUAGE_FIELD = "language"
     TITLE_INTEREST_REASON_FIELD = 'title_interest_reason'
     SHEET_ID_FIELD = "_id"
-    PROCESSED_AT_FIELD = "processed_datetime"
+    PROCESSED_DATETIME_FIELD = "processed_datetime"
     CREATIVITY_SCORE_FIELD = 'creativity_score'
 
     # Valid score levels
@@ -722,7 +722,7 @@ class SheetScorer:
                 self.REF_LEVELS_FIELD: score_percentages,
                 self.CREATIVITY_SCORE_FIELD: creativity_score,
                 self.REF_SCORES_FIELD: score_percentages,
-                self.PROCESSED_AT_FIELD: datetime.utcnow(),
+                self.PROCESSED_DATETIME_FIELD: datetime.utcnow(),
                 **title_info
             }
         content = self._sheet_to_text(
@@ -740,7 +740,7 @@ class SheetScorer:
             self.CREATIVITY_SCORE_FIELD: creativity_score,
             self.REF_SCORES_FIELD: gpt_analysis[self.REF_SCORES_FIELD],
             self.REF_LEVELS_FIELD: gpt_analysis[self.REF_LEVELS_FIELD],
-            self.PROCESSED_AT_FIELD: datetime.utcnow(),
+            self.PROCESSED_DATETIME_FIELD: datetime.utcnow(),
             self.LANGUAGE_FIELD: gpt_analysis[self.LANGUAGE_FIELD],
             self.TITLE_INTEREST_FIELD: gpt_analysis[self.TITLE_INTEREST_FIELD],
             self.TITLE_INTEREST_REASON_FIELD:
