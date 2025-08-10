@@ -4,15 +4,11 @@ from datetime import datetime
 
 
 @dataclass
-class SheetScoringOutput:
-    sheet_id: str
+class CommentaryScoringOutput:
+    commentary_ref: str
+    ref_scores: Dict[str, int]
+    scores_explanation: Dict[str, str]
     processed_datetime: str
-    language: str
-    title_interest_level: int
-    title_interest_reason: str
-    creativity_score: float
-    ref_levels: Dict[str, int]
-    ref_scores: Dict[str, float]
 
     def __post_init__(self):
         if isinstance(self.processed_datetime, datetime):

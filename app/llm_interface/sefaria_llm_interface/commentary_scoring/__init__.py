@@ -1,4 +1,4 @@
-from .sheet_scoring_input import SheetScoringInput
-from .sheet_scoring_output import SheetScoringOutput
+from .commentary_scoring_input import CommentaryScoringInput
+from .commentary_scoring_output import CommentaryScoringOutput
 
-__all__ = ["SheetScoringInput", "SheetScoringOutput"]
+__all__ = ["CommentaryScoringInput", "CommentaryScoringOutput"]
