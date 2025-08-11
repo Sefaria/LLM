@@ -1,7 +1,8 @@
 from celery import shared_task
 from commentary_scoring.commentary_scoring import score_one_commentary
-from sefaria_llm_interface.commentary_scoring import (
-    CommentaryScoringInput
+# TODO: change the import
+from app.llm_interface.sefaria_llm_interface.commentary_scoring import (
+    CommentaryScoringInput,
 )
 from dataclasses import asdict
 

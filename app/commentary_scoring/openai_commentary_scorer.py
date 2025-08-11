@@ -14,7 +14,11 @@ import tiktoken
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import HumanMessage
 from commentary_scoring.text_utils import to_plain_text
-
+# TODO: change the imports when compile package
+from app.llm_interface.sefaria_llm_interface.commentary_scoring import (
+    CommentaryScoringInput,
+    CommentaryScoringOutput,
+)
 logger = logging.getLogger(__name__)
 
 
@@ -26,6 +30,13 @@ class ExplanationLevel(IntEnum):
     MODERATE = 2
     SIGNIFICANT = 3
     COMPREHENSIVE = 4
+
+
+class RequestStatus(IntEnum):
+    """LLM's success/failure"""
+
+    SUCCESS = 1
+    FAILURE = 0
 
 
 class LanguageCode:
@@ -218,6 +229,20 @@ class CommentaryScorer:
             }
         }
 
+    def _create_failure_scoring_output(self, commentary_ref,
+                                       processed_datetime: datetime,
+                                       request_status_message: str) -> (
+            CommentaryScoringOutput):
+        logger.warning(request_status_message)
+        return CommentaryScoringOutput(
+            commentary_ref=commentary_ref,
+            ref_scores={},
+            scores_explanation={},
+            processed_datetime=str(processed_datetime),
+            request_status_message=request_status_message,
+            request_status=RequestStatus.FAILURE
+        )
+
     def _build_scoring_prompt(
             self,
             cited_refs: Dict[str,str],
@@ -264,22 +289,18 @@ Be precise and consistent in your scoring."""
             commentary_text: Union[List[str],str],
             cited_refs: Dict[str,str],
             commentary_ref: str = ""
-    ) -> Optional[Dict[str, Any]]:
+    ) -> CommentaryScoringOutput:
         """Score how well a commentary explains its cited texts.
         """
         if not cited_refs:
-            logger.info(
-                f"Commentary {commentary_ref} doesn't cite anything. "
-                f"Defaulting to None"
-            )
-            return None
+            return self._create_failure_scoring_output(commentary_ref=commentary_ref,
+                                                       processed_datetime=datetime.now(timezone.utc),
+                                                       request_status_message=f"Commentary {commentary_ref} doesn't cite anything. ")
 
         if not commentary_text:
-            logger.info(
-                f"Commentary {commentary_ref} is empty. "
-                f"Defaulting to None"
-            )
-            return None
+            return self._create_failure_scoring_output(commentary_ref=commentary_ref,
+                                                       processed_datetime=datetime.now(timezone.utc),
+                                                       request_status_message=f"Commentary {commentary_ref} is empty. ")
 
             # Convert commentary text to string format
         if isinstance(commentary_text,list):
@@ -288,22 +309,22 @@ Be precise and consistent in your scoring."""
             commentary_text_str = str(commentary_text)
 
         if not commentary_text_str.strip():
-            logger.warning(f"Commentary's {commentary_ref} text is empty "
-                           f"after processing")
 
-            return None
+            return self._create_failure_scoring_output(
+                commentary_ref=commentary_ref,
+                processed_datetime=datetime.now(timezone.utc),
+                request_status_message=f"Commentary's {commentary_ref} text is empty "
+                )
 
         token_count = self._count_tokens(commentary_text_str)
         max_allowed_tokens = self.max_prompt_tokens - self.token_margin
 
         if token_count > max_allowed_tokens:
             # TODO: add long commentary support
-            logger.warning(
-                f"{commentary_ref}'s input too long "
-                f"({token_count} tokens > {max_allowed_tokens} limit). "
-                "Skipping scoring."
-            )
-            return None
+            return self._create_failure_scoring_output(commentary_ref=commentary_ref,
+                                                       processed_datetime=datetime.now(timezone.utc),
+                                                       request_status_message=(f"{commentary_ref}'s input too long "
+                                      f"({token_count} tokens > {max_allowed_tokens} limit). "))
 
         logger.info(
             f"Processing commentary with {token_count} tokens, "
@@ -326,13 +347,15 @@ Be precise and consistent in your scoring."""
             }
 
             # Create structured result
-            result = {
-                self.REF_SCORE_FIELD: validated_scores,
-                self.EXPLANATION_FIELD: raw_response.get(
+            result = CommentaryScoringOutput(
+                commentary_ref=commentary_ref,
+                ref_scores=validated_scores,
+                scores_explanation=raw_response.get(
                     self.EXPLANATION_FIELD, {}
                     ),
-                self.PROCESSED_AT_FIELD: datetime.now(timezone.utc),
-            }
+                processed_datetime=str(datetime.now(timezone.utc)),
+                request_status_message="",
+                request_status=RequestStatus.SUCCESS)
 
             logger.info(
                 f"Successfully scored commentary {commentary_ref}. "
@@ -342,5 +365,8 @@ Be precise and consistent in your scoring."""
             return result
 
         except Exception as e:
-            logger.error(f"Commentary {commentary_ref} scoring failed: {e}")
-            return None
+            return self._create_failure_scoring_output(
+                commentary_ref=commentary_ref,
+                processed_datetime=datetime.now(timezone.utc),
+                request_status_message=f"Commentary {commentary_ref} scoring failed: {e}"
+                )
