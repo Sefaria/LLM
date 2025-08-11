@@ -1,14 +1,10 @@
 from sheet_scoring.openai_sheets_scorer import SheetScorer
 import os
-from pathlib import Path
 from sefaria_llm_interface.sheet_scoring import (
     SheetScoringInput,
     SheetScoringOutput,
 )
-from dotenv import load_dotenv
-import openai
 
-load_dotenv("/Users/home/PycharmProjects/LLM/secrets.env")
 
 def score_one_sheet(inp: SheetScoringInput) -> SheetScoringOutput:
     scorer = SheetScorer(
@@ -33,5 +29,5 @@ def score_one_sheet(inp: SheetScoringInput) -> SheetScoringOutput:
         title_interest_reason=result[scorer.TITLE_INTEREST_REASON_FIELD],
         language=result[scorer.LANGUAGE_FIELD],
         creativity_score=result[scorer.CREATIVITY_SCORE_FIELD],
-        processed_datetime=result[scorer.PRCOESSED_DATETIME_FIELD].isoformat(),
+        processed_datetime=result[scorer.PROCESSED_DATETIME_FIELD].isoformat(),
     )
