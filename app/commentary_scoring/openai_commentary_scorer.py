@@ -266,7 +266,7 @@ class CommentaryScorer:
 
     def process_commentary_by_content(
             self,
-            commentary_text: Union[List[str],str],
+            commentary_text: str,
             cited_refs: Dict[str, str],
             commentary_ref: str = ""
     ) -> CommentaryScoringOutput:
@@ -282,13 +282,9 @@ class CommentaryScorer:
                                                        processed_datetime=datetime.now(timezone.utc),
                                                        request_status_message=f"Commentary {commentary_ref} is empty. ")
 
-            # Convert commentary text to string format
-        if isinstance(commentary_text, list):
-            commentary_text_str = to_plain_text(commentary_text)
-        else:
-            commentary_text_str = str(commentary_text)
 
-        if not commentary_text_str.strip():
+
+        if not commentary_text.strip():
 
             return self._create_failure_scoring_output(
                 commentary_ref=commentary_ref,
@@ -296,7 +292,7 @@ class CommentaryScorer:
                 request_status_message=f"Commentary's {commentary_ref} text is empty "
                 )
 
-        token_count = self._count_tokens(commentary_text_str)
+        token_count = self._count_tokens(commentary_text)
         max_allowed_tokens = self.max_prompt_tokens - self.token_margin
 
         if token_count > max_allowed_tokens:
@@ -313,7 +309,7 @@ class CommentaryScorer:
 
         try:
             # Build prompt and schema
-            prompt = self._build_scoring_prompt(cited_refs, commentary_text_str)
+            prompt = self._build_scoring_prompt(cited_refs, commentary_text)
             schema = self._build_function_schema(list(cited_refs.keys()))
 
             # Get LLM response
