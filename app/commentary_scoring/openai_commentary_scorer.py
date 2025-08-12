@@ -22,14 +22,9 @@ from app.llm_interface.sefaria_llm_interface.commentary_scoring import (
 logger = logging.getLogger(__name__)
 
 
-class ExplanationLevel(IntEnum):
-    """Levels of explanation quality for commentary scoring."""
-
-    NO_EXPLANATION = 0
-    MINIMAL = 1
-    MODERATE = 2
-    SIGNIFICANT = 3
-    COMPREHENSIVE = 4
+class ExplainsFlag(IntEnum):
+    NOT_EXPLAINED = 0
+    EXPLAINED = 1
 
 
 class RequestStatus(IntEnum):
@@ -72,7 +67,8 @@ class CommentaryScorer:
     PROCESSED_AT_FIELD = "processed_datetime"
 
     # Valid explanation levels
-    VALID_LEVELS: Set[int] = {level.value for level in ExplanationLevel}
+    VALID_LEVELS: Set[int] = \
+        {ExplainsFlag.NOT_EXPLAINED, ExplainsFlag.EXPLAINED}
 
     def __init__(
             self,
@@ -124,25 +120,20 @@ class CommentaryScorer:
             # Fallback to character-based estimation
             return max(1, len(text) // self.DEFAULT_TOKEN_CHAR_RATIO)
 
-    def _validate_level(self,score: Any) -> int:
-        """Validate and normalize explanation level score.
-        """
+    def _validate_level(self, score: Any) -> int:
         try:
             score = int(score)
         except (ValueError, TypeError):
             logger.warning(
                 f"Invalid reference score '{score}', defaulting to 0"
                 )
-            return ExplanationLevel.NO_EXPLANATION
+            return ExplainsFlag.NOT_EXPLAINED
 
         if score not in self.VALID_LEVELS:
-            clamped = max(
-                ExplanationLevel.NO_EXPLANATION,
-                min(score,ExplanationLevel.COMPREHENSIVE)
-            )
+            clamped = ExplainsFlag.EXPLAINED if score >= 1 else ExplainsFlag.NOT_EXPLAINED
             logger.warning(
                 f"Reference score {score} out of range, clamping to {clamped}"
-            )
+                )
             return clamped
 
         return score
@@ -176,57 +167,46 @@ class CommentaryScorer:
             logger.error(f"LLM invocation failed: {e}")
             raise
 
-    def _build_function_schema(self, cited_keys: List[str]) -> Dict[str,Any]:
-        """Build JSON schema for function calling.
-
-        Args:
-            cited_keys: List of citation keys to score
-
-        Returns:
-            JSON schema for the scoring function
-        """
+    def _build_function_schema(self,cited_keys: List[str]) -> Dict[str,Any]:
         if not cited_keys:
             raise ValueError("cited_keys cannot be empty")
 
         return {
             "name": "score_multiple_explanations",
-            "description": "Score how well a commentary explains each cited text",
+            "description": "Binary labeling: does the commentary actually interpret/explain each cited text?",
             "parameters": {
                 "type": "object",
                 "properties": {
                     self.REF_SCORE_FIELD: {
                         "type": "object",
                         "properties": {
-                            key: {
-                                "type": "integer",
-                                "minimum": ExplanationLevel.NO_EXPLANATION,
-                                "maximum": ExplanationLevel.COMPREHENSIVE
-                            }
+                            key: {"type": "integer","minimum": 0,"maximum": 1}
                             for key in cited_keys
                         },
                         "required": cited_keys,
-                        "additionalProperties": False
+                        "additionalProperties": False,
                     },
                     self.EXPLANATION_FIELD: {
                         "type": "object",
                         "properties": {
                             key: {
                                 "type": "string",
-                                "maxLength": 200,
-                                "description": f"Explanation for {key} score (1-2 sentences)"
+                                "maxLength": 150,
+                                "description": (
+                                    "Brief rationale. Start with: "
+                                    "\"Explained spans: '<phrase1>'; '<phrase2>'\" "
+                                    "then 1–2 sentences why 0/1."
+                                ),
                             }
                             for key in cited_keys
                         },
                         "required": cited_keys,
-                        "additionalProperties": False
-                    }
+                        "additionalProperties": False,
+                    },
                 },
-                "required": [
-                    self.REF_SCORE_FIELD,
-                    self.EXPLANATION_FIELD
-                ],
-                "additionalProperties": False
-            }
+                "required": [self.REF_SCORE_FIELD,self.EXPLANATION_FIELD],
+                "additionalProperties": False,
+            },
         }
 
     def _create_failure_scoring_output(self, commentary_ref,
@@ -249,45 +229,45 @@ class CommentaryScorer:
             commentary_text: str
     ) -> str:
         """Build the prompt for scoring commentary explanations.
-
-        Args:
-            cited_refs: Mapping of reference keys to cited texts
-            commentary_text: The commentary text to evaluate
-
-        Returns:
-            Formatted prompt string
         """
         refs_section = "\n".join(
             f"- {key}: {text}" for key,text in cited_refs.items()
-        )
+            )
 
-        return f"""You are an expert evaluator of Jewish commentary quality.
+        return f"""You are labeling whether a commentary ACTUALLY EXPLAINS each cited text.
 
-COMMENTARY TEXT:
-{commentary_text}
+        COMMENTARY TEXT:
+        {commentary_text}
 
-CITED TEXTS TO EVALUATE:
-{refs_section}
+        CITED TEXTS:
+        {refs_section}
 
-TASK: For each cited text, score (0-4) how well the commentary explains it:
+        TASK (binary per citation):
+        Return 1 if the commentary provides any substantive interpretation or explanation
+        of ANY PART of the cited text (including methodological interpretation, e.g., reading a word
+        as a symbol) — not just quoting or paraphrasing.
 
-SCORING SCALE:
-{ExplanationLevel.NO_EXPLANATION}: NO EXPLANATION - Citation used for unrelated point
-{ExplanationLevel.MINIMAL}: MINIMAL - Text merely paraphrased or mentioned
-{ExplanationLevel.MODERATE}: MODERATE - Commentary shares theme but doesn't explain text
-{ExplanationLevel.SIGNIFICANT}: SIGNIFICANT - Citation is main focus with meaningful explanation
-{ExplanationLevel.COMPREHENSIVE}: COMPREHENSIVE - Deep, thorough explanation that fully illuminates the text
+        Return 0 if:
+        • The citation is used for another goal (decorative, rhetorical, prooftext with no interpretation).
+        • The commentary cites Source A only via Source B, but adds NO new interpretation of A beyond B.
+          (Inherited interpretation does NOT count as explanation of A.)
+        • It merely references or paraphrases without interpreting.
 
-RETURN JSON WITH:
-1. {self.REF_SCORE_FIELD}: Object mapping each citation key to score (0-4)
-2. {self.EXPLANATION_FIELD}: Object mapping each key to brief explanation (1-2 sentences)
+        Important:
+        • If the commentary explains only PARTS of the citation, still return 1.
+        • In your explanation, list the exact phrases from the cited text that ARE explained (if any),
+          then give a concise rationale for 0/1.
 
-Be precise and consistent in your scoring."""
+        RETURN JSON WITH:
+        1. {self.REF_SCORE_FIELD}: object of 0/1 per citation key
+        2. {self.EXPLANATION_FIELD}: object of brief rationales. Begin each value with:
+           Explained spans: '<phrase1>'; '<phrase2>' (or 'None'), then 1–2 sentences of rationale.
+        """
 
     def process_commentary_by_content(
             self,
             commentary_text: Union[List[str],str],
-            cited_refs: Dict[str,str],
+            cited_refs: Dict[str, str],
             commentary_ref: str = ""
     ) -> CommentaryScoringOutput:
         """Score how well a commentary explains its cited texts.
@@ -303,7 +283,7 @@ Be precise and consistent in your scoring."""
                                                        request_status_message=f"Commentary {commentary_ref} is empty. ")
 
             # Convert commentary text to string format
-        if isinstance(commentary_text,list):
+        if isinstance(commentary_text, list):
             commentary_text_str = to_plain_text(commentary_text)
         else:
             commentary_text_str = str(commentary_text)
@@ -357,9 +337,11 @@ Be precise and consistent in your scoring."""
                 request_status_message="",
                 request_status=RequestStatus.SUCCESS)
 
+            explained = sum(validated_scores.values())
+            total = len(validated_scores)
             logger.info(
-                f"Successfully scored commentary {commentary_ref}. "
-                f"Average score: {sum(validated_scores.values()) / len(validated_scores):.2f}"
+                f"Scored commentary {commentary_ref}: explained {explained}/{total} "
+                f"({(explained / total * 100 if total else 0):.0f}%)"
             )
 
             return result
@@ -369,4 +351,4 @@ Be precise and consistent in your scoring."""
                 commentary_ref=commentary_ref,
                 processed_datetime=datetime.now(timezone.utc),
                 request_status_message=f"Commentary {commentary_ref} scoring failed: {e}"
-                )
+            )
