@@ -1,8 +1,6 @@
 import re
-import html
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Union, Any
 
-TAG_RE = re.compile(r"<[^>]+>")
 TOKEN_RE = re.compile(r"\b\w+\b", re.UNICODE)
 
 
@@ -10,11 +8,7 @@ def strip_html(raw: str) -> str:
     """Remove tags & entities, collapse whitespace."""
     if not raw:
         return ""
-    text = TAG_RE.sub("", raw)
-    text = html.unescape(text)
-    text = re.sub(r"\s+\n", "\n", text)  # trim spaces before newlines
-    text = re.sub(r"[ \t]{2,}", " ", text)  # collapse runs of blanks
-    return text.strip()
+    return '\n'.join([' '.join(line.split()) for line in raw.split('\n')])
 
 
 def token_count(text: str) -> int:
@@ -22,10 +16,9 @@ def token_count(text: str) -> int:
     return len(TOKEN_RE.findall(text))
 
 
-def sheet_to_text_views(
-    sheet: Dict[str, Any],
-    default_lang: str = "en",
-) -> Tuple[str, str, str, bool, float]:
+def sheet_to_text_views(title: str,
+                        sources: List[Dict[str, Union[str, Dict[str, str]]]],
+                        default_lang: str = "en") -> Dict[str, Any]:
     """
     Build three plain‑text snapshots of a Sefaria sheet **and** compute a
     creativity score.
@@ -47,14 +40,13 @@ def sheet_to_text_views(
     quoted_tokens = 0
     has_original = False
 
-    title = strip_html(sheet.get("title", "")).strip()
     if title:
         tok = token_count(title)
         original_tokens += tok
         no_quotes.append(title)
         with_quotes.append(title)
 
-    for blk in sheet.get("sources", []):
+    for blk in sources:
         # --- outsideText (single‑lang commentary)
         if "outsideText" in blk:
             txt = strip_html(blk["outsideText"]).strip()
@@ -113,4 +105,10 @@ def sheet_to_text_views(
     total_tokens = original_tokens + quoted_tokens or 1  # avoid div‑by‑zero
     creativity = original_tokens / total_tokens
 
-    return quotes_only, commentary, full_sheet, has_original, creativity
+    return {
+        "quotes_only": quotes_only,
+        "no_quotes": commentary,
+        "with_quotes": full_sheet,
+        "has_original": has_original,
+        "creativity_score": creativity
+    }

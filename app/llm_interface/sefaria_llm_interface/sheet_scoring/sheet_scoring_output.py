@@ -13,6 +13,8 @@ class SheetScoringOutput:
     creativity_score: float
     ref_levels: Dict[str, int]
     ref_scores: Dict[str, float]
+    request_status: int
+    request_status_message: str
 
     def __post_init__(self):
         if isinstance(self.processed_datetime, datetime):

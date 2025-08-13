@@ -2,13 +2,13 @@ import json
 import logging
 from datetime import datetime
 from enum import IntEnum
-from typing import Any, Dict, Iterator, List, Optional, Set, Tuple
+from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Union
 import textwrap
 import tiktoken
 from langchain.schema import HumanMessage
 from langchain_openai import ChatOpenAI
 from sheet_scoring.text_utils import sheet_to_text_views
-
+from sefaria_llm_interface.sheet_scoring import SheetScoringOutput
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -16,6 +16,12 @@ logger = logging.getLogger(__name__)
 class IncompleteScoreError(Exception):
     """Raised when LLM JSON is valid but doesn’t cover every reference."""
     pass
+
+
+class RequestStatusOptions(IntEnum):
+    """Enumeration for tracking the status of LLM processing requests."""
+    SUCCESS = 1
+    FAILURE = 0
 
 
 class ScoreLevel(IntEnum):
@@ -91,7 +97,6 @@ class SheetScorer:
             token_margin: int = DEFAULT_MAX_OUTPUT_TOKENS,
             max_ref_to_process: int = DEFAULT_MAX_REFS_TO_PROCESS,
             chunk_size: int = DEFAULT_CHUNK_SIZE,
-
     ):
         self.max_prompt_tokens = max_prompt_tokens
         self.token_margin = token_margin
@@ -140,7 +145,7 @@ class SheetScorer:
 
         raise ValueError("No function call in response")
 
-    def _get_reference_scoring_function_schema(self, ref_names: List[str]) -> \
+    def _get_reference_scoring_function_schema(self, expanded_refs: List[str]) -> \
             Dict[str, Any]:
         """Create function schema for reference scoring with exact reference
         names."""
@@ -161,9 +166,9 @@ class SheetScorer:
                                 "minimum": 0,
                                 "maximum": 4
                             }
-                            for ref_name in ref_names
+                            for ref_name in expanded_refs
                         },
-                        "required": ref_names,
+                        "required": expanded_refs,
                         "additionalProperties": False
                     }
                 },
@@ -204,7 +209,7 @@ class SheetScorer:
             }
         }
 
-    def _get_full_scoring_function_schema(self, ref_names: List[str]) -> (
+    def _get_full_scoring_function_schema(self, expanded_refs: List[str]) -> (
             Dict)[str, Any]:
         """Create function schema for both reference and title scoring."""
         return {
@@ -229,9 +234,9 @@ class SheetScorer:
                                 "minimum": 0,
                                 "maximum": 4
                             }
-                            for ref_name in ref_names
+                            for ref_name in expanded_refs
                         },
-                        "required": ref_names,
+                        "required": expanded_refs,
                         "additionalProperties": False
                     },
                     self.TITLE_INTEREST_FIELD: {
@@ -296,10 +301,10 @@ class SheetScorer:
             """)
 
     def _create_chunk_prompt_for_function(self, sheet_content: str,
-                                          ref_names: List[str]) -> str:
+                                          expanded_refs: List[str]) -> str:
         """Create prompt for function calling (no JSON format instructions
         needed)."""
-        refs_md = "\n".join(f"- {r}" for r in ref_names)
+        refs_md = "\n".join(f"- {r}" for r in expanded_refs)
         return textwrap.dedent(
             f"""
             You are analyzing a Jewish study sheet. Rate how much each listed reference 
@@ -322,12 +327,12 @@ class SheetScorer:
             )
 
     def _create_final_chunk_prompt_for_function(self, sheet_content: str,
-                                                ref_names: List[str],
+                                                expanded_refs: List[str],
                                                 sheet_title: str) -> str:
         """Create prompt for final chunk with title scoring using function
         calling."""
         sheet_title_clean = sheet_title.strip() or "(untitled)"
-        refs_md = "\n".join(f"- {r}" for r in ref_names)
+        refs_md = "\n".join(f"- {r}" for r in expanded_refs)
 
         return textwrap.dedent(f"""
             Analyze this Jewish study sheet and provide two types of scores:
@@ -443,6 +448,8 @@ class SheetScorer:
             score_levels: Dict[str, int],
             beta: float = 1500  # token mass where no penalty
     ) -> Dict[str, float]:
+        """Convert reference scores to percentages with size penalty
+        for shorter sheets."""
 
         total_level = sum(score_levels.values()) or 1
         size_factor = min(1.0, sheet_tokens / beta)  # clamp to 1
@@ -467,10 +474,14 @@ class SheetScorer:
             sheet_title: str = ""
     ) -> Tuple[Optional[Dict[str, Any]], Dict[str, int]]:
         """
-        Robustly grade a list of refs.
-        • First try the whole list.
-        • If the model returns < len(refs) scores (or JSON error),
-          split the list in two and grade each half recursively.
+        Fault-tolerant reference scoring using divide-and-conquer strategy.
+        Attempts to score all references at once via LLM. If that fails
+        (due to incomplete responses),
+        recursively splits the reference list in half and scores each
+        subset separately until all references have scores.
+        This prevents total failure when the LLM struggles with large
+        reference lists or encounters transient errors.
+
         """
         if not refs:
             return {}, {}
@@ -486,7 +497,7 @@ class SheetScorer:
                 function_schema = self._get_reference_scoring_function_schema(
                     refs
                 )
-            data,scores = self._get_gpt_ref_scores_function(
+            data, scores = self._get_gpt_ref_scores_function(
                 prompt, function_schema, refs
                 )
             return data, scores
@@ -498,12 +509,12 @@ class SheetScorer:
             return {}, {refs[0]: ScoreLevel.NOT_DISCUSSED}
 
         mid = len(refs) // 2
-        ld,ls = self._grade_refs_resilient(
+        ld, ls = self._grade_refs_resilient(
             content, refs[:mid],
             with_title=with_title,
             sheet_title=sheet_title
         )
-        rd,rs = self._grade_refs_resilient(
+        rd, rs = self._grade_refs_resilient(
             content, refs[mid:],
             with_title=with_title,
             sheet_title=sheet_title
@@ -512,27 +523,31 @@ class SheetScorer:
         merged_data = ld or rd
         return merged_data, merged_scores
 
-    def _get_gpt_ref_scores_function(self,prompt: str, function_schema,
+    def _get_gpt_ref_scores_function(self, prompt: str, function_schema,
                                      expected_refs: List[str]):
+        """Calls the LLM with structured function schema, validates all
+        returned scores are in valid range (0-4), handles missing references,
+        and ensures exactly the expected references are scored."""
         try:
             data = self._invoke_llm_with_function(prompt, function_schema)
             chunk_scores = data.get(self.REF_LEVELS_FIELD, {})
             validated_scores = {}
             for ref, score in chunk_scores.items():
                 validated_scores[ref] = self._validate_score_level(
-                    score,f"ref_score[{ref}]"
+                    score, f"ref_score[{ref}]"
                 )
 
             # Check for missing references and assign default scores (0)
             missing_refs = set(expected_refs) - set(validated_scores.keys())
             if missing_refs:
                 logger.warning(
-                    f"GPT didn't return scores for {len(missing_refs)} references: {list(missing_refs)[:5]}... - defaulting to 0"
+                    f"GPT didn't return scores for {len(missing_refs)} "
                 )
                 if len(missing_refs) < 5:
+                    logger.warning(f"Defaulting missing scores to zeros")
                     for ref in missing_refs:
-                        validated_scores[
-                            ref] = ScoreLevel.NOT_DISCUSSED
+                        validated_scores[ref] = ScoreLevel.NOT_DISCUSSED
+
                 else:
                     raise IncompleteScoreError(
                         f"Missing {len(missing_refs)} references"
@@ -568,17 +583,17 @@ class SheetScorer:
     def _process_reference_chunks(
             self,
             content: str,
-            ref_names: List[str]
+            expanded_refs: List[str]
     ) -> Optional[Dict[str, int]]:
         """Process reference chunks in batches."""
         ref_scores: Dict[str, int] = {}
 
         last_chunk_start = self._last_regular_start(
-            len(ref_names), self.chunk_size, self.MAX_CHUNK_OVERLAP
+            len(expanded_refs), self.chunk_size, self.MAX_CHUNK_OVERLAP
         )
 
         for chunk in self.chunk_list(
-                ref_names[:last_chunk_start], self.chunk_size
+                expanded_refs[:last_chunk_start], self.chunk_size
         ):
             # prompt = self._create_chunk_prompt(content,chunk)
             _, chunk_scores = self._grade_refs_resilient(
@@ -595,14 +610,14 @@ class SheetScorer:
     def _process_final_chunk_with_title(
             self,
             content: str,
-            ref_names: List[str],
+            expanded_refs: List[str],
             title: str,
     ) -> Optional[Dict[str, Any]]:
         """Process final chunk and get title scores."""
         start = self._last_regular_start(
-            len(ref_names), self.chunk_size, self.MAX_CHUNK_OVERLAP
+            len(expanded_refs), self.chunk_size, self.MAX_CHUNK_OVERLAP
         )
-        final_chunk = ref_names[start:]
+        final_chunk = expanded_refs[start:]
 
         # prompt = self._create_final_chunk_prompt(content,final_chunk,title)
         result = self._grade_refs_resilient(
@@ -621,18 +636,18 @@ class SheetScorer:
     def get_gpt_scores(
             self,
             content: str,
-            ref_names: List[str],
+            expanded_refs: List[str],
             title: str,
     ) -> Optional[Dict[str, Any]]:
         """Get GPT scores for references and title."""
         # Process reference chunks
-        ref_scores = self._process_reference_chunks(content, ref_names)
+        ref_scores = self._process_reference_chunks(content, expanded_refs)
         if ref_scores is None:
             return None
 
         # Process final chunk with title
         final_data = self._process_final_chunk_with_title(
-            content, ref_names, title
+            content, expanded_refs, title
         )
         if final_data is None:
             return None
@@ -692,57 +707,82 @@ class SheetScorer:
             # Fallback: character-based truncation
             return text[:max_tokens * self.DEFAULT_TOKEN_CHAR_RATIO]
 
-    def process_sheet_by_content(self, sheet: Dict[str, Any],
-                                 add_full_commentary=False) -> (
-            Optional)[Dict[str, Any]]:
+    def create_failure_output(self, sheet_id: str, request_status_message: str) -> (
+            SheetScoringOutput):
+        """Create a standardized failure output when sheet processing cannot
+        be completed."""
+        return SheetScoringOutput(
+            sheet_id=sheet_id,
+            processed_datetime=str(datetime.utcnow()),
+            language="",
+            title_interest_level=0,
+            title_interest_reason="",
+            creativity_score=0,
+            ref_levels={},
+            ref_scores={},
+            request_status=RequestStatusOptions.FAILURE,
+            request_status_message=request_status_message
+            )
+
+    def process_sheet_by_content(self,
+                                 sheet_id: str,
+                                 expanded_refs: List[str],
+                                 title: str,
+                                 sources: List[Dict[str, Union[str, Dict[str, str]]]],
+                                 add_full_commentary=False) -> SheetScoringOutput:
         """Score a single sheet based on its content."""
-        sheet_id = str(sheet.get(self.SHEET_ID_FIELD))
-        ref_names = sheet.get("expandedRefs", [])
-        sheet_title = sheet.get("title", "")
-
-        if not ref_names:
-            logger.info(f"No expanded refs for sheet {sheet_id}, skipping")
-            return None
-
-        (quotes_only,
-         no_quotes_content,
-         full_content,
-         has_original, creativity_score) = sheet_to_text_views(sheet,
-                                                         LanguageCode.DEFAULT)
+        if not expanded_refs:
+            request_status_message = f"No expanded refs for sheet {sheet_id}, skipping"
+            logger.info(request_status_message)
+            return self.create_failure_output(sheet_id,
+                                              request_status_message=request_status_message)
+        text_views = sheet_to_text_views(title=title, sources=sources, default_lang=LanguageCode.DEFAULT)
+        no_quotes_content = text_views["no_quotes"]
+        full_content = text_views["with_quotes"]
+        has_original = text_views["has_original"]
+        creativity_score = text_views["creativity_score"]
 
         # Check for original content and reference limits
         if (not has_original or
-                len(ref_names) > self.max_ref_to_process):
+                len(expanded_refs) > self.max_ref_to_process):
             logger.info(f"Sheet {sheet_id}: using equal distribution")
-            score_percentages = {ref: 0 for ref in ref_names}
-            title_info = self._get_title_info(sheet_title)
+            score_percentages = {ref: 0 for ref in expanded_refs}
+            title_info = self._get_title_info(title)
 
-            return {
-                self.SHEET_ID_FIELD: sheet_id,
-                self.REF_LEVELS_FIELD: score_percentages,
-                self.CREATIVITY_SCORE_FIELD: creativity_score,
-                self.REF_SCORES_FIELD: score_percentages,
-                self.PROCESSED_DATETIME_FIELD: datetime.utcnow(),
-                **title_info
-            }
+            return SheetScoringOutput(sheet_id=sheet_id,
+                                      ref_levels=score_percentages,
+                                      ref_scores=score_percentages,
+                                      processed_datetime=str(datetime.utcnow()),
+                                      creativity_score=creativity_score,
+                                      title_interest_level=title_info[self.TITLE_INTEREST_FIELD],
+                                      title_interest_reason=title_info[self.TITLE_INTEREST_REASON_FIELD],
+                                      language=title_info[self.LANGUAGE_FIELD],
+                                      request_status=RequestStatusOptions.SUCCESS,
+                                      request_status_message="The sheet has no user generated content"
+                                      )
+
         content = self._sheet_to_text(
             no_quotes_content=no_quotes_content,
             full_content=full_content,
             max_tokens=self.max_prompt_tokens-self.token_margin,
             add_full_commentary=add_full_commentary)
         # Process with GPT
-        gpt_analysis = self.get_gpt_scores(content, ref_names, sheet_title)
+        gpt_analysis = self.get_gpt_scores(content, expanded_refs, title)
         if not gpt_analysis:
-            logger.error(f"Failed to get GPT scores for sheet {sheet_id}")
-            return None
-        return {
-            self.SHEET_ID_FIELD: sheet_id,
-            self.CREATIVITY_SCORE_FIELD: creativity_score,
-            self.REF_SCORES_FIELD: gpt_analysis[self.REF_SCORES_FIELD],
-            self.REF_LEVELS_FIELD: gpt_analysis[self.REF_LEVELS_FIELD],
-            self.PROCESSED_DATETIME_FIELD: datetime.utcnow(),
-            self.LANGUAGE_FIELD: gpt_analysis[self.LANGUAGE_FIELD],
-            self.TITLE_INTEREST_FIELD: gpt_analysis[self.TITLE_INTEREST_FIELD],
-            self.TITLE_INTEREST_REASON_FIELD:
-                gpt_analysis[self.TITLE_INTEREST_REASON_FIELD],
-        }
+            request_status_message=f"Failed to get GPT scores for sheet {sheet_id}"
+            logger.error(request_status_message)
+            return self.create_failure_output(sheet_id=sheet_id,
+                                              request_status_message=request_status_message)
+
+        return SheetScoringOutput(
+                sheet_id=sheet_id,
+                ref_levels=gpt_analysis[self.REF_LEVELS_FIELD],
+                ref_scores=gpt_analysis[self.REF_SCORES_FIELD],
+                processed_datetime=str(datetime.utcnow()),
+                creativity_score=creativity_score,
+                title_interest_level=gpt_analysis[self.TITLE_INTEREST_FIELD],
+                title_interest_reason=gpt_analysis[self.TITLE_INTEREST_REASON_FIELD],
+                language=gpt_analysis[self.LANGUAGE_FIELD],
+                request_status=RequestStatusOptions.SUCCESS,
+                request_status_message=""
+                )

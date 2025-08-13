@@ -1,8 +1,12 @@
 from dataclasses import dataclass
-from typing import Any
+from typing import List, Dict, Union
 
 
 @dataclass
 class SheetScoringInput:
-    sheet_content: dict[str, Any]
+    # str version of _id
+    sheet_id: str
+    title: str
+    sources: List[Dict[str, Union[str, Dict[str, str]]]]
+    expanded_refs: str
 

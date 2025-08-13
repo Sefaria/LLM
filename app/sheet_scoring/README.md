@@ -6,7 +6,7 @@
 
 - **Reference Discussion Scoring**: Analyzes how thoroughly each biblical reference is discussed (**0-4 scale**)
 - **Title Interest Scoring**: Evaluates how engaging sheet titles are to potential readers (**0-4 scale**)  
-- **Creativity Assessment**: Computes creativity scores based on percentage of **user-generated content**
+- **Creativity Assessment**: Computes creativity scores based on percentage of **user-generated content**. 
 - **Title Interest Reason**: Explanation of title scoring. 
 
 ## Quick Start
@@ -193,15 +193,20 @@ Designed for **MongoDB integration** with expected document structure:
 
 ## Output Fields
 
-| Field | Description |
-|-------|-------------|
-| **`ref_levels`** | Raw **0-4 scores** for each reference |
-| **`ref_scores`** | **Normalized percentage scores** (sum to 100%) |
-| **`title_interest_level`** | Title **engagement score** (0-4) |
-| **`title_interest_reason`** | **Brief explanation** of title score |
-| **`language`** | **Detected language code** |
-| **`creativity_score`** | **Percentage** of user-generated content |
-| **`processed_at`** | **Processing timestamp** |
+| Field                       | Description                                    |
+|-----------------------------|------------------------------------------------|
+| **`ref_levels`**            | Raw **0-4 scores** for each reference          |
+| **`ref_scores`**            | **Normalized percentage scores** (sum to 100%) |
+| **`title_interest_level`**  | Title **engagement score** (0-4)               |
+| **`title_interest_reason`** | **Brief explanation** of title score           |
+| **`language`**              | **Detected language code**                     |
+| **`creativity_score`**      | **Percentage** of user-generated content       |
+| **`processed_datetime`**    | **Processing timestamp**                       |
+| **`request_status`**        | **Whether scoring succeded/failed**            |
+| **`request_status_message`** | **The reason why scoring failed**              |
+
+
+
 
 ## Logging
 
