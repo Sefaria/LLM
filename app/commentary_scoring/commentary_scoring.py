@@ -1,8 +1,6 @@
 from .openai_commentary_scorer import CommentaryScorer
 import os
-from pathlib import Path
-# TODO: change the imports when compile package
-from app.llm_interface.sefaria_llm_interface.commentary_scoring import (
+from sefaria_llm_interface.commentary_scoring import (
     CommentaryScoringInput,
     CommentaryScoringOutput,
 )
