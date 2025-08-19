@@ -6,16 +6,15 @@ their cited texts using OpenAI's language models.
 
 import json
 import logging
+import textwrap
 from datetime import datetime, timezone
 from enum import IntEnum
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Any, Dict, List, Optional, Set
 
 import tiktoken
 from langchain.chat_models import ChatOpenAI
 from langchain.schema import HumanMessage
-from commentary_scoring.text_utils import to_plain_text
-# TODO: change the imports when compile package
-from app.llm_interface.sefaria_llm_interface.commentary_scoring import (
+from sefaria_llm_interface.commentary_scoring import (
     CommentaryScoringInput,
     CommentaryScoringOutput,
 )
@@ -23,23 +22,22 @@ logger = logging.getLogger(__name__)
 
 
 class ExplainsFlag(IntEnum):
-    NOT_EXPLAINED = 0
-    EXPLAINED = 1
+   """Binary flags for whether a commentary explains a cited text."""
+   NOT_EXPLAINED = 0  # Commentary doesn't interpret the cited text
+   EXPLAINED = 1      # Commentary provides interpretation/explanation
 
 
 class RequestStatus(IntEnum):
-    """LLM's success/failure"""
-
-    SUCCESS = 1
-    FAILURE = 0
+   """Status codes for LLM processing requests."""
+   SUCCESS = 1
+   FAILURE = 0
 
 
 class LanguageCode:
-    """ISO 639-1 language codes."""
-
-    ENGLISH = "en"
-    HEBREW = "he"
-    DEFAULT = ENGLISH
+   """ISO 639-1 language codes for supported languages."""
+   ENGLISH = "en"
+   HEBREW = "he"
+   DEFAULT = ENGLISH
 
 
 class CommentaryScorer:
@@ -49,24 +47,25 @@ class CommentaryScorer:
     explanations provided by Jewish commentaries for their cited texts.
 
     Attributes:
-        model: The OpenAI model to use for scoring
-        max_prompt_tokens: Maximum tokens allowed in prompt
-        token_margin: Reserved tokens for model response
-    """
+       model (str): The OpenAI model to use for scoring
+       max_prompt_tokens (int): Maximum tokens allowed in prompt
+       token_margin (int): Reserved tokens for model response
+       llm (ChatOpenAI): Initialized language model client
+   """
 
-    # Configuration constants
-    DEFAULT_MAX_OUTPUT_TOKENS = 4096
-    DEFAULT_MAX_INPUT_OUTPUT_TOKENS = 32000
-    DEFAULT_TOKEN_CHAR_RATIO = 3
+    # Configuration constants for token management
+    DEFAULT_MAX_OUTPUT_TOKENS = 4096  # Reserve for LLM response
+    DEFAULT_MAX_INPUT_OUTPUT_TOKENS = 32000  # Total token budget
+    DEFAULT_TOKEN_CHAR_RATIO = 3  # Fallback chars-per-token estimate
 
-    # Response field names
-    REF_SCORE_FIELD = "ref_scores"
-    EXPLANATION_FIELD = "explanation"
-    LANGUAGE_FIELD = "language"
-    CITED_REF_FIELD = "cited_ref"
-    PROCESSED_AT_FIELD = "processed_datetime"
+    # JSON response field names for structured output
+    REF_SCORE_FIELD = "ref_scores"  # Binary scores per citation
+    EXPLANATION_FIELD = "explanation"  # Rationale strings per citation
+    LANGUAGE_FIELD = "language"  # Detected language code
+    CITED_REF_FIELD = "cited_ref"  # Citation reference key
+    PROCESSED_AT_FIELD = "processed_datetime"  # Processing timestamp
 
-    # Valid explanation levels
+    # Valid explanation levels for score validation
     VALID_LEVELS: Set[int] = \
         {ExplainsFlag.NOT_EXPLAINED, ExplainsFlag.EXPLAINED}
 
@@ -77,14 +76,15 @@ class CommentaryScorer:
             max_prompt_tokens: int = DEFAULT_MAX_INPUT_OUTPUT_TOKENS,
             token_margin: int = DEFAULT_MAX_OUTPUT_TOKENS,
     ) -> None:
-        """Initialize the commentary scorer.
+        """Initialize the commentary scorer with OpenAI client.
         Args:
-            api_key: OpenAI API key. If None, will use environment variable
-            model: OpenAI model name to use
-            max_prompt_tokens: Maximum tokens for input prompt
-            token_margin: Reserved tokens for model response
+            api_key: OpenAI API key. If None, uses OPENAI_API_KEY env var
+            model: OpenAI model name (default: gpt-4o-mini for cost efficiency)
+            max_prompt_tokens: Maximum tokens for input prompt (includes commentary + citations)
+            token_margin: Reserved tokens for model response (ensures budget compliance)
         Raises:
             ValueError: If model is not supported or parameters are invalid
+            Exception: If OpenAI client initialization fails
         """
 
         self.model = model
@@ -92,15 +92,16 @@ class CommentaryScorer:
         self.token_margin = token_margin
 
         try:
+            # Initialize OpenAI client with deterministic settings for consistent scoring
             self.llm = ChatOpenAI(
                 model_name=model,
-                temperature=0, #Model temperature (0.0 for deterministic grading)
+                temperature=0,  # Deterministic output for consistent grading
                 openai_api_key=api_key,
                 model_kwargs={
-                    "top_p": 0,
-                    "frequency_penalty": 0,
-                    "presence_penalty": 0,
-                    "seed": 42,
+                    "top_p": 0,  # No nucleus sampling
+                    "frequency_penalty": 0,  # No frequency penalties
+                    "presence_penalty": 0,  # No presence penalties
+                    "seed": 42,  # Fixed seed for reproducibility
                 },
             )
         except Exception as e:
@@ -138,11 +139,8 @@ class CommentaryScorer:
 
         return score
 
-    def _invoke_llm(
-            self,
-            prompt: str,
-            function_schema: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _invoke_llm(self, prompt: str, function_schema: Dict[str, Any]) \
+            -> Dict[str, Any]:
         """Invoke the language model with function calling.
         """
         try:
@@ -167,7 +165,7 @@ class CommentaryScorer:
             logger.error(f"LLM invocation failed: {e}")
             raise
 
-    def _build_function_schema(self,cited_keys: List[str]) -> Dict[str,Any]:
+    def _build_function_schema(self, cited_keys: List[str]) -> Dict[str, Any]:
         if not cited_keys:
             raise ValueError("cited_keys cannot be empty")
 
@@ -209,10 +207,15 @@ class CommentaryScorer:
             },
         }
 
-    def _create_failure_scoring_output(self, commentary_ref,
-                                       processed_datetime: datetime,
-                                       request_status_message: str) -> (
-            CommentaryScoringOutput):
+    def _create_failure_scoring_output(
+            self,
+            commentary_ref: str,
+            processed_datetime: datetime,
+            request_status_message: str
+    ) -> CommentaryScoringOutput:
+        """Create standardized failure output for error cases.
+        Returns: CommentaryScoringOutput: Failure result with error details
+        """
         logger.warning(request_status_message)
         return CommentaryScoringOutput(
             commentary_ref=commentary_ref,
@@ -223,18 +226,12 @@ class CommentaryScorer:
             request_status=RequestStatus.FAILURE
         )
 
-    def _build_scoring_prompt(
-            self,
-            cited_refs: Dict[str,str],
-            commentary_text: str
-    ) -> str:
+    def _build_scoring_prompt(self, cited_refs: Dict[str, str], commentary_text: str) -> str:
         """Build the prompt for scoring commentary explanations.
         """
-        refs_section = "\n".join(
-            f"- {key}: {text}" for key,text in cited_refs.items()
-            )
+        refs_section = "\n".join(f"- {key}: {text}" for key, text in cited_refs.items())
 
-        return f"""You are labeling whether a commentary ACTUALLY EXPLAINS each cited text.
+        return textwrap.dedent(f"""You are labeling whether a commentary ACTUALLY EXPLAINS each cited text.
 
         COMMENTARY TEXT:
         {commentary_text}
@@ -243,11 +240,11 @@ class CommentaryScorer:
         {refs_section}
 
         TASK (binary per citation):
-        Return 1 if the commentary provides any substantive interpretation or explanation
+        Return {ExplainsFlag.EXPLAINED} if the commentary provides any substantive interpretation or explanation
         of ANY PART of the cited text (including methodological interpretation, e.g., reading a word
         as a symbol) — not just quoting or paraphrasing.
 
-        Return 0 if:
+        Return {ExplainsFlag.NOT_EXPLAINED} if:
         • The citation is used for another goal (decorative, rhetorical, prooftext with no interpretation).
         • The commentary cites Source A only via Source B, but adds NO new interpretation of A beyond B.
           (Inherited interpretation does NOT count as explanation of A.)
@@ -256,13 +253,13 @@ class CommentaryScorer:
         Important:
         • If the commentary explains only PARTS of the citation, still return 1.
         • In your explanation, list the exact phrases from the cited text that ARE explained (if any),
-          then give a concise rationale for 0/1.
+          then give a concise rationale for {ExplainsFlag.NOT_EXPLAINED}/{ExplainsFlag.EXPLAINED}.
 
         RETURN JSON WITH:
-        1. {self.REF_SCORE_FIELD}: object of 0/1 per citation key
+        1. {self.REF_SCORE_FIELD}: object of {ExplainsFlag.NOT_EXPLAINED}/{ExplainsFlag.EXPLAINED} per citation key
         2. {self.EXPLANATION_FIELD}: object of brief rationales. Begin each value with:
            Explained spans: '<phrase1>'; '<phrase2>' (or 'None'), then 1–2 sentences of rationale.
-        """
+        """)
 
     def process_commentary_by_content(
             self,
@@ -281,8 +278,6 @@ class CommentaryScorer:
             return self._create_failure_scoring_output(commentary_ref=commentary_ref,
                                                        processed_datetime=datetime.now(timezone.utc),
                                                        request_status_message=f"Commentary {commentary_ref} is empty. ")
-
-
 
         if not commentary_text.strip():
 
@@ -306,7 +301,6 @@ class CommentaryScorer:
             f"Processing commentary with {token_count} tokens, "
             f"{len(cited_refs)} citations"
         )
-
         try:
             # Build prompt and schema
             prompt = self._build_scoring_prompt(cited_refs, commentary_text)
@@ -321,7 +315,6 @@ class CommentaryScorer:
                 key: self._validate_level(score)
                 for key, score in raw_scores.items()
             }
-
             # Create structured result
             result = CommentaryScoringOutput(
                 commentary_ref=commentary_ref,
