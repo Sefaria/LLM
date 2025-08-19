@@ -82,7 +82,6 @@ class SheetScorer:
     TITLE_INTEREST_FIELD = "title_interest_level"
     LANGUAGE_FIELD = "language"
     TITLE_INTEREST_REASON_FIELD = 'title_interest_reason'
-    SHEET_ID_FIELD = "_id"
     PROCESSED_DATETIME_FIELD = "processed_datetime"
     CREATIVITY_SCORE_FIELD = 'creativity_score'
 
@@ -317,11 +316,11 @@ class SheetScorer:
             {refs_md}
 
             Scoring Scale (0-4):
-              0: Quoted only, no discussion
-              1: Mentioned only through neighboring verses
-              2: Moderate discussion (some commentary)
-              3: Significant discussion (substantial commentary)
-              4: Central focus of sheet
+              {ScoreLevel.NOT_DISCUSSED}: Quoted only, no discussion
+              {ScoreLevel.MINIMAL}: Mentioned only through neighboring verses
+              {ScoreLevel.MODERATE}: Moderate discussion (some commentary)
+              {ScoreLevel.SIGNIFICANT}: Significant discussion (substantial commentary)
+              {ScoreLevel.CENTRAL}: Central focus of sheet
 
             Score each reference based on how thoroughly it's discussed in the content."""
             )
@@ -347,11 +346,11 @@ class SheetScorer:
             
             TASKS:
             1. Reference Discussion Scoring (0-4):
-               0: Quoted only, no discussion
-               1: Mentioned only through neighboring verses  
-               2: Moderate discussion (some commentary)
-               3: Significant discussion (substantial commentary)
-               4: Central focus of sheet
+              {ScoreLevel.NOT_DISCUSSED}: Quoted only, no discussion
+              {ScoreLevel.MINIMAL}: Mentioned only through neighboring verses
+              {ScoreLevel.MODERATE}: Moderate discussion (some commentary)
+              {ScoreLevel.SIGNIFICANT}: Significant discussion (substantial commentary)
+              {ScoreLevel.CENTRAL}: Central focus of sheet
             
             2. Title Interest Scoring (0-4):
                0: Not interesting/off-topic

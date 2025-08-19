@@ -1,42 +1,54 @@
 # SheetScorer - Jewish Study Sheet Analysis Tool
 
-**SheetScorer** is a Python tool that uses **LLMs** to automatically analyze and score Jewish study sheets for reference relevance and title interest. It processes sheets from **MongoDB**, evaluates how well biblical references are discussed, and assigns engagement scores to sheet titles.
+**SheetScorer** is a Python tool that uses **LLMs** to automatically analyze 
+and score Jewish study sheets for reference relevance and title interest. 
+It processes sheets, evaluates how well each cited reference
+is discussed, and assigns engagement scores to sheet titles.
 
 ## Scores Extracted
 
-- **Reference Discussion Scoring**: Analyzes how thoroughly each biblical reference is discussed (**0-4 scale**)
+- **Reference Discussion Scoring**: Analyzes how thoroughly each reference is discussed (**0-4 scale**)
 - **Title Interest Scoring**: Evaluates how engaging sheet titles are to potential readers (**0-4 scale**)  
 - **Creativity Assessment**: Computes creativity scores based on percentage of **user-generated content**. 
 - **Title Interest Reason**: Explanation of title scoring. 
+- **Language**: Language of the sheet [all the languages are supported not only he and en]. 
 
 ## Quick Start
 
 ```python
-from sheet_scorer import SheetScorer
+from sheet_scoring.sheet_scoring import score_one_sheet
+from sefaria_llm_interface.sheet_scoring import SheetScoringInput
 
-# Initialize scorer
-scorer = SheetScorer(
-    api_key="your-openai-api-key",
-    model="gpt-4o-mini"
+input_data = SheetScoringInput(
+    sheet_id="123",
+    title="Understanding Genesis Creation",
+    expanded_refs=["Genesis 1:1", "Genesis 1:2"],
+    sources=[
+        {"outsideText": "This commentary explores..."},
+        {"ref": "Genesis 1:1", "text": {"en": "In the beginning..."}, "comment": "Analysis here..."}
+    ]
 )
 
-# Process a sheet
-sheet_data = {
-    "_id": "sheet123",
-    "title": "Understanding Genesis Creation",
-    "expandedRefs": ["Genesis 1:1", "Genesis 1:2", "Genesis 1:3"],
-    # ... other sheet content
-}
-
-result = scorer.process_sheet_by_content(sheet_data)
+result = score_one_sheet(input_data)
+print(f"Title score: {result.title_interest_level}")
+print(f"Ref scores: {result.ref_scores}")
 print(result)
 ```
 
 ## Scoring System
 
+### Architecture
+
+#### sheet_scoring (package)
+- sheet_scoring.py - Main API with score_one_sheet() function 
+- tasks.py - Celery task wrapper for async processing 
+- text_utils.py - Content parsing and token counting utilities 
+- openai_sheets_scorer.py - Core LLM scoring engine
+- README.md
+
 ### Reference Discussion Levels
 
-The tool evaluates how well each biblical reference is discussed using a **0-4 scale**:
+The tool evaluates how well each reference is discussed using a **0-4 scale**:
 
 | Level | Description |
 |-------|-------------|
@@ -60,7 +72,41 @@ Sheet titles are scored for **user engagement** on a **0-4 scale**:
 
 ### Creativity Score
 
-Calculated as the **percentage of user-generated content** versus all text (including quoted canonical text). Higher scores indicate more **original commentary** and analysis.
+user_tokens / total_tokens - Higher = more original content vs canonical quotes.
+
+### Language
+ISO-639-1 language code of the sheet, and in case sheet sheet has no user generated content language code of the title.
+
+## Data Structures
+#### Input (SheetScoringInput)
+
+```python
+{
+    "sheet_id": "123",
+    "title": "Sheet title",
+    "expanded_refs": ["Genesis 1:1", "Exodus 2:3"],
+    "sources": [
+        {"outsideText": "User commentary"},
+        {"outsideBiText": {"en": "English", "he": "Hebrew"}},
+        {"ref": "Genesis 1:1", "text": {"en": "Quote"}, "comment": "Analysis"}
+    ]
+}
+```
+#### Output (SheetScoringOutput)
+```python
+{
+    "sheet_id": "123",
+    "ref_levels": {"Genesis 1:1": 3, "Exodus 2:3": 2},      # Raw 0-4 scores
+    "ref_scores": {"Genesis 1:1": 60.0, "Exodus 2:3": 40.0}, # Normalized %
+    "title_interest_level": 3,
+    "title_interest_reason": "Compelling theological question",
+    "language": "en",
+    "creativity_score": 0.75,
+    "processed_datetime": "2025-01-31T10:30:00Z",
+    "request_status": 1,  # 1=success, 0=failure
+    "request_status_message": ""
+}
+```
 
 ## Configuration Options
 
@@ -68,58 +114,17 @@ Calculated as the **percentage of user-generated content** versus all text (incl
 
 ```python
 scorer = SheetScorer(
-    api_key="your-api-key",           # OpenAI API key
-    model="gpt-4o-mini",              # Model to use
-    max_prompt_tokens=128000,         # Maximum input tokens
-    token_margin=16384,               # Reserved tokens for output
-    max_ref_to_process=800,           # Maximum references to process
-    chunk_size=80                     # References per chunk
+    api_key=os.getenv("OPENAI_API_KEY"),
+    model="gpt-4o-mini",                    # Default model
+    max_prompt_tokens=128000,               # Input token budget
+    token_margin=16384,                     # Reserved for output
+    max_ref_to_process=800,                 # Max num of refs that can be processed 
+    chunk_size=80                           # Refs per LLM call
 )
 ```
 
-### Key Constants
-
-- **DEFAULT_MAX_OUTPUT_TOKENS**: **16384**
-- **DEFAULT_CHUNK_SIZE**: **80** references per processing chunk
-- **DEFAULT_MAX_INPUT_OUTPUT_TOKENS**: **128000** total token limit
-- **MAX_CHUNK_OVERLAP**: **10** references overlap between chunks
-
-## Core Methods
-
-### **process_sheet_by_content(sheet, add_full_comment)**
-
-**Main method** to process a complete sheet and return scores.
-
-**Parameters:**
-- `sheet` (**Dict**): **MongoDB** sheet document containing title, references, and content
-- `add_full_comment` (**bool**): parameter that allows to add quotations text to input that LLM receives
-
-**Returns:**
-- **Dictionary** with scoring results or **None** if processing fails
-
-**Example Output:**
-```python
-{
-    "_id": "sheet123",
-    "ref_levels": {"Genesis 1:1": 3, "Genesis 1:2": 2},
-    "ref_scores": {"Genesis 1:1": 60.0, "Genesis 1:2": 40.0},
-    "title_interest_level": 3,
-    "title_interest_reason": "Compelling theological question",
-    "language": "en",
-    "creativity_score": 0.75,
-    "processed_at": "2025-01-31T10:30:00Z"
-}
-```
-! ref_scores is normalized version of ref_levels
-
-### **get_gpt_scores(content, ref_names, title)**
-
-**Core scoring method** that processes content and returns analysis.
-
-**Parameters:**
-- `content` (**str**): Sheet text content to analyze
-- `ref_names` (**List[str]**): List of biblical references to score
-- `title` (**str**): Sheet title to evaluate
+The constants DEFAULT_MAX_OUTPUT_TOKENS, DEFAULT_MAX_INPUT_OUTPUT_TOKENS are model specific 
+and can be found on the internet.
 
 ## Content Processing Strategy
 
@@ -127,7 +132,7 @@ The tool uses an **adjustable approach** for canonical quotations:
 
 1. **Always includes** all user commentary and **original content**
 2. **Conditionally includes** canonical quotes only if the **entire bundle** fits within token limits
-and **add_full_comment is set to True** 
+and **add_full_commentary is set to True** 
 3. **Truncates intelligently** using **LLM summarization** when content exceeds limits 
    4. ***LLM Summarization***: Uses secondary LLM to compress content while preserving key information 
    5. ***Reference Preservation***: Maintains all biblical reference tags during compression 
@@ -184,7 +189,7 @@ Designed for **MongoDB integration** with expected document structure:
 
 ```python
 {
-    "_id": "unique_sheet_id",
+    "id": "unique id",
     "title": "Sheet Title",
     "expandedRefs": ["Genesis 1:1", "Exodus 2:3"],
     # Additional sheet content fields...
@@ -223,10 +228,3 @@ logging.getLogger('sheet_scorer').setLevel(logging.INFO)
 ```
 
 
-## Language Support
-
-Supports **automatic detection** and processing of:
-
-- **English** (`en`) - **Default language**
-- **Hebrew** (`he`) - Full **RTL support**
-- Language detection based on **original user-written content**
