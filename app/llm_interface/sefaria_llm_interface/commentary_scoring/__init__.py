@@ -1,4 +1,3 @@
-from .commentary_scoring_input import CommentaryScoringInput
-from .commentary_scoring_output import CommentaryScoringOutput
+from sefaria_llm_interface.commentary_scoring.commentary_scoring_input import *
+from sefaria_llm_interface.commentary_scoring.commentary_scoring_output import *
 
-__all__ = ["CommentaryScoringInput", "CommentaryScoringOutput"]
