@@ -79,7 +79,7 @@ def claude_sentencizer_first_sentence(text):
                                    "should be output verbatim as it appears in <input> wrapped in "
                                    "<first_sentence> tags. Since the input text has no punctuation, use your judgement as to where the first sentence ends. Prefer smaller sentences.")
     human = HumanMessage(content=f"<input>{text[:200]}</input>")  # assume sentence can't be longer than 200 words
-    llm = ChatAnthropic("claude-3-5-sonnet-20240620", temperature=0)
+    llm = ChatAnthropic("claude-3-7-sonnet-20250219", temperature=0)
     response = llm([system, human])
     return get_by_xml_tag(response.content, "first_sentence")
 

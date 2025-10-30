@@ -18,7 +18,7 @@ def translate_text(text: str, context: str = None):
     if context:
         task_prompt = f"<context>{context}</context>{task_prompt}"
     task_message = HumanMessage(content=task_prompt)
-    llm = ChatAnthropic(model="claude-3-opus-20240229", temperature=0)
+    llm = ChatAnthropic(model="claude-3-7-sonnet-20250219", temperature=0)
     try:
         response_message = llm([identity_message, task_message])
     except BadRequestError:
