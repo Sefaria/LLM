@@ -138,6 +138,8 @@ class SequentialRefTopicFilter:
             try:
                 raw_second = self._call_llm(confirm_prompt)
                 keep = True if raw_second == 'true' else False
+                if keep:
+                    print(f"✅  Keeping slug: {slug}")
             except Exception as e:
                 print(f"⚠️  confirm-pass parse error for {slug}:", e)
                 keep = False
