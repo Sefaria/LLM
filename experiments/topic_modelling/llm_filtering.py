@@ -1,9 +1,10 @@
 # simple_ref_topic_filter.py
 from __future__ import annotations
 import json, textwrap
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from typing import List
-from langchain_openai import ChatOpenAI        # lightweight OpenAI chat wrapper
+from langchain_core.language_models import BaseChatModel
 
 # -------------- Django / Sefaria boot-strap ----------------------------------
 import django
@@ -14,6 +15,7 @@ from experiments.topic_modelling.utils import DataHandler
 from langchain.cache import SQLiteCache
 from langchain.globals import set_llm_cache
 from util.sefaria_specific import get_ref_text_with_fallback
+from tqdm import tqdm
 
 set_llm_cache(SQLiteCache(database_path=".langchain.db"))
 
@@ -31,7 +33,7 @@ class SequentialRefTopicFilter:
       model answers `true`.
     """
 
-    llm: ChatOpenAI
+    llm: BaseChatModel
     max_topics: int = 25
     overly_general_slugs: List[str] = field(
         default_factory=lambda: [
@@ -149,9 +151,28 @@ class SequentialRefTopicFilter:
 
         return final_slugs
 
-    def filter_refs(self, lrs: List["LabelledRef"]) -> dict[str, List[str]]:
-        """Sequentially filter a list of LabelledRefs. Returns {ref_str: kept_slugs}."""
-        return {lr.ref: self.filter_ref(lr) for lr in lrs}
+    def filter_refs(self, lrs: List["LabelledRef"], max_workers: int | None = None) -> dict[str, List[str]]:
+        """
+        Filter a list of LabelledRefs.
+        When `max_workers` > 1, the work is split across a thread pool.
+        """
+        if not lrs:
+            return {}
+
+        if not max_workers or max_workers <= 1:
+            return {lr.ref: self.filter_ref(lr) for lr in lrs}
+
+        results: dict[str, List[str]] = {}
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(self.filter_ref, lr): lr.ref for lr in lrs}
+            for future in tqdm(as_completed(futures), total=len(futures), desc="Filtering slugs", leave=False):
+                ref = futures[future]
+                try:
+                    results[ref] = future.result()
+                except Exception as exc:
+                    print(f"⚠️  filtering error for {ref}: {exc}")
+                    results[ref] = []
+        return results
 
 # ------------------------------ CLI DEMO -------------------------------------
 if __name__ == "__main__":
@@ -164,12 +185,14 @@ if __name__ == "__main__":
     predicted = dh.get_predicted()  # List[LabelledRef]
 
     # 2. Init chat model
+    from langchain_openai import ChatOpenAI
+
     llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
 
     # 3. Create filterer (debug=True ↔︎ verbose logging)
     filterer = SequentialRefTopicFilter(llm, max_topics=25, debug=True)
 
     # 4. Run for a few refs
-    kept = filterer.filter_refs(predicted[50:52])
+    kept = filterer.filter_refs(predicted[50:52], max_workers=2)
     for ref, slugs in kept.items():
         print(f"{ref} → {slugs}")

@@ -4,12 +4,11 @@ Pipeline for generating topic predictions and LLM-filtered tags
 for Rabbi Jonathan Sacks references.
 
 Stage 1  → collect segment refs, predict candidate slugs, write JSONL.
-Stage 2  → load that JSONL, filter slugs with an LLM, write JSONL.
+Stage 2  → load that JSONL, filter slugs with an LLM, write reviewable CSV.
 """
 
 from __future__ import annotations
 
-import argparse
 import json
 import os
 import sys
@@ -17,6 +16,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
+import csv
 
 from tqdm import tqdm
 
@@ -42,6 +42,11 @@ from experiments.topic_modelling.utils import LabelledRef  # noqa: E402
 from langchain_openai import ChatOpenAI  # noqa: E402
 from langchain_community.vectorstores import Chroma  # noqa: E402
 
+try:
+    from langchain_anthropic import ChatAnthropic  # noqa: E402
+except ImportError:  # pragma: no cover - optional dependency
+    ChatAnthropic = None
+
 CHROMA_PATH = TOPIC_MODELLING_ROOT / ".chromadb_openai"
 if CHROMA_PATH.exists():
     mp.db = Chroma(
@@ -58,6 +63,9 @@ class PipelineConfig:
     author_slug: str = DEFAULT_AUTHOR_SLUG
     limit: Optional[int] = None
     llm_model: str = "gpt-4o-mini"
+    llm_provider: str = "gpt"
+    llm_workers: int = 1
+    anthropic_max_output_tokens: int = 512
     max_topics: int = 15
     candidate_k: int = 500
     threshold_factor: float = 2.5
@@ -71,10 +79,43 @@ class PipelineResult:
     refs_processed: int
 
 
+# Edit this object to configure the pipeline without CLI arguments.
+PIPELINE_CONFIG = PipelineConfig(
+    output_dir=Path(__file__).resolve().parent / "runs",
+    author_slug=DEFAULT_AUTHOR_SLUG,
+    limit=None,
+    llm_model="gpt-4o-mini",
+    llm_provider="gpt",
+    llm_workers=4,
+    anthropic_max_output_tokens=512,
+    max_topics=15,
+    candidate_k=500,
+    threshold_factor=2.5,
+    debug=False,
+)
+
+
 def _score_to_weight(score: float) -> float:
     l2 = mp.euclidean_relevance_to_l2(score)
     cosine = mp.l2_to_cosine_similarity(l2)
     return mp.cosine_to_one_minus_sine(cosine) ** 5
+
+
+def _create_chat_model(cfg: PipelineConfig):
+    provider = cfg.llm_provider.lower()
+    if provider in {"gpt", "openai"}:
+        return ChatOpenAI(model=cfg.llm_model, temperature=0)
+    if provider in {"claude", "anthropic"}:
+        if ChatAnthropic is None:
+            raise RuntimeError(
+                "langchain_anthropic is not installed. Install it or choose --llm-provider gpt."
+            )
+        return ChatAnthropic(
+            model=cfg.llm_model,
+            temperature=0,
+            max_output_tokens=cfg.anthropic_max_output_tokens,
+        )
+    raise ValueError(f"Unsupported llm provider: {cfg.llm_provider}")
 
 
 def _segment_refs_for_index(index) -> List[tuple[int, str]]:
@@ -152,40 +193,60 @@ def fetch_author_segments(author_slug: str) -> List[str]:
         seen.add(tref)
         results.append(tref)
 
-    return results
+    # return results
+    return [ref for ref in results if "Covenant and Conversation; Genesis; " in ref]
 
 
 def stage_one_predict(refs: List[str], out_path: Path, cfg: PipelineConfig) -> None:
     with out_path.open("w", encoding="utf-8") as fh:
         for ref in tqdm(refs, desc="Predicting topic slugs"):
             text = mp.get_ref_text_with_fallback(Ref(ref), "en", auto_translate=True)
-            if not text.strip():
-                fh.write(json.dumps({"ref": ref, "slugs": []}, ensure_ascii=False) + "\n")
-                continue
 
-            docs = mp.get_closest_docs_by_text_similarity(text, k=cfg.candidate_k)
-            freq_map = mp.get_recommended_slugs_weighted_frequency_map(
-                docs, _score_to_weight, ref_to_ignore=ref
+            if text.strip():
+                docs = mp.get_closest_docs_by_text_similarity(text, k=cfg.candidate_k)
+                freq_map = mp.get_recommended_slugs_weighted_frequency_map(
+                    docs, _score_to_weight, ref_to_ignore=ref
+                )
+                slugs = mp.get_keys_above_mean(freq_map, cfg.threshold_factor)
+            else:
+                slugs = []
+
+            fh.write(
+                json.dumps({"ref": ref, "slugs": slugs, "text": text}, ensure_ascii=False) + "\n"
             )
-            best_slugs = mp.get_keys_above_mean(freq_map, cfg.threshold_factor)
-            fh.write(json.dumps({"ref": ref, "slugs": best_slugs}, ensure_ascii=False) + "\n")
 
 
 def stage_two_filter(predictions_path: Path, out_path: Path, cfg: PipelineConfig) -> None:
-    llm = ChatOpenAI(model=cfg.llm_model, temperature=0)
-    filterer = SequentialRefTopicFilter(llm=llm, max_topics=cfg.max_topics, debug=cfg.debug)
-
-    with predictions_path.open("r", encoding="utf-8") as src, out_path.open(
-        "w", encoding="utf-8"
-    ) as dst:
-        for line in tqdm(src, desc="Filtering slugs with LLM"):
+    labelled: List[LabelledRef] = []
+    texts: dict[str, str] = {}
+    with predictions_path.open("r", encoding="utf-8") as src:
+        for line in src:
             row = json.loads(line)
-            lr = LabelledRef(row["ref"], row.get("slugs", []))
-            if not lr.slugs:
-                dst.write(json.dumps({"ref": lr.ref, "slugs": []}, ensure_ascii=False) + "\n")
-                continue
-            kept = filterer.filter_ref(lr)
-            dst.write(json.dumps({"ref": lr.ref, "slugs": kept}, ensure_ascii=False) + "\n")
+            labelled.append(LabelledRef(row["ref"], row.get("slugs", [])))
+            texts[row["ref"]] = row.get("text", "")
+
+    filterer = SequentialRefTopicFilter(
+        llm=_create_chat_model(cfg),
+        max_topics=cfg.max_topics,
+        debug=cfg.debug,
+    )
+    filtered_map = filterer.filter_refs(labelled, max_workers=cfg.llm_workers)
+
+    with out_path.open("w", encoding="utf-8", newline="") as dst:
+        writer = csv.DictWriter(dst, fieldnames=["Ref", "Slugs", "Text"])
+        writer.writeheader()
+        for lr in labelled:
+            kept = filtered_map.get(lr.ref, [])
+            text = texts.get(lr.ref, "")
+            if not text:
+                text = mp.get_ref_text_with_fallback(Ref(lr.ref), "en", auto_translate=True)
+            writer.writerow(
+                {
+                    "Ref": lr.ref,
+                    "Slugs": "; ".join(kept),
+                    "Text": text,
+                }
+            )
 
 
 def run_pipeline(cfg: PipelineConfig) -> PipelineResult:
@@ -193,7 +254,7 @@ def run_pipeline(cfg: PipelineConfig) -> PipelineResult:
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
 
     stage1_path = cfg.output_dir / f"stage1_predictions_{run_id}.jsonl"
-    stage2_path = cfg.output_dir / f"stage2_filtered_{run_id}.jsonl"
+    stage2_path = cfg.output_dir / f"stage2_filtered_{run_id}.csv"
 
     refs = fetch_author_segments(cfg.author_slug)
     if cfg.limit:
@@ -205,74 +266,25 @@ def run_pipeline(cfg: PipelineConfig) -> PipelineResult:
     return PipelineResult(stage1_path=stage1_path, stage2_path=stage2_path, refs_processed=len(refs))
 
 
-def parse_args(argv: Optional[List[str]] = None) -> PipelineConfig:
-    parser = argparse.ArgumentParser(description="Run Rabbi Sacks topic-tagging pipeline.")
-    parser.add_argument(
-        "--output-dir",
-        type=Path,
-        default=Path(__file__).resolve().parent / "runs",
-        help="Directory for JSONL outputs.",
-    )
-    parser.add_argument(
-        "--author-slug",
-        default=DEFAULT_AUTHOR_SLUG,
-        help="Topic slug for the author (default: jonathan-sacks).",
-    )
-    parser.add_argument(
-        "--limit",
-        type=int,
-        default=None,
-        help="Limit number of segment refs to process.",
-    )
-    parser.add_argument(
-        "--llm-model",
-        default="gpt-4o-mini",
-        help="Chat model to use for filtering.",
-    )
-    parser.add_argument(
-        "--max-topics",
-        type=int,
-        default=15,
-        help="Maximum slugs to keep after filtering.",
-    )
-    parser.add_argument(
-        "--candidate-k",
-        type=int,
-        default=500,
-        help="Number of nearest neighbours to consider in Stage 1.",
-    )
-    parser.add_argument(
-        "--threshold-factor",
-        type=float,
-        default=2.5,
-        help="Std-dev multiplier for slug selection threshold.",
-    )
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enable verbose logging for LLM prompts.",
-    )
-
-    args = parser.parse_args(argv)
-    return PipelineConfig(
-        output_dir=args.output_dir,
-        author_slug=args.author_slug,
-        limit=args.limit,
-        llm_model=args.llm_model,
-        max_topics=args.max_topics,
-        candidate_k=args.candidate_k,
-        threshold_factor=args.threshold_factor,
-        debug=args.debug,
-    )
-
-
 def main(argv: Optional[List[str]] = None) -> None:
-    cfg = parse_args(argv)
-    result = run_pipeline(cfg)
+    result = run_pipeline(PIPELINE_CONFIG)
     print(f"Stage 1 → {result.stage1_path}")
     print(f"Stage 2 → {result.stage2_path}")
     print(f"Processed {result.refs_processed} refs.")
 
 
 if __name__ == "__main__":
+    PIPELINE_CONFIG = PipelineConfig(
+        output_dir=Path(__file__).resolve().parent / "runs",
+        author_slug=DEFAULT_AUTHOR_SLUG,
+        limit=None,
+        llm_model="gpt-4o-mini",
+        llm_provider="gpt",
+        llm_workers=4,
+        anthropic_max_output_tokens=512,
+        max_topics=15,
+        candidate_k=500,
+        threshold_factor=2.5,
+        debug=False,
+    )
     main()
