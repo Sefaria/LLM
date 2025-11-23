@@ -148,10 +148,16 @@ class LLMSegmentResolver:
     def _format_segment_texts(self, segments: List[Ref]) -> List[str]:
         formatted = []
         for i, seg in enumerate(segments, start=1):
+            text = ""
             try:
-                text = seg.text().as_string()
+                text = seg.text("en").as_string()
             except Exception:
-                text = ""
+                pass
+            if not text:
+                try:
+                    text = seg.text("he").as_string()
+                except Exception:
+                    text = ""
             formatted.append(f"{i}. {seg.normal()} — {text}")
         return formatted
 
@@ -288,7 +294,7 @@ class LLMSegmentResolver:
 
 if __name__ == "__main__":
     resolver = LLMSegmentResolver()
-    samples = get_random_non_segment_links_with_chunks(n=2, use_remote=True, seed=613, use_cache=True)
+    samples = get_random_non_segment_links_with_chunks(n=5, use_remote=True, seed=613, use_cache=True)
     for item in samples:
         link = item["link"]
         chunk = item["chunk"]
