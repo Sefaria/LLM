@@ -193,21 +193,28 @@ def fetch_author_segments(author_slug: str) -> List[str]:
         seen.add(tref)
         results.append(tref)
 
-    # return results
-    return [ref for ref in results if "Covenant and Conversation; Genesis; " in ref]
+    return results
 
 
 def stage_one_predict(refs: List[str], out_path: Path, cfg: PipelineConfig) -> None:
     with out_path.open("w", encoding="utf-8") as fh:
         for ref in tqdm(refs, desc="Predicting topic slugs"):
-            text = mp.get_ref_text_with_fallback(Ref(ref), "en", auto_translate=True)
+            try:
+                text = mp.get_ref_text_with_fallback(Ref(ref), "en", auto_translate=True)
+            except Exception as exc:
+                print(f"⚠️  failed to fetch text for {ref}: {exc}")
+                text = ""
 
             if text.strip():
-                docs = mp.get_closest_docs_by_text_similarity(text, k=cfg.candidate_k)
-                freq_map = mp.get_recommended_slugs_weighted_frequency_map(
-                    docs, _score_to_weight, ref_to_ignore=ref
-                )
-                slugs = mp.get_keys_above_mean(freq_map, cfg.threshold_factor)
+                try:
+                    docs = mp.get_closest_docs_by_text_similarity(text, k=cfg.candidate_k)
+                    freq_map = mp.get_recommended_slugs_weighted_frequency_map(
+                        docs, _score_to_weight, ref_to_ignore=ref
+                    )
+                    slugs = mp.get_keys_above_mean(freq_map, cfg.threshold_factor)
+                except Exception as exc:
+                    print(f"⚠️  embedding lookup failed for {ref}: {exc}")
+                    slugs = []
             else:
                 slugs = []
 
@@ -239,7 +246,11 @@ def stage_two_filter(predictions_path: Path, out_path: Path, cfg: PipelineConfig
             kept = filtered_map.get(lr.ref, [])
             text = texts.get(lr.ref, "")
             if not text:
-                text = mp.get_ref_text_with_fallback(Ref(lr.ref), "en", auto_translate=True)
+                try:
+                    text = mp.get_ref_text_with_fallback(Ref(lr.ref), "en", auto_translate=True)
+                except Exception as exc:
+                    print(f"⚠️  failed to fetch text for {lr.ref} during CSV write: {exc}")
+                    text = ""
             writer.writerow(
                 {
                     "Ref": lr.ref,
