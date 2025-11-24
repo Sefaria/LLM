@@ -92,6 +92,14 @@ class LLMSegmentResolver:
         selected = segments[start_idx - 1:end_idx]
         if not selected:
             return None
+        if len(selected) == len(segments):
+            return {
+                "link": link,
+                "chunk": chunk,
+                "resolved_ref": None,
+                "selected_segments": [],
+                "reason": "LLM selected all segments; leaving as non-segment-level.",
+            }
         resolved_ref = selected[0].normal() if len(selected) == 1 else selected[0].to(selected[-1]).normal()
 
         updated_link = self._replace_ref_in_link(link, non_segment_ref, resolved_ref)
@@ -131,7 +139,12 @@ class LLMSegmentResolver:
             return ""
         vtitle = html.unescape(vtitle) if vtitle else None
         try:
-            return Ref(tref).text(lang or "en", vtitle=vtitle).as_string()
+            primary_lang = lang or "en"
+            text = Ref(tref).text(primary_lang, vtitle=vtitle).as_string()
+            if text:
+                return text
+            fallback_lang = "he" if primary_lang == "en" else "en"
+            return Ref(tref).text(fallback_lang).as_string()
         except Exception:
             return ""
 
@@ -325,7 +338,7 @@ class LLMSegmentResolver:
 
 if __name__ == "__main__":
     resolver = LLMSegmentResolver()
-    samples = get_random_non_segment_links_with_chunks(n=5, use_remote=True, seed=618, use_cache=True)
+    samples = get_random_non_segment_links_with_chunks(n=5, use_remote=True, seed=622, use_cache=True)
     for i, item in enumerate(samples):
         # if i != 4:
         #     continue
