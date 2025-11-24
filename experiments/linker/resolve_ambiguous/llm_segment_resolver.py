@@ -172,7 +172,7 @@ class LLMSegmentResolver:
                 ),
                 (
                     "human",
-                    "Citing passage (citation wrapped in <>):\n{citing}\n\n"
+                    "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
                     "Target higher-level ref: {target_ref}\n\n"
                     "Candidate segment texts:\n{segments}\n\n"
                     "Answer only YES or NO: Does the cited text appear within any of the candidate segments?",
@@ -206,11 +206,13 @@ class LLMSegmentResolver:
                 ),
                 (
                     "human",
-                    "Citing passage (citation wrapped in <>):\n{citing}\n\n"
+                    "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
                     "Target higher-level ref: {target_ref}\n\n"
                     "{base_block}"
                     "Numbered segment texts:\n{segments}\n\n"
-                    "Which two numbers (start and end, inclusive) best cover the cited text? "
+                    "Which two numbers (start and end) best cover the cited text? "
+                    "Both start and end must be inclusive (i.e., both indices include relevant material). "
+                    "If only one segment is relevant, repeat the same number for start and end. "
                     "Respond as 'start,end' with numbers only.",
                 ),
             ]
@@ -294,7 +296,7 @@ class LLMSegmentResolver:
 
 if __name__ == "__main__":
     resolver = LLMSegmentResolver()
-    samples = get_random_non_segment_links_with_chunks(n=5, use_remote=True, seed=613, use_cache=True)
+    samples = get_random_non_segment_links_with_chunks(n=5, use_remote=True, seed=615, use_cache=True)
     for item in samples:
         link = item["link"]
         chunk = item["chunk"]
