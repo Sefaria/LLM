@@ -73,7 +73,12 @@ class LLMSegmentResolver:
         numbered_segments = self._format_segment_texts(segments)
 
         if not self._llm_contains_reference(marked_citing_text, non_segment_ref, numbered_segments):
-            return None
+            second_note = (
+                "Note: Some references are 'see' / 'עיין' style, where the cited text discusses a similar theme "
+                "without being explicitly quoted."
+            )
+            if not self._llm_contains_reference(marked_citing_text, non_segment_ref, numbered_segments, extra_note=second_note):
+                return None
 
         range_result = self._llm_pick_range(
             marked_citing_text, non_segment_ref, numbered_segments, base_ref_for_prompt, base_text_for_prompt
@@ -164,7 +169,7 @@ class LLMSegmentResolver:
         return formatted
 
     def _llm_contains_reference(
-        self, marked_citing_text: str, target_ref: str, numbered_segments: List[str]
+        self, marked_citing_text: str, target_ref: str, numbered_segments: List[str], extra_note: Optional[str] = None
     ) -> bool:
         prompt = ChatPromptTemplate.from_messages(
             [
@@ -177,6 +182,7 @@ class LLMSegmentResolver:
                     "human",
                     "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
                     "Target higher-level ref: {target_ref}\n\n"
+                    "{note_block}"
                     "Candidate segment texts:\n{segments}\n\n"
                     "The citing passage may reference the target text either directly or indirectly (e.g., via a theme). "
                     "Answer only YES or NO: Does the cited/related text appear within any of the candidate segments?",
@@ -184,10 +190,12 @@ class LLMSegmentResolver:
             ]
         )
         chain = prompt | self.llm
+        note_block = f"{extra_note}\n\n" if extra_note else ""
         resp = chain.invoke(
             {
                 "citing": marked_citing_text,
                 "target_ref": target_ref,
+                "note_block": note_block,
                 "segments": "\n".join(numbered_segments),
             }
         )
@@ -318,7 +326,9 @@ class LLMSegmentResolver:
 if __name__ == "__main__":
     resolver = LLMSegmentResolver()
     samples = get_random_non_segment_links_with_chunks(n=5, use_remote=True, seed=618, use_cache=True)
-    for item in samples:
+    for i, item in enumerate(samples):
+        # if i != 4:
+        #     continue
         link = item["link"]
         chunk = item["chunk"]
         result = resolver.resolve(link, chunk)
