@@ -98,6 +98,8 @@ def get_random_non_segment_links_with_chunks(
                     oref = Ref(tref)
                 except Exception:
                     continue
+                if oref.is_book_level() or oref.is_segment_level():
+                    continue
                 if not oref.is_segment_level():
                     chunk = _find_chunk_for_link(link, chunks_col)
                     if chunk:

@@ -75,11 +75,12 @@ class LLMSegmentResolver:
         if not self._llm_contains_reference(marked_citing_text, non_segment_ref, numbered_segments):
             return None
 
-        start_idx, end_idx = self._llm_pick_range(
+        range_result = self._llm_pick_range(
             marked_citing_text, non_segment_ref, numbered_segments, base_ref_for_prompt, base_text_for_prompt
         )
-        if start_idx is None or end_idx is None:
+        if not range_result:
             return None
+        start_idx, end_idx, reason = range_result
 
         start_idx = max(1, min(start_idx, len(segments)))
         end_idx = max(start_idx, min(end_idx, len(segments)))
@@ -96,6 +97,7 @@ class LLMSegmentResolver:
             "chunk": updated_chunk,
             "resolved_ref": resolved_ref,
             "selected_segments": [r.normal() for r in selected],
+            "reason": reason,
         }
 
     def _find_non_segment_ref(self, link: dict) -> Optional[str]:
@@ -168,14 +170,16 @@ class LLMSegmentResolver:
             [
                 (
                     "system",
-                    "You verify whether a citation points to any text in a list of segment-level texts.",
+                    "You verify whether a citing passage points to (or thematically references) any text "
+                    "in a list of segment-level texts. The citation might be explicit or implicit.",
                 ),
                 (
                     "human",
                     "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
                     "Target higher-level ref: {target_ref}\n\n"
                     "Candidate segment texts:\n{segments}\n\n"
-                    "Answer only YES or NO: Does the cited text appear within any of the candidate segments?",
+                    "The citing passage may reference the target text either directly or indirectly (e.g., via a theme). "
+                    "Answer only YES or NO: Does the cited/related text appear within any of the candidate segments?",
                 ),
             ]
         )
@@ -197,12 +201,13 @@ class LLMSegmentResolver:
         numbered_segments: List[str],
         base_ref: Optional[str],
         base_text: str,
-    ) -> Tuple[Optional[int], Optional[int]]:
+    ) -> Tuple[Optional[int], Optional[int], Optional[str]]:
         prompt = ChatPromptTemplate.from_messages(
             [
                 (
                     "system",
-                    "You map a citation to a range of numbered segments. Respond with two integers: start and end numbers.",
+                    "You map a citation to a range of numbered segments. Provide a short reason, "
+                    "then two integers: start and end numbers.",
                 ),
                 (
                     "human",
@@ -213,7 +218,9 @@ class LLMSegmentResolver:
                     "Which two numbers (start and end) best cover the cited text? "
                     "Both start and end must be inclusive (i.e., both indices include relevant material). "
                     "If only one segment is relevant, repeat the same number for start and end. "
-                    "Respond as 'start,end' with numbers only.",
+                    "Respond in two lines:\n"
+                    "Explanation: <brief reason>\n"
+                    "Range: <start>,<end>",
                 ),
             ]
         )
@@ -230,12 +237,26 @@ class LLMSegmentResolver:
             }
         )
         content = getattr(resp, "content", "")
-        nums = re.findall(r"\d+", content)
-        if len(nums) < 1:
-            return None, None
-        start = int(nums[0])
-        end = int(nums[1]) if len(nums) > 1 else start
-        return start, end
+        reason = None
+        start = end = None
+        # Try to parse structured lines first.
+        range_match = re.search(r"range\s*:\s*([0-9]+)\s*,\s*([0-9]+)", content, re.IGNORECASE)
+        if range_match:
+            start = int(range_match.group(1))
+            end = int(range_match.group(2))
+            # Extract reason if present before Range:
+            parts = re.split(r"range\s*:", content, flags=re.IGNORECASE)
+            if parts:
+                reason = parts[0].replace("Explanation:", "").strip()
+        else:
+            nums = re.findall(r"\d+", content)
+            if len(nums) >= 1:
+                start = int(nums[0])
+                end = int(nums[1]) if len(nums) > 1 else start
+        if start is None or end is None:
+            return None
+        reason = reason or content.strip()
+        return start, end, reason
 
     def _replace_ref_in_link(self, link: dict, old_ref: str, new_ref: str) -> dict:
         updated = dict(link)
@@ -296,7 +317,7 @@ class LLMSegmentResolver:
 
 if __name__ == "__main__":
     resolver = LLMSegmentResolver()
-    samples = get_random_non_segment_links_with_chunks(n=5, use_remote=True, seed=615, use_cache=True)
+    samples = get_random_non_segment_links_with_chunks(n=5, use_remote=True, seed=618, use_cache=True)
     for item in samples:
         link = item["link"]
         chunk = item["chunk"]
@@ -305,6 +326,8 @@ if __name__ == "__main__":
         if result:
             print("Resolved:", result["resolved_ref"])
             print("Updated link refs:", result["link"].get("refs"))
+            if result.get("reason"):
+                print("LLM reason:", result["reason"])
         else:
             print("No resolution found")
         print("-" * 40)
