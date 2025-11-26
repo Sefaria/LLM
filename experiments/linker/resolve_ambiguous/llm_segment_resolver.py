@@ -9,8 +9,9 @@ from langchain_core.prompts import ChatPromptTemplate
 
 django.setup()
 
-from sefaria.model.text import Ref
+from sefaria.model.text import Ref, AddressType
 from utils import get_random_non_segment_links_with_chunks
+
 
 
 class LLMSegmentResolver:
@@ -21,7 +22,9 @@ class LLMSegmentResolver:
     def __init__(self, llm=None):
         # Default to Claude; caller can pass any LangChain chat model.
         self.llm = llm or ChatAnthropic(
-            model="claude-3-opus-20240229",
+            # model="claude-sonnet-4-5-20250929",
+            # model="claude-3-opus-20240229",
+            model="claude-3-5-haiku-20241022",
             temperature=0,
             max_tokens=512,
             api_key=os.getenv("ANTHROPIC_API_KEY"),
@@ -29,14 +32,51 @@ class LLMSegmentResolver:
 
     def resolve(self, link: dict, chunk: dict) -> Optional[Dict[str, Any]]:
         """
-        Given a link + associated marked_up_text_chunk (non-segment ref), attempt to resolve
-        the non-segment ref to a specific segment range. Returns updated link/chunk/resolution,
-        or None if no resolution was found.
+        Given a link + associated marked_up_text_chunk, attempt to resolve
+        non-segment refs to specific segment ranges. Handles multiple non-segment refs.
+        Returns updated link/chunk/resolutions, or None if no resolutions were found.
         """
-        non_segment_ref = self._find_non_segment_ref(link)
-        if not non_segment_ref:
+        non_segment_refs = self._find_all_non_segment_refs(link)
+        if not non_segment_refs:
             return None
 
+        # Process each non-segment ref individually
+        resolutions = []
+        updated_link = link
+        updated_chunk = chunk
+
+        for non_segment_ref in non_segment_refs:
+            resolution = self._resolve_single_ref(non_segment_ref, updated_link, updated_chunk)
+            if resolution:
+                resolutions.append(resolution)
+                # Update link and chunk for next iteration
+                updated_link = resolution["link"]
+                updated_chunk = resolution["chunk"]
+
+        if not resolutions:
+            return None
+
+        # Return combined result
+        all_resolved_refs = [r["resolved_ref"] for r in resolutions if r.get("resolved_ref")]
+        all_selected_segments = []
+        all_reasons = []
+        for r in resolutions:
+            all_selected_segments.extend(r.get("selected_segments", []))
+            if r.get("reason"):
+                all_reasons.append(f"{r.get('original_ref', '')}: {r['reason']}")
+
+        return {
+            "link": updated_link,
+            "chunk": updated_chunk,
+            "resolved_refs": all_resolved_refs,
+            "resolved_ref": all_resolved_refs[0] if len(all_resolved_refs) == 1 else None,  # For backward compatibility
+            "selected_segments": all_selected_segments,
+            "reason": "; ".join(all_reasons) if all_reasons else None,
+            "resolutions": resolutions,  # Detailed info for each resolution
+        }
+
+    def _resolve_single_ref(self, non_segment_ref: str, link: dict, chunk: dict) -> Optional[Dict[str, Any]]:
+        """Resolve a single non-segment reference."""
         span = self._find_span_for_ref(chunk, non_segment_ref)
         if not span:
             return None
@@ -54,9 +94,7 @@ class LLMSegmentResolver:
         base_ref_for_prompt = None
         base_text_for_prompt = ""
         if is_commentary:
-            base_ref_for_prompt = self._get_base_ref_from_index(citing_oref) or self._get_base_ref_from_link(
-                citing_ref, link, expected_base_title=self._get_base_title(citing_oref)
-            )
+            base_ref_for_prompt = self._get_base_ref_from_index(citing_oref)
             if base_ref_for_prompt:
                 base_text_for_prompt = self._get_ref_text(
                     base_ref_for_prompt
@@ -92,13 +130,20 @@ class LLMSegmentResolver:
         selected = segments[start_idx - 1:end_idx]
         if not selected:
             return None
-        if len(selected) == len(segments):
+
+        # If LLM selected all segments in a multi-segment ref, keep it non-segment-level
+        selected_all_segments = len(selected) == len(segments)
+        has_multiple_segments = len(segments) >= 4
+        if has_multiple_segments and selected_all_segments:
             return {
                 "link": link,
                 "chunk": chunk,
+                "original_ref": non_segment_ref,
                 "resolved_ref": None,
                 "selected_segments": [],
                 "reason": "LLM selected all segments; leaving as non-segment-level.",
+                "citing_text": citing_text,
+                "citation_span": span,
             }
         resolved_ref = selected[0].normal() if len(selected) == 1 else selected[0].to(selected[-1]).normal()
 
@@ -108,10 +153,25 @@ class LLMSegmentResolver:
         return {
             "link": updated_link,
             "chunk": updated_chunk,
+            "original_ref": non_segment_ref,
             "resolved_ref": resolved_ref,
             "selected_segments": [r.normal() for r in selected],
             "reason": reason,
+            "citing_text": citing_text,
+            "citation_span": span,
         }
+
+    def _find_all_non_segment_refs(self, link: dict) -> List[str]:
+        """Find all non-segment-level references in a link."""
+        non_segment_refs = []
+        for tref in link.get("refs", []):
+            try:
+                oref = Ref(tref)
+                if not oref.is_segment_level():
+                    non_segment_refs.append(oref.normal())
+            except Exception:
+                continue
+        return non_segment_refs
 
     def _find_non_segment_ref(self, link: dict) -> Optional[str]:
         for tref in link.get("refs", []):
@@ -300,18 +360,6 @@ class LLMSegmentResolver:
         updated["spans"] = updated_spans
         return updated
 
-    def _get_base_ref_from_link(self, citing_ref: str, link: dict, expected_base_title: Optional[str]) -> Optional[str]:
-        for tref in link.get("refs", []):
-            if tref == citing_ref:
-                continue
-            if expected_base_title:
-                try:
-                    if Ref(tref).index.title != expected_base_title:
-                        continue
-                except Exception:
-                    continue
-            return tref
-        return None
 
     def _get_base_ref_from_index(self, citing_oref: Ref) -> Optional[str]:
         try:
@@ -319,12 +367,14 @@ class LLMSegmentResolver:
             if not base_title:
                 return None
             # Use the section structure of the commentary ref to align to base text.
-            section_refs = citing_oref.section_ref()
-            sec_parts = section_refs.sections
-            sec_str = " ".join(str(x) for x in sec_parts) if sec_parts else ""
-            if sec_str:
-                return f"{base_title} {sec_str}"
-            return base_title
+            section_ref = citing_oref.section_ref()
+            sec_parts = section_ref.sections
+            addr_types = section_ref.index_node.addressTypes
+            for sec, addr_type in zip(sec_parts, addr_types):
+                address = AddressType.to_str_by_address_type(addr_type, "en", sec)
+                base_title += f" {address}"
+            base_ref = Ref(base_title)
+            return base_ref.normal()
         except Exception:
             return None
 
@@ -338,18 +388,29 @@ class LLMSegmentResolver:
 
 if __name__ == "__main__":
     resolver = LLMSegmentResolver()
-    samples = get_random_non_segment_links_with_chunks(n=5, use_remote=True, seed=622, use_cache=True)
+    samples = get_random_non_segment_links_with_chunks(n=5, use_remote=True, seed=613, use_cache=True)
     for i, item in enumerate(samples):
-        # if i != 4:
-        #     continue
         link = item["link"]
         chunk = item["chunk"]
         result = resolver.resolve(link, chunk)
         print("Original link refs:", link.get("refs"))
         if result:
-            print("Resolved:", result["resolved_ref"])
+            # Handle both single and multiple resolutions
+            if result.get("resolved_ref"):
+                print("Resolved:", result["resolved_ref"])
+            elif result.get("resolved_refs"):
+                print(f"Resolved {len(result['resolved_refs'])} refs:", result["resolved_refs"])
+
             print("Updated link refs:", result["link"].get("refs"))
-            if result.get("reason"):
+
+            # Show detailed info for each resolution if multiple
+            if result.get("resolutions") and len(result["resolutions"]) > 1:
+                print("\nDetailed resolutions:")
+                for j, res in enumerate(result["resolutions"], 1):
+                    print(f"  {j}. {res.get('original_ref')} → {res.get('resolved_ref')}")
+                    if res.get("reason"):
+                        print(f"     Reason: {res['reason']}")
+            elif result.get("reason"):
                 print("LLM reason:", result["reason"])
         else:
             print("No resolution found")
