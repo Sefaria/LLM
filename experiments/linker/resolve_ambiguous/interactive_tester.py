@@ -13,8 +13,10 @@ def print_separator(char="-", length=80):
     print(char * length)
 
 
-def print_result(index: int, item: dict, result: dict):
+def print_result(index: int, item: dict, result: dict, base_url: str = "https://www.sefaria.org"):
     """Print a single resolution result in a readable format."""
+    from sefaria.model.text import Ref
+
     link = item["link"]
     chunk = item["chunk"]
 
@@ -23,7 +25,16 @@ def print_result(index: int, item: dict, result: dict):
     print(f"{'=' * 80}")
 
     print(f"\nCiting ref: {chunk.get('ref')}")
-    print(f"Citing text: {chunk.get('he', chunk.get('en', ''))[:200]}...")
+
+    # Generate and display citing URL
+    citing_ref = chunk.get('ref', '')
+    if citing_ref:
+        try:
+            citing_oref = Ref(citing_ref)
+            citing_url = f"{base_url.rstrip('/')}/{citing_oref.url()}"
+            print(f"Citing URL: {citing_url}")
+        except Exception:
+            pass
 
     print(f"\nOriginal link refs: {link.get('refs')}")
 
@@ -32,6 +43,13 @@ def print_result(index: int, item: dict, result: dict):
         # Handle both single and multiple resolutions
         if result.get('resolved_ref'):
             print(f"  Resolved ref: {result['resolved_ref']}")
+            # Show cited URL for single resolution
+            try:
+                cited_oref = Ref(result['resolved_ref'])
+                cited_url = f"{base_url.rstrip('/')}/{cited_oref.url()}"
+                print(f"  Cited URL: {cited_url}")
+            except Exception:
+                pass
         elif result.get('resolved_refs'):
             print(f"  Resolved {len(result['resolved_refs'])} refs: {result['resolved_refs']}")
 
@@ -43,6 +61,14 @@ def print_result(index: int, item: dict, result: dict):
             print(f"\n  Detailed resolutions:")
             for i, res in enumerate(result["resolutions"], 1):
                 print(f"    {i}. {res.get('original_ref')} → {res.get('resolved_ref')}")
+                # Show cited URL for each resolution
+                if res.get('resolved_ref'):
+                    try:
+                        cited_oref = Ref(res['resolved_ref'])
+                        cited_url = f"{base_url.rstrip('/')}/{cited_oref.url()}"
+                        print(f"       Cited URL: {cited_url}")
+                    except Exception:
+                        pass
                 # Show citation text if available
                 if res.get('citation_span') and res.get('citing_text'):
                     char_range = res['citation_span'].get('charRange', [])
@@ -102,10 +128,9 @@ def save_to_csv(results: list, filename: str):
             reader = csv.DictReader(f)
             for row in reader:
                 # Use (citing_ref, non_segment_ref, char_start, char_end) as unique key
-                # This ensures different citations from the same passage are distinguished
                 key = (
-                    row['citing_ref'],
-                    row['non_segment_ref'],
+                    row.get('citing_ref', ''),
+                    row.get('non_segment_ref', ''),
                     row.get('citation_char_start', ''),
                     row.get('citation_char_end', '')
                 )
@@ -116,8 +141,8 @@ def save_to_csv(results: list, filename: str):
     new_count = 0
     for result_data in results:
         key = (
-            result_data['citing_ref'],
-            result_data['non_segment_ref'],
+            result_data.get('citing_ref', ''),
+            result_data.get('non_segment_ref', ''),
             result_data.get('citation_char_start', ''),
             result_data.get('citation_char_end', '')
         )
@@ -143,12 +168,13 @@ def save_to_csv(results: list, filename: str):
 
 
 
-def prepare_csv_row(item: dict, result: dict, non_segment_ref: str) -> dict:
+def prepare_csv_row(item: dict, result: dict, non_segment_ref: str, base_url: str = "https://www.sefaria.org") -> dict:
     """Prepare a test case row for CSV export."""
     chunk = item["chunk"]
     link = item["link"]
 
     citing_text = chunk.get('he', chunk.get('en', ''))
+    citing_ref = chunk.get('ref', '')
 
     # Extract citation information from span
     citation_span = result.get('citation_span', {})
@@ -166,7 +192,7 @@ def prepare_csv_row(item: dict, result: dict, non_segment_ref: str) -> dict:
 
     return {
         'timestamp': datetime.now().isoformat(),
-        'citing_ref': chunk.get('ref', ''),
+        'citing_ref': citing_ref,
         'citing_text': citing_text[:500] if citing_text else '',  # Truncate for CSV
         'citing_language': chunk.get('language', ''),
         'citing_version_title': chunk.get('versionTitle', ''),
@@ -197,7 +223,11 @@ def main():
     csv_filename = input("CSV filename to save test cases? (default: test_cases.csv): ").strip()
     csv_filename = csv_filename if csv_filename else "test_cases.csv"
 
+    base_url = input("Base URL for links? (default: https://www.sefaria.org): ").strip()
+    base_url = base_url if base_url else "https://www.sefaria.org"
+
     print(f"\nLoading {n_samples} samples with seed {seed}...")
+    print(f"Base URL: {base_url}")
 
     # Initialize resolver and get samples
     resolver = LLMSegmentResolver()
@@ -216,7 +246,7 @@ def main():
         result = resolver.resolve(link, chunk)
 
         # Display result
-        print_result(i, item, result)
+        print_result(i, item, result, base_url)
 
         # Get user feedback
         feedback = get_user_feedback()
@@ -233,7 +263,7 @@ def main():
             if result and result.get('resolutions'):
                 # Multiple resolutions - save each separately
                 for res in result['resolutions']:
-                    csv_row = prepare_csv_row(item, res, res.get('original_ref', ''))
+                    csv_row = prepare_csv_row(item, res, res.get('original_ref', ''), base_url)
                     saved_test_cases.append(csv_row)
                 stats['saved'] += len(result['resolutions'])
                 print(f"✓ Saved {len(result['resolutions'])} test case(s)")
@@ -250,7 +280,7 @@ def main():
                     except Exception:
                         continue
 
-                csv_row = prepare_csv_row(item, result, non_segment_ref)
+                csv_row = prepare_csv_row(item, result, non_segment_ref, base_url)
                 saved_test_cases.append(csv_row)
                 stats['saved'] += 1
                 print("✓ Saved as test case")
@@ -271,6 +301,7 @@ def main():
     print(f"Skipped: {stats['skipped']}")
 
     print(f"\nTest cases saved to: {csv_filename}")
+    print(f"URLs generated with base: {base_url}")
     print("=" * 80)
 
 
