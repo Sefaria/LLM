@@ -3,6 +3,14 @@ import re
 import html
 from typing import Optional, Tuple, List, Dict, Any
 
+# LangChain cache setup
+from langchain.cache import SQLiteCache
+from langchain.globals import set_llm_cache
+
+# Use persistent cache file, configurable via env
+cache_path = os.getenv("LLM_CACHE_PATH", "llm_cache.sqlite")
+set_llm_cache(SQLiteCache(database_path=cache_path))
+
 import django
 from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate
@@ -388,7 +396,7 @@ class LLMSegmentResolver:
 
 if __name__ == "__main__":
     resolver = LLMSegmentResolver()
-    samples = get_random_non_segment_links_with_chunks(n=5, use_remote=True, seed=613, use_cache=True)
+    samples = get_random_non_segment_links_with_chunks(n=5, use_remote=True, seed=101, use_cache=True)
     for i, item in enumerate(samples):
         link = item["link"]
         chunk = item["chunk"]

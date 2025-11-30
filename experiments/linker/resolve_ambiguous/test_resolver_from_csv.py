@@ -188,6 +188,7 @@ class TestResolverDetailed:
         }
 
         for idx, test_case in enumerate(csv_test_cases):
+            print(f"Running test case {idx + 1}/{len(csv_test_cases)}...")  # Progress indicator
             expected_resolved = test_case.get('expected_resolved_ref', '')
             if not expected_resolved:
                 results['skipped'] += 1
@@ -199,8 +200,27 @@ class TestResolverDetailed:
             span = create_mock_span(test_case)
             chunk['spans'] = [span]
 
-            # Resolve
-            result = resolver.resolve(link, chunk)
+            # Resolve with timeout
+            import signal
+            class TimeoutException(Exception): pass
+            def handler(signum, frame):
+                raise TimeoutException()
+            signal.signal(signal.SIGALRM, handler)
+            signal.alarm(10)  # 10 seconds timeout
+            try:
+                result = resolver.resolve(link, chunk)
+                signal.alarm(0)  # Cancel alarm
+            except TimeoutException:
+                results['failed'] += 1
+                results['failures'].append({
+                    'index': idx + 1,
+                    'citing_ref': test_case.get('citing_ref', ''),
+                    'non_segment_ref': test_case.get('non_segment_ref', ''),
+                    'expected': expected_resolved,
+                    'got': None,
+                    'reason': 'Timeout during resolver call'
+                })
+                continue
 
             if not result:
                 results['failed'] += 1
@@ -210,7 +230,10 @@ class TestResolverDetailed:
                     'non_segment_ref': test_case.get('non_segment_ref', ''),
                     'expected': expected_resolved,
                     'got': None,
-                    'reason': 'No result returned'
+                    'reason': 'No result returned',
+                    'link': link,
+                    'chunk': chunk,
+                    'segments': None
                 })
                 continue
 
@@ -221,10 +244,25 @@ class TestResolverDetailed:
                 if len(resolved_refs) == 1:
                     actual_resolved = resolved_refs[0]
 
+            # Gather segment details for failures
+            segment_details = None
+            try:
+                non_segment_ref = test_case.get('non_segment_ref', '')
+                from sefaria.model.text import Ref
+                segments = Ref(non_segment_ref).all_segment_refs() if non_segment_ref else []
+                segment_details = [
+                    {'ref': seg.normal(), 'text': seg.text('en').as_string() if hasattr(seg, 'text') else ''}
+                    for seg in segments
+                ]
+            except Exception:
+                segment_details = None
+
             # Check match
             if actual_resolved == expected_resolved:
                 results['passed'] += 1
             else:
+                # Always use the resolver's reason, never the CSV's reason
+                resolver_reason = result.get('reason', 'No reason provided') if result else 'No result returned'
                 results['failed'] += 1
                 results['failures'].append({
                     'index': idx + 1,
@@ -232,7 +270,10 @@ class TestResolverDetailed:
                     'non_segment_ref': test_case.get('non_segment_ref', ''),
                     'expected': expected_resolved,
                     'got': actual_resolved,
-                    'reason': result.get('reason', 'No reason provided')
+                    'reason': resolver_reason,
+                    'link': link,
+                    'chunk': chunk,
+                    'segments': segment_details
                 })
 
         # Print summary
@@ -259,6 +300,14 @@ class TestResolverDetailed:
                 print(f"  Expected: {failure['expected']}")
                 print(f"  Got: {failure['got']}")
                 print(f"  Reason: {failure['reason']}")
+                print(f"  Link: {failure['link']}")
+                print(f"  Chunk: {failure['chunk']}")
+                if failure['segments']:
+                    print("  Segments:")
+                    for seg in failure['segments']:
+                        print(f"    - {seg['ref']}: {seg['text']}")
+                else:
+                    print("  Segments: None")
 
             if len(results['failures']) > 10:
                 print(f"\n... and {len(results['failures']) - 10} more failures")
@@ -311,4 +360,3 @@ if __name__ == "__main__":
     else:
         # Run pytest normally
         pytest.main([__file__, '-v'])
-
