@@ -283,6 +283,7 @@ class LLMSegmentResolver:
         content = getattr(resp, "content", "").strip().lower()
         return content.startswith("y")
 
+
     def _llm_pick_range(
         self,
         marked_citing_text: str,
@@ -382,7 +383,47 @@ class LLMSegmentResolver:
                 address = AddressType.to_str_by_address_type(addr_type, "en", sec)
                 base_title += f" {address}"
             base_ref = Ref(base_title)
+
+            # If the base_ref is not segment-level, query for commentary links to infer exact segment
+            if not base_ref.is_segment_level():
+                inferred_ref = self._infer_segment_from_commentary_links(citing_oref, base_ref)
+                if inferred_ref:
+                    return inferred_ref
+
             return base_ref.normal()
+        except Exception:
+            return None
+
+    def _infer_segment_from_commentary_links(self, citing_oref: Ref, base_ref: Ref) -> Optional[str]:
+        """
+        When base_ref is not segment-level, query for commentary links from the citing segment
+        to infer the exact segment of the base text being commented on.
+        """
+        try:
+            from sefaria.model.link import LinkSet
+
+            # Get the segment-level ref of the commentary
+            if not citing_oref.is_segment_level():
+                citing_oref = citing_oref.section_ref()
+
+            # Query for links from this commentary segment
+            links = LinkSet(citing_oref)
+
+            # Look for links to the base text that are segment-level
+            for link in links:
+                opposite_ref = link.ref_opposite(citing_oref)
+                if not opposite_ref:
+                    continue
+
+                # Check if this link points to the same base text range
+                try:
+                    # If the opposite ref is within the base_ref range and is segment-level
+                    if opposite_ref.is_segment_level() and base_ref.contains(opposite_ref):
+                        return opposite_ref.normal()
+                except Exception:
+                    continue
+
+            return None
         except Exception:
             return None
 
@@ -396,7 +437,7 @@ class LLMSegmentResolver:
 
 if __name__ == "__main__":
     resolver = LLMSegmentResolver()
-    samples = get_random_non_segment_links_with_chunks(n=5, use_remote=True, seed=101, use_cache=True)
+    samples = get_random_non_segment_links_with_chunks(n=5, use_remote=True, seed=102, use_cache=True)
     for i, item in enumerate(samples):
         link = item["link"]
         chunk = item["chunk"]
