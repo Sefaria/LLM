@@ -139,6 +139,19 @@ class LLMSegmentResolver:
         if not selected:
             return None
 
+        # If more than 7 segments were selected, try to narrow down the range
+        if len(selected) > 7:
+            refined_result = self._llm_refine_range(
+                marked_citing_text, non_segment_ref, selected, base_ref_for_prompt, base_text_for_prompt
+            )
+            if refined_result:
+                refined_start, refined_end, refined_reason = refined_result
+                # Adjust indices relative to the selected segments
+                refined_start = max(1, min(refined_start, len(selected)))
+                refined_end = max(refined_start, min(refined_end, len(selected)))
+                selected = selected[refined_start - 1:refined_end]
+                reason = f"{reason} (refined: {refined_reason})"
+
         # If LLM selected all segments in a multi-segment ref, keep it non-segment-level
         selected_all_segments = len(selected) == len(segments)
         has_multiple_segments = len(segments) >= 4
@@ -345,6 +358,88 @@ class LLMSegmentResolver:
                 end = int(nums[1]) if len(nums) > 1 else start
         if start is None or end is None:
             return None
+        reason = reason or content.strip()
+        return start, end, reason
+
+    def _llm_refine_range(
+        self,
+        marked_citing_text: str,
+        target_ref: str,
+        selected_segments: List[Ref],
+        base_ref: Optional[str],
+        base_text: str,
+    ) -> Optional[Tuple[int, int, str]]:
+        """
+        When the initial range selection is too broad (>7 segments), attempt to narrow it down
+        by asking the LLM to be more specific about which parts are actually relevant.
+        """
+        numbered_segments = self._format_segment_texts(selected_segments)
+
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "You refine an overly broad citation range to a more precise subset. "
+                    "The user has already identified a broad range, but it's too large. "
+                    "Your job is to identify the most relevant portion within that range.",
+                ),
+                (
+                    "human",
+                    "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
+                    "Target ref: {target_ref}\n\n"
+                    "{base_block}"
+                    "Previously selected range (too broad - {count} segments):\n{segments}\n\n"
+                    "The initial selection included {count} segments, which is too many. "
+                    "Please identify a more precise range within these segments that best matches the actual citation. "
+                    "Focus on the segments that are directly quoted or most closely discussed. "
+                    "If the citation truly spans all segments, you may keep the full range, but try to be more specific.\n\n"
+                    "Respond in two lines:\n"
+                    "Explanation: <brief reason for the refined selection>\n"
+                    "Range: <start>,<end>",
+                ),
+            ]
+        )
+        chain = prompt | self.llm
+        base_block = ""
+        if base_ref and base_text:
+            base_block = f"Base text of commentary target ({base_ref}):\n{base_text}\n\n"
+
+        resp = chain.invoke(
+            {
+                "citing": marked_citing_text,
+                "target_ref": target_ref,
+                "segments": "\n".join(numbered_segments),
+                "base_block": base_block,
+                "count": len(selected_segments),
+            }
+        )
+        content = getattr(resp, "content", "")
+        reason = None
+        start = end = None
+
+        # Try to parse structured lines first
+        range_match = re.search(r"range\s*:\s*([0-9]+)\s*,\s*([0-9]+)", content, re.IGNORECASE)
+        if range_match:
+            start = int(range_match.group(1))
+            end = int(range_match.group(2))
+            # Extract reason if present before Range:
+            parts = re.split(r"range\s*:", content, flags=re.IGNORECASE)
+            if parts:
+                reason = parts[0].replace("Explanation:", "").strip()
+        else:
+            nums = re.findall(r"\d+", content)
+            if len(nums) >= 1:
+                start = int(nums[0])
+                end = int(nums[1]) if len(nums) > 1 else start
+
+        if start is None or end is None:
+            return None
+
+        # If the refined range is still very broad or identical to original, return None
+        # to keep the original selection
+        if end - start + 1 >= len(selected_segments):
+            return None
+
         reason = reason or content.strip()
         return start, end, reason
 
