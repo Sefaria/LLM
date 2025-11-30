@@ -223,6 +223,19 @@ class TestResolverDetailed:
                 continue
 
             if not result:
+                # Gather segment details even for null results
+                segment_details = None
+                try:
+                    non_segment_ref = test_case.get('non_segment_ref', '')
+                    from sefaria.model.text import Ref
+                    segments = Ref(non_segment_ref).all_segment_refs() if non_segment_ref else []
+                    segment_details = [
+                        {'ref': seg.normal()}
+                        for seg in segments
+                    ]
+                except Exception as e:
+                    segment_details = [{'error': str(e)}]
+
                 results['failed'] += 1
                 results['failures'].append({
                     'index': idx + 1,
@@ -233,7 +246,8 @@ class TestResolverDetailed:
                     'reason': 'No result returned',
                     'link': link,
                     'chunk': chunk,
-                    'segments': None
+                    'segments': segment_details,
+                    'test_case': test_case  # Include full test case data
                 })
                 continue
 
@@ -251,11 +265,11 @@ class TestResolverDetailed:
                 from sefaria.model.text import Ref
                 segments = Ref(non_segment_ref).all_segment_refs() if non_segment_ref else []
                 segment_details = [
-                    {'ref': seg.normal(), 'text': seg.text('en').as_string() if hasattr(seg, 'text') else ''}
+                    {'ref': seg.normal()}
                     for seg in segments
                 ]
-            except Exception:
-                segment_details = None
+            except Exception as e:
+                segment_details = [{'error': str(e)}]
 
             # Check match
             if actual_resolved == expected_resolved:
@@ -273,7 +287,9 @@ class TestResolverDetailed:
                     'reason': resolver_reason,
                     'link': link,
                     'chunk': chunk,
-                    'segments': segment_details
+                    'segments': segment_details,
+                    'test_case': test_case,  # Include full test case data
+                    'full_result': result  # Include full resolver result
                 })
 
         # Print summary
@@ -291,26 +307,102 @@ class TestResolverDetailed:
 
         if results['failures']:
             print(f"\n{'=' * 80}")
-            print("FAILURES")
+            print("FAILURES - DETAILED DEBUG INFORMATION")
             print(f"{'=' * 80}")
-            for failure in results['failures'][:10]:  # Show first 10
-                print(f"\nTest #{failure['index']}")
-                print(f"  Citing: {failure['citing_ref']}")
-                print(f"  Non-segment: {failure['non_segment_ref']}")
-                print(f"  Expected: {failure['expected']}")
-                print(f"  Got: {failure['got']}")
-                print(f"  Reason: {failure['reason']}")
-                print(f"  Link: {failure['link']}")
-                print(f"  Chunk: {failure['chunk']}")
-                if failure['segments']:
-                    print("  Segments:")
-                    for seg in failure['segments']:
-                        print(f"    - {seg['ref']}: {seg['text']}")
-                else:
-                    print("  Segments: None")
 
-            if len(results['failures']) > 10:
-                print(f"\n... and {len(results['failures']) - 10} more failures")
+            # Print ALL failures with full details
+            for i, failure in enumerate(results['failures'], 1):
+                print(f"\n{'=' * 80}")
+                print(f"FAILURE #{i} (Test Case #{failure['index']})")
+                print(f"{'=' * 80}")
+
+                # Basic info
+                print(f"\n[REFERENCES]")
+                print(f"  Citing Ref:      {failure['citing_ref']}")
+                print(f"  Non-segment Ref: {failure['non_segment_ref']}")
+                print(f"  Expected Result: {failure['expected']}")
+                print(f"  Actual Result:   {failure['got']}")
+
+                # Resolver reason
+                print(f"\n[RESOLVER REASON]")
+                print(f"  {failure['reason']}")
+
+                # Link structure
+                print(f"\n[LINK DATA]")
+                if failure.get('link'):
+                    for key, value in failure['link'].items():
+                        print(f"  {key}: {value}")
+                else:
+                    print("  (No link data)")
+
+                # Chunk structure
+                print(f"\n[CHUNK DATA]")
+                if failure.get('chunk'):
+                    chunk = failure['chunk']
+                    print(f"  Ref: {chunk.get('ref', 'N/A')}")
+                    print(f"  Language: {chunk.get('language', 'N/A')}")
+                    print(f"  Version Title: {chunk.get('versionTitle', 'N/A')}")
+
+                    # Citing text
+                    citing_text = chunk.get('en', '') or chunk.get('he', '')
+                    if citing_text:
+                        print(f"\n  [CITING TEXT]")
+                        print(f"  {citing_text[:500]}{'...' if len(citing_text) > 500 else ''}")
+
+                    # Spans
+                    if chunk.get('spans'):
+                        print(f"\n  [SPANS]")
+                        for span in chunk['spans']:
+                            print(f"    Type: {span.get('type', 'N/A')}")
+                            print(f"    Ref: {span.get('ref', 'N/A')}")
+                            print(f"    Char Range: {span.get('charRange', 'N/A')}")
+                else:
+                    print("  (No chunk data)")
+
+                # Segments available
+                print(f"\n[AVAILABLE SEGMENTS]")
+                if failure.get('segments'):
+                    for j, seg in enumerate(failure['segments'], 1):
+                        if 'error' in seg:
+                            print(f"  Error getting segments: {seg['error']}")
+                        else:
+                            print(f"  {j}. {seg.get('ref', 'N/A')}")
+                else:
+                    print("  (No segment data available)")
+
+                # Full test case data from CSV
+                print(f"\n[TEST CASE DATA FROM CSV]")
+                if failure.get('test_case'):
+                    for key, value in failure['test_case'].items():
+                        # Truncate very long values
+                        value_str = str(value)
+                        if len(value_str) > 300:
+                            value_str = value_str[:300] + '...'
+                        print(f"  {key}: {value_str}")
+                else:
+                    print("  (No test case data)")
+
+                # Full resolver result
+                print(f"\n[FULL RESOLVER RESULT]")
+                if failure.get('full_result'):
+                    result = failure['full_result']
+                    for key, value in result.items():
+                        # Skip very large nested structures for readability
+                        if key in ['link', 'chunk']:
+                            print(f"  {key}: <see [LINK DATA] and [CHUNK DATA] sections above>")
+                        else:
+                            value_str = str(value)
+                            if len(value_str) > 300:
+                                value_str = value_str[:300] + '...'
+                            print(f"  {key}: {value_str}")
+                else:
+                    print("  (No resolver result - resolver returned None)")
+
+                print(f"\n{'-' * 80}")
+
+            print(f"\n{'=' * 80}")
+            print(f"END OF FAILURES ({len(results['failures'])} total)")
+            print(f"{'=' * 80}")
 
         print(f"\n{'=' * 80}")
 
