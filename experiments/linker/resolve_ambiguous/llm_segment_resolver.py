@@ -47,8 +47,8 @@ class LLMSegmentResolver:
         non_segment_refs = self._find_all_non_segment_refs(link)
         if not non_segment_refs:
             return None
-
-        # Process each non-segment ref individually
+        if non_segment_refs[0] == "Tosafot on Rosh Hashanah 26a":
+            halt = True
         resolutions = []
         updated_link = link
         updated_chunk = chunk
@@ -151,6 +151,21 @@ class LLMSegmentResolver:
                 refined_end = max(refined_start, min(refined_end, len(selected)))
                 selected = selected[refined_start - 1:refined_end]
                 reason = f"{reason} (refined: {refined_reason})"
+
+        # For dibur hamatchil-style indexes, pick a single segment within the chosen range
+        if self._is_dibur_hamatchil_ref(non_segment_ref) and len(selected) > 1:
+            dh_pick = self._llm_pick_single_segment_dh(
+                marked_citing_text,
+                non_segment_ref,
+                selected,
+                base_ref_for_prompt,
+                base_text_for_prompt,
+            )
+            if dh_pick:
+                dh_idx, dh_reason = dh_pick
+                dh_idx = max(1, min(dh_idx, len(selected)))
+                selected = [selected[dh_idx - 1]]
+                reason = f"{reason} (DH narrowed: {dh_reason})" if reason else f"DH narrowed: {dh_reason}"
 
         # If LLM selected all segments in a multi-segment ref, keep it non-segment-level
         selected_all_segments = len(selected) == len(segments)
@@ -528,6 +543,78 @@ class LLMSegmentResolver:
             return base_titles[0] if base_titles else None
         except Exception:
             return None
+
+    def _is_dibur_hamatchil_ref(self, tref: str) -> bool:
+        """Check if a ref belongs to a dibur hamatchil-structured index."""
+        try:
+            oref = Ref(tref)
+            return oref.index_node.is_segment_level_dibur_hamatchil()
+        except Exception:
+            return False
+
+    def _llm_pick_single_segment_dh(
+        self,
+        marked_citing_text: str,
+        target_ref: str,
+        candidate_segments: List[Ref],
+        base_ref: Optional[str],
+        base_text: str,
+    ) -> Optional[Tuple[int, str]]:
+        """
+        For dibur-hamatchil style works, choose a single segment within a previously-selected range.
+        Returns (index, reason) where index is 1-based within candidate_segments.
+        """
+        numbered_segments = self._format_segment_texts(candidate_segments)
+
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "You are disambiguating a dibur hamatchil-style commentary. Each citation should resolve to a single segment (one DH).",
+                ),
+                (
+                    "human",
+                    "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
+                    "Target ref: {target_ref}\n\n"
+                    "{base_block}"
+                    "Candidate segments (choose exactly one):\n{segments}\n\n"
+                    "Pick the single number whose text most directly matches or is quoted by the citing passage."
+                    " Respond in two lines:\n"
+                    "Explanation: <brief reason>\n"
+                    "Choice: <number>",
+                ),
+            ]
+        )
+        base_block = ""
+        if base_ref and base_text:
+            base_block = f"Base text of commentary target ({base_ref}):\n{base_text}\n\n"
+
+        chain = prompt | self.llm
+        resp = chain.invoke(
+            {
+                "citing": marked_citing_text,
+                "target_ref": target_ref,
+                "segments": "\n".join(numbered_segments),
+                "base_block": base_block,
+            }
+        )
+        content = getattr(resp, "content", "")
+        choice = None
+        choice_match = re.search(r"choice\s*:\s*([0-9]+)", content, re.IGNORECASE)
+        if choice_match:
+            choice = int(choice_match.group(1))
+            reason = re.split(r"choice\s*:", content, flags=re.IGNORECASE)[0].replace("Explanation:", "").strip()
+        else:
+            nums = re.findall(r"\d+", content)
+            if nums:
+                choice = int(nums[0])
+                reason = content.strip()
+            else:
+                reason = None
+
+        if choice is None:
+            return None
+        return choice, reason or "Picked single segment"
 
 
 if __name__ == "__main__":
