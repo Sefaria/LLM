@@ -116,6 +116,23 @@ class LLMSegmentResolver:
         segments = Ref(non_segment_ref).all_segment_refs()
         if not segments:
             return None
+
+        # If there's only one segment, automatically resolve to it without calling LLM
+        if len(segments) == 1:
+            resolved_ref = segments[0].normal()
+            updated_link = self._replace_ref_in_link(link, non_segment_ref, resolved_ref)
+            updated_chunk = self._replace_ref_in_chunk(chunk, non_segment_ref, resolved_ref)
+            return {
+                "link": updated_link,
+                "chunk": updated_chunk,
+                "original_ref": non_segment_ref,
+                "resolved_ref": resolved_ref,
+                "selected_segments": [resolved_ref],
+                "reason": "Automatically resolved: only one segment exists",
+                "citing_text": citing_text,
+                "citation_span": span,
+            }
+
         numbered_segments = self._format_segment_texts(segments)
 
         if not self._llm_contains_reference(marked_citing_text, non_segment_ref, numbered_segments):
