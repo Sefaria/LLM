@@ -41,20 +41,37 @@ class LLMSegmentResolver:
     def resolve(self, link: dict, chunk: dict) -> Optional[Dict[str, Any]]:
         """
         Given a link + associated marked_up_text_chunk, attempt to resolve
-        non-segment refs to specific segment ranges. Handles multiple non-segment refs.
+        non-segment refs to specific segment ranges. Handles multiple citation spans,
+        including cases where the same non-segment ref appears multiple times in the chunk.
         Returns updated link/chunk/resolutions, or None if no resolutions were found.
         """
-        non_segment_refs = self._find_all_non_segment_refs(link)
-        if not non_segment_refs:
+        # Find all citation spans with non-segment refs (may include duplicates)
+        non_segment_spans = self._find_all_non_segment_citation_spans(link, chunk)
+        if not non_segment_spans:
             return None
-        if non_segment_refs[0] == "Tosafot on Rosh Hashanah 26a":
-            halt = True
+
+        return self._process_resolutions(non_segment_spans, link, chunk)
+
+    def _process_resolutions(
+        self,
+        non_segment_spans: List[Dict[str, Any]],
+        link: dict,
+        chunk: dict
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Process all non-segment citation spans and resolve them.
+        Returns combined resolution result or None if no resolutions were found.
+        """
         resolutions = []
         updated_link = link
         updated_chunk = chunk
 
-        for non_segment_ref in non_segment_refs:
-            resolution = self._resolve_single_ref(non_segment_ref, updated_link, updated_chunk)
+        # Process each span individually (same ref can appear multiple times)
+        for span_info in non_segment_spans:
+            non_segment_ref = span_info["ref"]
+            span = span_info["span"]
+
+            resolution = self._resolve_single_ref_with_span(non_segment_ref, span, updated_link, updated_chunk)
             if resolution:
                 resolutions.append(resolution)
                 # Update link and chunk for next iteration
@@ -83,12 +100,38 @@ class LLMSegmentResolver:
             "resolutions": resolutions,  # Detailed info for each resolution
         }
 
-    def _resolve_single_ref(self, non_segment_ref: str, link: dict, chunk: dict) -> Optional[Dict[str, Any]]:
-        """Resolve a single non-segment reference."""
-        span = self._find_span_for_ref(chunk, non_segment_ref)
-        if not span:
-            return None
+    def _find_all_non_segment_citation_spans(self, link: dict, chunk: dict) -> List[Dict[str, Any]]:
+        """
+        Find all citation spans in the chunk that reference non-segment-level refs from the link.
+        Returns a list of {ref: str, span: dict} for each citation span.
+        The same ref may appear multiple times if it's cited multiple times in the chunk.
+        """
+        # Get all non-segment refs from the link
+        non_segment_refs_set = set()
+        for tref in link.get("refs", []):
+            try:
+                oref = Ref(tref)
+                if not oref.is_segment_level():
+                    non_segment_refs_set.add(oref.normal())
+            except Exception:
+                continue
 
+        if not non_segment_refs_set:
+            return []
+
+        # Find all citation spans that match any of these non-segment refs
+        result = []
+        spans = chunk.get("spans") or []
+        for span in spans:
+            if span.get("type") == "citation":
+                span_ref = span.get("ref")
+                if span_ref in non_segment_refs_set:
+                    result.append({"ref": span_ref, "span": span})
+
+        return result
+
+    def _resolve_single_ref_with_span(self, non_segment_ref: str, span: dict, link: dict, chunk: dict) -> Optional[Dict[str, Any]]:
+        """Resolve a single non-segment reference for a specific span."""
         citing_ref = chunk.get("ref")
         citing_oref = None
         is_commentary = False
@@ -121,7 +164,7 @@ class LLMSegmentResolver:
         if len(segments) == 1:
             resolved_ref = segments[0].normal()
             updated_link = self._replace_ref_in_link(link, non_segment_ref, resolved_ref)
-            updated_chunk = self._replace_ref_in_chunk(chunk, non_segment_ref, resolved_ref)
+            updated_chunk = self._replace_ref_in_chunk(chunk, non_segment_ref, resolved_ref, target_span=span)
             return {
                 "link": updated_link,
                 "chunk": updated_chunk,
@@ -201,7 +244,7 @@ class LLMSegmentResolver:
         resolved_ref = selected[0].normal() if len(selected) == 1 else selected[0].to(selected[-1]).normal()
 
         updated_link = self._replace_ref_in_link(link, non_segment_ref, resolved_ref)
-        updated_chunk = self._replace_ref_in_chunk(chunk, non_segment_ref, resolved_ref)
+        updated_chunk = self._replace_ref_in_chunk(chunk, non_segment_ref, resolved_ref, target_span=span)
 
         return {
             "link": updated_link,
@@ -483,14 +526,23 @@ class LLMSegmentResolver:
         updated["refs"] = updated_refs
         return updated
 
-    def _replace_ref_in_chunk(self, chunk: dict, old_ref: str, new_ref: str) -> dict:
+    def _replace_ref_in_chunk(self, chunk: dict, old_ref: str, new_ref: str, target_span: Optional[dict] = None) -> dict:
+        """
+        Replace old_ref with new_ref in chunk spans.
+        If target_span is provided, only replace that specific span (by object identity).
+        Otherwise, replace all matching spans (legacy behavior).
+        """
         updated = dict(chunk)
         updated_spans = []
         for span in chunk.get("spans") or []:
             if span.get("ref") == old_ref and span.get("type") == "citation":
-                new_span = dict(span)
-                new_span["ref"] = new_ref
-                updated_spans.append(new_span)
+                # If target_span is specified, only replace that specific span
+                if target_span is None or span is target_span:
+                    new_span = dict(span)
+                    new_span["ref"] = new_ref
+                    updated_spans.append(new_span)
+                else:
+                    updated_spans.append(span)
             else:
                 updated_spans.append(span)
         updated["spans"] = updated_spans
