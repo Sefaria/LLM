@@ -45,12 +45,19 @@ def links_collection(use_remote: bool):
 
 
 def get_random_non_segment_links_with_chunks(
-    n: int, use_remote: bool = False, seed: int = None, use_cache: bool = False
+    n: int,
+    use_remote: bool = False,
+    seed: int = None,
+    use_cache: bool = False,
+    progress: bool = False,
 ) -> list:
     """
     Return up to n random links whose refs are not segment-level (e.g., book or chapter level),
     along with their corresponding marked_up_text_chunks entry. Only links with a chunk match are returned.
-    Randomly samples offsets instead of scanning the whole collection.
+
+    Performance improvements vs. previous version:
+    - Avoids per-iteration `skip(idx)` calls (which are O(idx) in MongoDB).
+    - Fetches a batch of random candidates with a single aggregate query (or a single scan fallback).
     """
     cache_key = f"{'remote' if use_remote else 'local'}-n{n}-seed{seed}"
     cache_dir = os.path.join(os.path.dirname(__file__), ".cache")
@@ -64,33 +71,68 @@ def get_random_non_segment_links_with_chunks(
             pass
 
     rng = random.Random(seed)
-    query = {"generated_by": "add_links_from_text"}
-    results = []
-    seen_ids = set()
+    results: list = []
+    seen_ids: set[str] = set()
 
     with links_collection(use_remote) as links:
+        query = {"generated_by": "add_links_from_text"}
         total = links.count_documents(query)
         if total == 0:
             return results
 
         chunks_col = links.database["marked_up_text_chunks"]
 
-        # Over-sample attempts to account for links that won't yield chunks.
+        # Over-sample to compensate for filtering (book-level / segment-level / no-chunk).
         max_attempts = max(n * 20, n + 10)
-        attempts = 0
-        while len(results) < n and attempts < max_attempts:
-            attempts += 1
-            idx = rng.randrange(total)
-            doc_cursor = links.find(query, {"refs": 1, "generated_by": 1}).skip(idx).limit(1)
-            link = next(doc_cursor, None)
-            if not link:
-                continue
-            if link.get("generated_by") != "add_links_from_text":
-                continue
+        sample_size = min(total, max_attempts * 3)
+
+        # First try to use Mongo's $sample for fast random selection.
+        try:
+            pipeline = [
+                {"$match": query},
+                {"$sample": {"size": sample_size}},
+                {"$project": {"refs": 1, "generated_by": 1}},
+            ]
+            candidates: List[dict] = list(links.aggregate(pipeline))
+        except Exception:
+            # Fallback: scan IDs once, then sample in memory deterministically via `seed`.
+            id_cursor = links.find(query, {"_id": 1})
+            ids = [doc["_id"] for doc in id_cursor]
+            if not ids:
+                return results
+            rng.shuffle(ids)
+            chosen_ids = ids[:sample_size]
+            candidates = list(
+                links.find(
+                    {"_id": {"$in": chosen_ids}},
+                    {"refs": 1, "generated_by": 1},
+                )
+            )
+
+        candidate_iter = candidates
+        if progress:
+            try:
+                from tqdm import tqdm
+
+                candidate_iter = tqdm(
+                    candidate_iter,
+                    desc="Scanning sampled links",
+                    total=len(candidates),
+                )
+            except Exception:
+                pass
+
+        for link in candidate_iter:
+            if len(results) >= n:
+                break
+
             link_id = str(link.get("_id"))
             if link_id in seen_ids:
                 continue
             seen_ids.add(link_id)
+
+            if link.get("generated_by") != "add_links_from_text":
+                continue
 
             refs = link.get("refs") or []
             for tref in refs:
@@ -98,13 +140,15 @@ def get_random_non_segment_links_with_chunks(
                     oref = Ref(tref)
                 except Exception:
                     continue
+
                 if oref.is_book_level() or oref.is_segment_level():
+                    # Skip book-level and segment-level refs; we want higher-level only.
                     continue
-                if not oref.is_segment_level():
-                    chunk = _find_chunk_for_link(link, chunks_col)
-                    if chunk:
-                        results.append({"link": link, "chunk": chunk})
-                    break
+
+                chunk = _find_chunk_for_link(link, chunks_col)
+                if chunk:
+                    results.append({"link": link, "chunk": chunk})
+                    break  # move on to next link once we got a valid chunk
 
     if use_cache:
         try:

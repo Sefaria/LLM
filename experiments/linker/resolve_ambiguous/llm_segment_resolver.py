@@ -4,7 +4,7 @@ import html
 from typing import Optional, Tuple, List, Dict, Any
 
 # LangChain cache setup
-from langchain.cache import SQLiteCache
+from langchain_community.cache import SQLiteCache
 from langchain.globals import set_llm_cache
 
 # Use persistent cache file, configurable via env
@@ -130,31 +130,54 @@ class LLMSegmentResolver:
 
         return result
 
-    def _resolve_single_ref_with_span(self, non_segment_ref: str, span: dict, link: dict, chunk: dict) -> Optional[Dict[str, Any]]:
-        """Resolve a single non-segment reference for a specific span."""
-        citing_ref = chunk.get("ref")
-        citing_oref = None
-        is_commentary = False
+    def _get_commentary_context(self, citing_ref: Optional[str]) -> Dict[str, Optional[str]]:
+        """
+        For commentary refs, fetch the aligned base ref and text for prompt context.
+        Returns dict with base_ref and base_text (may be None).
+        """
         try:
             citing_oref = Ref(citing_ref)
             base_titles = getattr(citing_oref.index, "base_text_titles", []) or []
             is_commentary = bool(base_titles)
         except Exception:
-            pass
+            return {"base_ref": None, "base_text": None}
 
-        base_ref_for_prompt = None
-        base_text_for_prompt = ""
-        if is_commentary:
-            base_ref_for_prompt = self._get_base_ref_from_index(citing_oref)
-            if base_ref_for_prompt:
-                base_text_for_prompt = self._get_ref_text(
-                    base_ref_for_prompt
-                )
+        if not is_commentary:
+            return {"base_ref": None, "base_text": None}
+
+        base_ref = self._get_base_ref_from_index(citing_oref)
+        base_text = self._get_ref_text(base_ref) if base_ref else None
+        return {"base_ref": base_ref, "base_text": base_text}
+
+    def _build_marked_citing_text(
+        self,
+        citing_text: str,
+        span: Optional[dict],
+        base_ref_for_prompt: Optional[str],
+        base_text_for_prompt: Optional[str],
+    ) -> str:
+        marked_citing_text = self._mark_citation(citing_text, span)
+        if base_ref_for_prompt and base_text_for_prompt:
+            marked_citing_text = (
+                f"{marked_citing_text}\n\n"
+                f"Base text for commentary target ({base_ref_for_prompt}):\n{base_text_for_prompt}"
+            )
+        return marked_citing_text
+
+    def _resolve_single_ref_with_span(self, non_segment_ref: str, span: dict, link: dict, chunk: dict) -> Optional[Dict[str, Any]]:
+        """Resolve a single non-segment reference for a specific span."""
+        citing_ref = chunk.get("ref")
+        commentary_context = self._get_commentary_context(citing_ref)
+        base_ref_for_prompt = commentary_context["base_ref"]
+        base_text_for_prompt = commentary_context["base_text"] or ""
 
         citing_text = self._get_ref_text(citing_ref, chunk.get("language"), chunk.get("versionTitle"))
-        marked_citing_text = self._mark_citation(citing_text, span)
-        if base_text_for_prompt:
-            marked_citing_text = f"{marked_citing_text}\n\nBase text for commentary target ({base_ref_for_prompt}):\n{base_text_for_prompt}"
+        marked_citing_text = self._build_marked_citing_text(
+            citing_text,
+            span,
+            base_ref_for_prompt,
+            base_text_for_prompt,
+        )
 
         segments = Ref(non_segment_ref).all_segment_refs()
         if not segments:
@@ -337,6 +360,21 @@ class LLMSegmentResolver:
             formatted.append(f"{i}. {seg.normal()} — {text}")
         return formatted
 
+    def _confirm_reference_present(
+        self, marked_citing_text: str, target_ref: str, numbered_segments: List[str]
+    ) -> bool:
+        """
+        Quick guard: ensure the citing text actually points to the target ref.
+        Uses a second pass for 'see/עיין' style references before giving up.
+        """
+        if self._llm_contains_reference(marked_citing_text, target_ref, numbered_segments):
+            return True
+        second_note = (
+            "Note: Some references are 'see' / 'עיין' style, where the cited text discusses a similar theme "
+            "without being explicitly quoted."
+        )
+        return self._llm_contains_reference(marked_citing_text, target_ref, numbered_segments, extra_note=second_note)
+
     def _llm_contains_reference(
         self, marked_citing_text: str, target_ref: str, numbered_segments: List[str], extra_note: Optional[str] = None
     ) -> bool:
@@ -414,27 +452,10 @@ class LLMSegmentResolver:
                 "base_block": base_block,
             }
         )
-        content = getattr(resp, "content", "")
-        reason = None
-        start = end = None
-        # Try to parse structured lines first.
-        range_match = re.search(r"range\s*:\s*([0-9]+)\s*,\s*([0-9]+)", content, re.IGNORECASE)
-        if range_match:
-            start = int(range_match.group(1))
-            end = int(range_match.group(2))
-            # Extract reason if present before Range:
-            parts = re.split(r"range\s*:", content, flags=re.IGNORECASE)
-            if parts:
-                reason = parts[0].replace("Explanation:", "").strip()
-        else:
-            nums = re.findall(r"\d+", content)
-            if len(nums) >= 1:
-                start = int(nums[0])
-                end = int(nums[1]) if len(nums) > 1 else start
-        if start is None or end is None:
+        parse_result = self._parse_range_response(getattr(resp, "content", ""))
+        if not parse_result:
             return None
-        reason = reason or content.strip()
-        return start, end, reason
+        return parse_result
 
     def _llm_refine_range(
         self,
@@ -488,16 +509,32 @@ class LLMSegmentResolver:
                 "count": len(selected_segments),
             }
         )
-        content = getattr(resp, "content", "")
+        parse_result = self._parse_range_response(getattr(resp, "content", ""))
+        if not parse_result:
+            return None
+
+        start, end, reason = parse_result
+        # If the refined range is still very broad or identical to original, return None
+        # to keep the original selection
+        if end - start + 1 >= len(selected_segments):
+            return None
+
+        return start, end, reason
+
+    def _parse_range_response(self, content: str) -> Optional[Tuple[int, int, str]]:
+        """
+        Parse a two-number range response of the form:
+        Explanation: ...
+        Range: start,end
+        Falls back to first two integers if structured format isn't present.
+        """
         reason = None
         start = end = None
 
-        # Try to parse structured lines first
         range_match = re.search(r"range\s*:\s*([0-9]+)\s*,\s*([0-9]+)", content, re.IGNORECASE)
         if range_match:
             start = int(range_match.group(1))
             end = int(range_match.group(2))
-            # Extract reason if present before Range:
             parts = re.split(r"range\s*:", content, flags=re.IGNORECASE)
             if parts:
                 reason = parts[0].replace("Explanation:", "").strip()
@@ -508,11 +545,6 @@ class LLMSegmentResolver:
                 end = int(nums[1]) if len(nums) > 1 else start
 
         if start is None or end is None:
-            return None
-
-        # If the refined range is still very broad or identical to original, return None
-        # to keep the original selection
-        if end - start + 1 >= len(selected_segments):
             return None
 
         reason = reason or content.strip()
