@@ -30,8 +30,7 @@ class LLMParallelResolver:
     ):
         # Default to Claude; caller can pass any LangChain chat model.
         self.llm = llm or ChatAnthropic(
-            model="claude-3-5-haiku-20241022",
-            # model="claude-3-opus-20240229",
+            model=os.getenv("ANTHROPIC_MODEL", "claude-3-5-haiku-20241022"),
             temperature=0,
             max_tokens=256,
             api_key=os.getenv("ANTHROPIC_API_KEY"),
@@ -66,11 +65,6 @@ class LLMParallelResolver:
         span = self._find_span_for_ref(chunk, non_segment_ref)
         marked_citing_text = self._mark_citation(citing_text, span)
 
-        llm_decision, llm_content = self._llm_confirms_explicit_paraphrase(marked_citing_text, non_segment_ref)
-        if not llm_decision:
-            print(f"LLM rejected parallel: citing_ref={citing_ref} target_ref={non_segment_ref} reply='{llm_content}'")
-            return None
-
         dicta_result = self._query_dicta(
             citing_text,
             target_ref=non_segment_ref,
@@ -85,6 +79,22 @@ class LLMParallelResolver:
         if not resolved_ref:
             return None
 
+        candidate_text = self._get_ref_text(resolved_ref, chunk.get("language"))
+        llm_ok, llm_reason = self._llm_confirm_candidate(
+            marked_citing_text, non_segment_ref, resolved_ref, candidate_text
+        )
+        if not llm_ok:
+            print(
+                f"LLM rejected Dicta pick: citing_ref={citing_ref} target_ref={non_segment_ref} "
+                f"candidate_ref={resolved_ref} reason='{llm_reason}'"
+            )
+            return None
+        else:
+            print(
+                f"LLM confirmed Dicta pick: citing_ref={citing_ref} target_ref={non_segment_ref} "
+                f"candidate_ref={resolved_ref} reason='{llm_reason}'"
+            )
+
         updated_link = self._replace_ref_in_link(link, non_segment_ref, resolved_ref)
         updated_chunk = self._replace_ref_in_chunk(chunk, non_segment_ref, resolved_ref)
 
@@ -94,7 +104,9 @@ class LLMParallelResolver:
             "original_ref": non_segment_ref,
             "resolved_ref": resolved_ref,
             "selected_segments": [resolved_ref],
-            "reason": f"LLM confirmed explicit/parallel match; Dicta top hit {resolved_ref} (score {dicta_result.get('score')})",
+            "reason": f"Dicta hit {resolved_ref} confirmed by LLM",
+            "llm_reason": llm_reason,
+            "llm_verdict": "YES",
             "dicta_hit": dicta_result,
         }
 
@@ -152,21 +164,24 @@ class LLMParallelResolver:
         close_tag = "</citation>"
         return text[:start] + open_tag + text[start:end] + close_tag + text[end:]
 
-    def _llm_confirms_explicit_paraphrase(self, citing_text: str, target_ref: str) -> Tuple[bool, str]:
+    def _llm_confirm_candidate(
+        self, citing_text: str, target_ref: str, candidate_ref: str, candidate_text: str
+    ) -> Tuple[bool, str]:
         """
-        Ask the LLM to decide whether the citing text is directly citing or explicitly paraphrasing the target,
-        based solely on the citing context and the target ref (no target text).
+        Ask the LLM to confirm whether the Dicta-picked candidate is a likely direct/close paraphrase.
         """
         prompt = ChatPromptTemplate.from_messages(
             [
                 (
                     "system",
-                    "You are checking whether a citing passage explicitly quotes or tightly paraphrases a target text.",
+                    "You verify whether a citing passage points to a specific target segment.",
                 ),
                 (
                     "human",
-                    "Citing passage (with the cited substring wrapped in <citation>…</citation>):\n{citing}\n\n"
+                    "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
                     "Target ref: {target_ref}\n"
+                    "Candidate segment ref: {candidate_ref}\n"
+                    "Candidate segment text:\n{candidate_text}\n\n"
                     "Answer in two lines:\n"
                     "Reason: <brief rationale>\n"
                     "Verdict: YES or NO (YES if notable wording/phrase overlap is likely; NO if the link is purely thematic/indirect).",
@@ -178,6 +193,8 @@ class LLMParallelResolver:
             {
                 "citing": citing_text[:6000],
                 "target_ref": target_ref,
+                "candidate_ref": candidate_ref,
+                "candidate_text": candidate_text[:6000],
             }
         )
         content = getattr(resp, "content", "").strip()
@@ -209,87 +226,39 @@ class LLMParallelResolver:
             "maxdistance": int(self.max_distance) if self.max_distance is not None else "",
         }
 
-        payload_variants = [
-            # Exact mirror of the working browser request: form-encoded "text=<...>"
-            ("form-string", f"text={query_text}"),
-            # Form-encoded dict with text only
-            ("form", {"text": query_text}),
-            # JSON payload variants (kept for compatibility with other deployments)
-            (
-                "json",
-                {
-                    "txt": query_text,
-                    "docx": "",
-                    "GeneralMinScore": self.general_min_score,
-                    "TanakhMinScore": self.tanakh_min_score,
-                    "CanonicalMinScore": self.canonical_min_score,
-                    "minFrequencyToCountPhraseAsOneWord": self.min_frequency_to_count_phrase_as_one_word,
-                },
-            ),
-            (
-                "json",
-                {
-                    "text": query_text,
-                    "docx": "",
-                    "GeneralMinScore": self.general_min_score,
-                    "TanakhMinScore": self.tanakh_min_score,
-                    "CanonicalMinScore": self.canonical_min_score,
-                    "minFrequencyToCountPhraseAsOneWord": self.min_frequency_to_count_phrase_as_one_word,
-                },
-            ),
-        ]
-
-        last_error = None
-        headers_json = {"Content-Type": "application/json"}
+        # Single payload: mirror the working browser request (form-encoded text).
         headers_form = {
             "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
             "Origin": "https://parallels.dicta.org.il",
             "Referer": "https://parallels.dicta.org.il/",
         }
+        kwargs = {
+            "params": params,
+            "timeout": self.request_timeout,
+            "data": f"text={query_text}".encode("utf-8"),
+            "headers": headers_form,
+        }
 
-        for mode, payload in payload_variants:
-            kwargs = {
-                "params": params,
-                "timeout": self.request_timeout,
-            }
-            if mode == "form-string":
-                # Ensure UTF-8 encoding for non-Latin characters
-                kwargs["data"] = payload.encode("utf-8")
-                kwargs["headers"] = headers_form
-            elif mode == "form":
-                # Use urllib-style encoding with UTF-8 to avoid Latin-1 issues
-                from urllib.parse import urlencode
+        response = requests.post(self.dicta_url, **kwargs)
+        response.raise_for_status()
+        text = response.text.lstrip("\ufeff")
+        try:
+            data = response.json()
+        except Exception:
+            import json as _json
 
-                kwargs["data"] = urlencode(payload, doseq=True, encoding="utf-8")
-                kwargs["headers"] = headers_form
-            else:  # json
-                kwargs["json"] = payload
-                kwargs["headers"] = headers_json
+            data = _json.loads(text)
+        best_hit = self._pick_best_dicta_hit(
+            data.get("results") or [],
+            target_ref=target_ref,
+            citing_ref=citing_ref,
+            citing_lang=citing_lang,
+            citing_version=citing_version,
+        )
+        if best_hit:
+            print(f"Dicta success with payload=text=<len {len(query_text)}> mode=form-string")
+            return best_hit
 
-            try:
-                response = requests.post(self.dicta_url, **kwargs)
-                response.raise_for_status()
-                text = response.text.lstrip("\ufeff")
-                try:
-                    data = response.json()
-                except Exception:
-                    import json as _json
-
-                    data = _json.loads(text)
-                best_hit = self._pick_best_dicta_hit(
-                    data.get("results") or [],
-                    target_ref=target_ref,
-                    citing_ref=citing_ref,
-                    citing_lang=citing_lang,
-                    citing_version=citing_version,
-                )
-                if best_hit:
-                    return best_hit
-            except Exception as exc:
-                last_error = exc
-                continue
-
-        # If all attempts failed, surface nothing (caller can decide how to handle).
         return None
 
     def _pick_best_dicta_hit(
@@ -336,8 +305,8 @@ class LLMParallelResolver:
                 try:
                     cand_oref = Ref(normalized)
                     cand_link = f"https://library-linker.cauldron.sefaria.org/{cand_oref.url()}"
-                    debug_hits.append(f"hit: citing={citing_link} resolved={cand_link}")
                     if target_oref and target_oref.contains(cand_oref):
+                        debug_hits.append(f"hit: citing={citing_link} resolved={cand_link}")
                         match = {"resolved_ref": normalized, "raw": candidate}
                         break
                 except Exception:
