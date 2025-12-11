@@ -20,13 +20,15 @@ class LLMParallelResolver:
         self,
         llm=None,
         dicta_url: Optional[str] = None,
-        min_threshold: float = 7.0,
-        max_distance: float = 4.0,
+        min_threshold: float = 1.0,
+        max_distance: float = 10.0,
         general_min_score: float = 7.0,
         tanakh_min_score: float = 1.45,
         canonical_min_score: float = 2.35,
         min_frequency_to_count_phrase_as_one_word: int = 30,
         request_timeout: int = 30,
+        window_words_per_side: int = 120,
+        sefaria_search_url: Optional[str] = None,
     ):
         # Default to Claude; caller can pass any LangChain chat model.
         self.llm = llm or ChatAnthropic(
@@ -47,6 +49,10 @@ class LLMParallelResolver:
         self.canonical_min_score = canonical_min_score
         self.min_frequency_to_count_phrase_as_one_word = min_frequency_to_count_phrase_as_one_word
         self.request_timeout = request_timeout
+        self.window_words_per_side = window_words_per_side
+        self.sefaria_search_url = sefaria_search_url or os.getenv(
+            "SEFARIA_SEARCH_URL", "https://www.sefaria.org/api/search-wrapper/es8"
+        )
 
     def resolve(self, link: dict, chunk: dict) -> Optional[Dict[str, Any]]:
         """
@@ -58,24 +64,59 @@ class LLMParallelResolver:
             return None
 
         citing_ref = chunk.get("ref")
-        citing_text = self._get_ref_text(citing_ref, chunk.get("language"), chunk.get("versionTitle"))
+        lang = chunk.get("language")
+        if lang and lang != "he":
+            return None
+
+        citing_text = self._get_ref_text(citing_ref, lang, chunk.get("versionTitle"))
         if not citing_text:
             return None
 
         span = self._find_span_for_ref(chunk, non_segment_ref)
-        marked_citing_text = self._mark_citation(citing_text, span)
+        citing_window, span_window = self._window_around_span(citing_text, span, self.window_words_per_side)
+        marked_citing_text = self._mark_citation(citing_window, span_window)
 
-        dicta_result = self._query_dicta(
-            citing_text,
+        resolution_result = self._query_dicta(
+            citing_window,
             target_ref=non_segment_ref,
             citing_ref=citing_ref,
             citing_lang=chunk.get("language"),
             citing_version=chunk.get("versionTitle"),
         )
-        if not dicta_result:
+        if not resolution_result:
+            search_queries = self._llm_form_search_query(marked_citing_text) or []
+            for search_query in search_queries:
+                search_result = self._query_sefaria_search(
+                    search_query,
+                    target_ref=non_segment_ref,
+                    citing_ref=citing_ref,
+                    citing_lang=chunk.get("language"),
+                    citing_version=chunk.get("versionTitle"),
+                )
+                if search_result:
+                    print(f"Sefaria search succeeded with query '{search_query}' -> {search_result.get('resolved_ref')}")
+                    resolution_result = search_result
+                    break
+                else:
+                    print(f"Sefaria search failed for query '{search_query}', retrying once...")
+                    retry_result = self._query_sefaria_search(
+                        search_query,
+                        target_ref=non_segment_ref,
+                        citing_ref=citing_ref,
+                        citing_lang=chunk.get("language"),
+                        citing_version=chunk.get("versionTitle"),
+                    )
+                    if retry_result:
+                        print(
+                            f"Sefaria search retry succeeded with query '{search_query}' "
+                            f"-> {retry_result.get('resolved_ref')}"
+                        )
+                        resolution_result = retry_result
+                        break
+        if not resolution_result:
             return None
 
-        resolved_ref = dicta_result.get("resolved_ref")
+        resolved_ref = resolution_result.get("resolved_ref")
         if not resolved_ref:
             return None
 
@@ -104,10 +145,12 @@ class LLMParallelResolver:
             "original_ref": non_segment_ref,
             "resolved_ref": resolved_ref,
             "selected_segments": [resolved_ref],
-            "reason": f"Dicta hit {resolved_ref} confirmed by LLM",
+            "reason": f"{resolution_result.get('source', 'Dicta').title()} hit {resolved_ref} confirmed by LLM",
             "llm_reason": llm_reason,
             "llm_verdict": "YES",
-            "dicta_hit": dicta_result,
+            "dicta_hit": resolution_result if resolution_result.get("source") == "dicta" else None,
+            "search_hit": resolution_result if resolution_result.get("source") == "sefaria_search" else None,
+            "match_source": resolution_result.get("source"),
         }
 
     def _find_non_segment_ref(self, link: dict) -> Optional[str]:
@@ -136,6 +179,50 @@ class LLMParallelResolver:
         except Exception:
             return ""
 
+    def _window_around_span(self, text: str, span: Optional[dict], window_words: int) -> Tuple[str, Optional[dict]]:
+        """
+        Return a substring around the citation span, limited to window_words on each side.
+        Adjust charRange accordingly for the returned substring.
+        """
+        if not text or not span:
+            return text, span
+        char_range = span.get("charRange")
+        if not char_range or len(char_range) != 2:
+            return text, span
+        start, end = char_range
+        if start < 0 or end > len(text) or start >= end:
+            return text, span
+
+        import re
+
+        tokens = [(m.start(), m.end()) for m in re.finditer(r"\S+", text)]
+        if not tokens:
+            return text, span
+
+        first_idx = None
+        last_idx = None
+        for i, (s, e) in enumerate(tokens):
+            if first_idx is None and e > start:
+                first_idx = i
+            if s < end:
+                last_idx = i
+            if e >= end and first_idx is not None:
+                break
+
+        if first_idx is None or last_idx is None:
+            return text, span
+
+        left = max(0, first_idx - window_words)
+        right = min(len(tokens) - 1, last_idx + window_words)
+
+        window_start = tokens[left][0]
+        window_end = tokens[right][1]
+
+        new_text = text[window_start:window_end]
+        new_span = dict(span)
+        new_span["charRange"] = [start - window_start, end - window_start]
+        return new_text, new_span
+
     def _find_span_for_ref(self, chunk: dict, target_ref: str) -> Optional[dict]:
         spans = chunk.get("spans") or []
         for span in spans:
@@ -163,6 +250,78 @@ class LLMParallelResolver:
         open_tag += ">"
         close_tag = "</citation>"
         return text[:start] + open_tag + text[start:end] + close_tag + text[end:]
+
+    def _llm_form_search_query(self, marked_citing_text: str) -> Optional[List[str]]:
+        """
+        Ask the LLM to form short lexical search queries from the surrounding context (not the citation itself).
+        """
+        if not marked_citing_text:
+            return None
+
+        import re
+
+        context_only = re.sub(
+            r"<citation[^>]*>.*?</citation>", " [CITATION] ", marked_citing_text, flags=re.DOTALL
+        )
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "You are extracting a concise citation phrase to search for parallels.",
+                ),
+                (
+                    "human",
+                    "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
+                    "Context with citation redacted:\n{context}\n\n"
+                    "Return 5-6 short lexical search queries (if fewer are possible, give as many as you can), "
+                    "each <=6 words, taken from the surrounding context outside the citation span that best "
+                    "describes what the citation is referring to. "
+                    "Include at least one very short keyword-only query (2-3 important words). "
+                    "Prefer lexical forms likely to appear verbatim in the target text; avoid loose summaries. "
+                    "Make each query as useful and distinguishing as possible without being verbose. "
+                    "Do not copy words that appear inside the <citation>...</citation> span. "
+                    "Do not include the placeholder [CITATION].\n\n"
+                    "Output format (strict): one query per line, numbered like:\n"
+                    "1) <query one>\n"
+                    "2) <query two>\n"
+                    "3) <query three>\n"
+                    "If no clear query is available, respond with a single line: NONE",
+                ),
+            ]
+        )
+        try:
+            chain = prompt | self.llm
+            resp = chain.invoke({"citing": marked_citing_text[:6000], "context": context_only[:6000]})
+            content = getattr(resp, "content", "").strip()
+            if not content or content.upper() == "NONE":
+                return None
+            queries: List[str] = []
+            for line in content.splitlines():
+                phrase = line.strip()
+                if not phrase:
+                    continue
+                if phrase.upper() == "NONE":
+                    queries = []
+                    break
+                # Strip numbering patterns like "1) text" or "1. text"
+                import re
+
+                phrase = re.sub(r"^\s*\d+[\).\s]+", "", phrase).strip()
+                if not phrase:
+                    continue
+                if len(phrase.split()) > 6:
+                    phrase = " ".join(phrase.split()[:6])
+                if phrase and phrase not in queries:
+                    queries.append(phrase)
+                if len(queries) >= 6:
+                    break
+            if not queries:
+                return None
+            print(f"LLM formed lexical search queries: {queries}")
+            return queries
+        except Exception as exc:
+            print(f"LLM lexical search query formation failed: {exc}")
+            return None
 
     def _llm_confirm_candidate(
         self, citing_text: str, target_ref: str, candidate_ref: str, candidate_text: str
@@ -239,27 +398,39 @@ class LLMParallelResolver:
             "headers": headers_form,
         }
 
-        response = requests.post(self.dicta_url, **kwargs)
-        response.raise_for_status()
-        text = response.text.lstrip("\ufeff")
         try:
-            data = response.json()
-        except Exception:
-            import json as _json
+            response = requests.post(self.dicta_url, **kwargs)
+            response.raise_for_status()
+            text = response.text.lstrip("\ufeff")
+            try:
+                data = response.json()
+            except Exception:
+                import json as _json
 
-            data = _json.loads(text)
-        best_hit = self._pick_best_dicta_hit(
-            data.get("results") or [],
-            target_ref=target_ref,
-            citing_ref=citing_ref,
-            citing_lang=citing_lang,
-            citing_version=citing_version,
-        )
-        if best_hit:
-            print(f"Dicta success with payload=text=<len {len(query_text)}> mode=form-string")
-            return best_hit
-
-        return None
+                data = _json.loads(text)
+            best_hit = self._pick_best_dicta_hit(
+                data.get("results") or [],
+                target_ref=target_ref,
+                citing_ref=citing_ref,
+                citing_lang=citing_lang,
+                citing_version=citing_version,
+            )
+            if best_hit:
+                print(f"Dicta success with payload=text=<len {len(query_text)}> mode=form-string")
+                return best_hit
+            else:
+                print(
+                    "Dicta returned no contained matches. Payload sent:\n"
+                    f"{query_text[:5000]}{'...' if len(query_text) > 5000 else ''}"
+                )
+                return None
+        except Exception as exc:
+            print(
+                "Dicta request failed. Payload sent:\n"
+                f"{query_text[:5000]}{'...' if len(query_text) > 5000 else ''}\n"
+                f"Error: {exc}"
+            )
+            return None
 
     def _pick_best_dicta_hit(
         self,
@@ -307,16 +478,25 @@ class LLMParallelResolver:
                     cand_link = f"https://library-linker.cauldron.sefaria.org/{cand_oref.url()}"
                     if target_oref and target_oref.contains(cand_oref):
                         debug_hits.append(f"hit: citing={citing_link} resolved={cand_link}")
-                        match = {"resolved_ref": normalized, "raw": candidate}
+                        match = {"resolved_ref": normalized, "raw": candidate, "source": "dicta"}
                         break
                 except Exception:
                     continue
 
             if match:
+                raw = match.get("raw", {})
+                base_match = raw.get("baseMatchedText")
+                comp_match = raw.get("compMatchedText")
+                if base_match or comp_match:
+                    print("Dicta matched text:")
+                    if base_match:
+                        print(f"  baseMatchedText: {base_match}")
+                    if comp_match:
+                        print(f"  compMatchedText: {comp_match}")
                 break
 
         if debug_hits:
-            print("Dicta hits:", "; ".join(debug_hits))
+            print("Dicta hits:\n  " + "\n  ".join(debug_hits))
 
         if not match:
             # Print misses with additional context if available
@@ -330,7 +510,7 @@ class LLMParallelResolver:
             if citing_version:
                 miss_info.append(f"version={citing_version}")
             if miss_info:
-                print("Dicta misses:", "; ".join(miss_info))
+                print("Dicta misses:\n  " + "\n  ".join(miss_info))
 
         return match
 
@@ -355,6 +535,128 @@ class LLMParallelResolver:
             return Ref(cleaned).normal()
         except Exception:
             return None
+
+    def _query_sefaria_search(
+        self,
+        query_text: str,
+        target_ref: Optional[str] = None,
+        citing_ref: Optional[str] = None,
+        citing_lang: Optional[str] = None,
+        citing_version: Optional[str] = None,
+        size: int = 500,
+        slop: int = 10,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Call Sefaria's ES search wrapper with a lexical query and return the first hit contained in target_ref.
+        """
+        payload = {
+            "aggs": ["path"],
+            "field": "naive_lemmatizer",
+            "filter_fields": [],
+            "filters": [],
+            "query": query_text,
+            "size": size,
+            "slop": slop,
+            "sort_fields": ["pagesheetrank"],
+            "sort_method": "score",
+            "sort_reverse": False,
+            "sort_score_missing": 0.04,
+            "source_proj": True,
+            "type": "text",
+        }
+        headers = {
+            "Content-Type": "application/json; charset=UTF-8",
+            "Accept": "application/json",
+            "Origin": "https://www.sefaria.org",
+            "Referer": "https://www.sefaria.org/texts",
+        }
+
+        try:
+            resp = requests.post(
+                self.sefaria_search_url, json=payload, timeout=self.request_timeout, headers=headers
+            )
+            resp.raise_for_status()
+            data = resp.json()
+        except Exception as exc:
+            print(
+                "Sefaria search request failed.\n"
+                f"Query: {query_text}\n"
+                f"Error: {exc}"
+            )
+            return None
+
+        target_oref = None
+        try:
+            target_oref = Ref(target_ref) if target_ref else None
+        except Exception:
+            target_oref = None
+
+        hits = data.get("hits", {})
+        hit_list = hits.get("hits") if isinstance(hits, dict) else hits or []
+
+        debug_hits: List[str] = []
+        match: Optional[Dict[str, Any]] = None
+        citing_link = None
+        try:
+            if citing_ref:
+                citing_link = f"https://library-linker.cauldron.sefaria.org/{Ref(citing_ref).url()}"
+        except Exception:
+            citing_link = None
+        target_link = None
+        try:
+            if target_oref:
+                target_link = f"https://library-linker.cauldron.sefaria.org/{target_oref.url()}"
+        except Exception:
+            target_link = None
+
+        for entry in hit_list:
+            normalized = self._extract_ref_from_search_hit(entry)
+            if not normalized:
+                continue
+            try:
+                cand_oref = Ref(normalized)
+                cand_link = f"https://library-linker.cauldron.sefaria.org/{cand_oref.url()}"
+                if target_oref and target_oref.contains(cand_oref):
+                    debug_hits.append(f"hit: citing={citing_link} resolved={cand_link}")
+                    match = {"resolved_ref": normalized, "raw": entry, "source": "sefaria_search", "query": query_text}
+                    break
+            except Exception:
+                continue
+
+        if debug_hits:
+            print("Sefaria search hits:\n  " + "\n  ".join(debug_hits))
+        else:
+            miss_info = []
+            if citing_link:
+                miss_info.append(f"citing={citing_link}")
+            if target_link:
+                miss_info.append(f"target={target_link}")
+            if citing_lang:
+                miss_info.append(f"lang={citing_lang}")
+            if citing_version:
+                miss_info.append(f"version={citing_version}")
+            print("Sefaria search misses:\n  " + "\n  ".join(miss_info) if miss_info else "Sefaria search misses.")
+
+        return match
+
+    def _extract_ref_from_search_hit(self, hit: Dict[str, Any]) -> Optional[str]:
+        """Try to pull a ref string from a Sefaria search hit."""
+        candidates = []
+        for key in ("ref", "he_ref", "sourceRef"):
+            if key in hit:
+                candidates.append(hit.get(key))
+        src = hit.get("_source") or {}
+        for key in ("ref", "he_ref", "sourceRef"):
+            if key in src:
+                candidates.append(src.get(key))
+        for candidate in candidates:
+            if not candidate:
+                continue
+            try:
+                return Ref(candidate).normal()
+            except Exception:
+                continue
+        return None
 
     def _replace_ref_in_link(self, link: dict, old_ref: str, new_ref: str) -> dict:
         updated = dict(link)
@@ -384,8 +686,8 @@ if __name__ == "__main__":
     # Requires Sefaria + Anthropic + Dicta credentials and remote access configured.
     from utils import get_random_non_segment_links_with_chunks
 
-    resolver = LLMParallelResolver()
-    samples = get_random_non_segment_links_with_chunks(n=30, use_remote=True, seed=60, use_cache=True)
+    resolver = LLMParallelResolver(window_words_per_side=30)
+    samples = get_random_non_segment_links_with_chunks(n=60, use_remote=True, seed=63, use_cache=True)
     for i, item in enumerate(samples, 1):
         print(f"\n=== Sample {i} ===")
         link = item["link"]
