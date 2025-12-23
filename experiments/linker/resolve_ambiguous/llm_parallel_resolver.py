@@ -704,6 +704,8 @@ class LLMParallelResolver:
 
                 try:
                     cand_oref = Ref(normalized)
+                    if not cand_oref.is_segment_level():
+                        continue
                     cand_link = f"https://library-linker2.cauldron.sefaria.org/{cand_oref.url()}"
                     if target_oref and target_oref.contains(cand_oref):
                         score = candidate.get("score")
@@ -966,6 +968,8 @@ class LLMParallelResolver:
                 continue
             try:
                 cand_oref = Ref(normalized)
+                if not cand_oref.is_segment_level():
+                    continue
                 cand_link = f"https://library-linker2.cauldron.sefaria.org/{cand_oref.url()}"
                 if target_oref and target_oref.contains(cand_oref):
                     debug_hits.append(f"hit: citing={citing_link} resolved={cand_link}")
@@ -1092,7 +1096,7 @@ if __name__ == "__main__":
     from utils import get_random_non_segment_links_with_chunks
 
     resolver = LLMParallelResolver(window_words_per_side=30)
-    samples = get_random_non_segment_links_with_chunks(n=60, use_remote=True, seed=68, use_cache=True)
+    samples = get_random_non_segment_links_with_chunks(n=60, use_remote=True, seed=69, use_cache=True)
     for i, item in enumerate(samples, 1):
         print(f"\n=== Sample {i} ===")
         link = item["link"]
