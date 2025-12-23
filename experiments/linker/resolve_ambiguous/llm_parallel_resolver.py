@@ -6,6 +6,10 @@ django.setup()
 import requests
 from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate
+try:  # Optional: only if OpenAI is available
+    from langchain_openai import ChatOpenAI
+except Exception:  # pragma: no cover - optional dependency
+    ChatOpenAI = None
 from sefaria.model.text import Ref, AddressType
 
 
@@ -30,13 +34,30 @@ class LLMParallelResolver:
         window_words_per_side: int = 120,
         sefaria_search_url: Optional[str] = None,
     ):
-        # Default to Claude; caller can pass any LangChain chat model.
-        self.llm = llm or ChatAnthropic(
-            model=os.getenv("ANTHROPIC_MODEL", "claude-3-5-haiku-20241022"),
-            temperature=0,
-            max_tokens=256,
-            api_key=os.getenv("ANTHROPIC_API_KEY"),
-        )
+        if llm is not None:
+            self.llm = llm
+        else:
+            # Default to Claude; caller can pass any LangChain chat model.
+            self.llm = ChatAnthropic(
+                model=os.getenv("ANTHROPIC_MODEL", "claude-3-5-haiku-20241022"),
+                temperature=0,
+                max_tokens=256,
+                api_key=os.getenv("ANTHROPIC_API_KEY"),
+            )
+
+        keyword_model = os.getenv("LLM_KEYWORD_MODEL")
+        if keyword_model:
+            if not ChatOpenAI:
+                raise RuntimeError("LLM_KEYWORD_MODEL is set but langchain_openai is not installed.")
+            self.keyword_llm = ChatOpenAI(
+                model=keyword_model,
+                temperature=0,
+                max_tokens=256,
+                api_key=os.getenv("OPENAI_API_KEY"),
+            )
+        else:
+            # Default keyword extractor uses the main LLM.
+            self.keyword_llm = self.llm
         # Dicta API configuration
         self.dicta_url = dicta_url or os.getenv(
             "DICTA_PARALLELS_URL",
@@ -86,8 +107,12 @@ class LLMParallelResolver:
         )
         if not resolution_result:
             # First try queries from the citing text alone
+            searched_queries = set()
             search_queries = self._llm_form_search_query(marked_citing_text) or []
             for search_query in search_queries:
+                if not search_query or search_query in searched_queries:
+                    continue
+                searched_queries.add(search_query)
                 search_result = self._query_sefaria_search(
                     search_query,
                     target_ref=non_segment_ref,
@@ -124,6 +149,9 @@ class LLMParallelResolver:
                     base_text=base_text_for_prompt,
                 ) or []
                 for search_query in base_queries:
+                    if not search_query or search_query in searched_queries:
+                        continue
+                    searched_queries.add(search_query)
                     search_result = self._query_sefaria_search(
                         search_query,
                         target_ref=non_segment_ref,
@@ -154,6 +182,96 @@ class LLMParallelResolver:
                             )
                             resolution_result = retry_result
                             break
+
+            # If still no hit, expand window (2x current) and retry keyword generation/search
+            if not resolution_result:
+                expanded_words = max(self.window_words_per_side * 2, self.window_words_per_side + 1)
+                if expanded_words > self.window_words_per_side:
+                    expanded_window, expanded_span = self._window_around_span(citing_text, span, expanded_words)
+                    expanded_marked = self._mark_citation(expanded_window, expanded_span)
+
+                    # text-only queries on expanded context
+                    expanded_queries = self._llm_form_search_query(expanded_marked) or []
+                    for search_query in expanded_queries:
+                        if not search_query or search_query in searched_queries:
+                            continue
+                        searched_queries.add(search_query)
+                        search_result = self._query_sefaria_search(
+                            search_query,
+                            target_ref=non_segment_ref,
+                            citing_ref=citing_ref,
+                            citing_lang=chunk.get("language"),
+                            citing_version=chunk.get("versionTitle"),
+                        )
+                        if search_result:
+                            print(
+                                f"Sefaria search (expanded window) succeeded with query '{search_query}' "
+                                f"-> {search_result.get('resolved_ref')}"
+                            )
+                            resolution_result = search_result
+                            break
+                        else:
+                            print(
+                                f"Sefaria search (expanded window) failed for query '{search_query}', retrying once..."
+                            )
+                            retry_result = self._query_sefaria_search(
+                                search_query,
+                                target_ref=non_segment_ref,
+                                citing_ref=citing_ref,
+                                citing_lang=chunk.get("language"),
+                                citing_version=chunk.get("versionTitle"),
+                            )
+                            if retry_result:
+                                print(
+                                    f"Sefaria search (expanded window) retry succeeded with query '{search_query}' "
+                                    f"-> {retry_result.get('resolved_ref')}"
+                                )
+                                resolution_result = retry_result
+                                break
+
+                    # base-text seeded queries on expanded context
+                    if not resolution_result and base_text_for_prompt:
+                        base_expanded_queries = self._llm_form_search_query(
+                            expanded_marked,
+                            base_ref=base_ref_for_prompt,
+                            base_text=base_text_for_prompt,
+                        ) or []
+                        for search_query in base_expanded_queries:
+                            if not search_query or search_query in searched_queries:
+                                continue
+                            searched_queries.add(search_query)
+                            search_result = self._query_sefaria_search(
+                                search_query,
+                                target_ref=non_segment_ref,
+                                citing_ref=citing_ref,
+                                citing_lang=chunk.get("language"),
+                                citing_version=chunk.get("versionTitle"),
+                            )
+                            if search_result:
+                                print(
+                                    f"Sefaria search (expanded window + base text) succeeded with query '{search_query}' "
+                                    f"-> {search_result.get('resolved_ref')}"
+                                )
+                                resolution_result = search_result
+                                break
+                            else:
+                                print(
+                                    f"Sefaria search (expanded window + base text) failed for query '{search_query}', retrying once..."
+                                )
+                                retry_result = self._query_sefaria_search(
+                                    search_query,
+                                    target_ref=non_segment_ref,
+                                    citing_ref=citing_ref,
+                                    citing_lang=chunk.get("language"),
+                                    citing_version=chunk.get("versionTitle"),
+                                )
+                                if retry_result:
+                                    print(
+                                        f"Sefaria search (expanded window + base text) retry succeeded with query '{search_query}' "
+                                        f"-> {retry_result.get('resolved_ref')}"
+                                    )
+                                    resolution_result = retry_result
+                                    break
         if not resolution_result:
             return None
 
@@ -341,7 +459,7 @@ class LLMParallelResolver:
             ]
         )
         try:
-            chain = prompt | self.llm
+            chain = prompt | self.keyword_llm
             resp = chain.invoke(
                 {
                     "citing": marked_citing_text[:6000],
@@ -606,6 +724,7 @@ class LLMParallelResolver:
         """
         Call Sefaria's ElasticSearch proxy (text index) with a lexical query and return the first hit contained in target_ref.
         """
+        path_regex = self._path_regex_for_ref(target_ref)
         payload = {
             "from": 0,
             "size": size,
@@ -618,8 +737,19 @@ class LLMParallelResolver:
                 "function_score": {
                     "field_value_factor": {"field": "pagesheetrank", "missing": 0.04},
                     "query": {
-                        "match_phrase": {
-                            "naive_lemmatizer": {"query": query_text, "slop": slop}
+                        "bool": {
+                            "must": {
+                                "match_phrase": {"naive_lemmatizer": {"query": query_text, "slop": slop}}
+                            },
+                            "filter": (
+                                {
+                                    "bool": {
+                                        "should": [{"regexp": {"path": path_regex}}],
+                                    }
+                                }
+                                if path_regex
+                                else {}
+                            ),
                         }
                     },
                 }
@@ -699,6 +829,8 @@ class LLMParallelResolver:
                 miss_info.append(f"lang={citing_lang}")
             if citing_version:
                 miss_info.append(f"version={citing_version}")
+            if path_regex:
+                miss_info.append(f"path_regex={path_regex}")
             print("Sefaria search misses:\n  " + "\n  ".join(miss_info) if miss_info else "Sefaria search misses.")
 
         return match
@@ -721,6 +853,32 @@ class LLMParallelResolver:
             except Exception:
                 continue
         return None
+
+    def _path_regex_for_ref(self, target_ref: Optional[str]) -> Optional[str]:
+        """
+        Build a regex for the `path` field to constrain search to the relevant book/category tree.
+        Example: "Mishnah/Seder Zeraim/Mishnah Kilayim.*"
+        """
+        if not target_ref:
+            return None
+        try:
+            oref = Ref(target_ref)
+            idx = oref.index
+            parts = []
+            try:
+                parts.extend(idx.categories or [])
+            except Exception:
+                pass
+            try:
+                parts.append(idx.title)
+            except Exception:
+                pass
+            if not parts:
+                return None
+            path = "/".join(parts)
+            return path.replace("/", r"\/") + ".*"
+        except Exception:
+            return None
 
     def _get_commentary_base_context(self, citing_ref: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
         """
@@ -777,7 +935,7 @@ if __name__ == "__main__":
     from utils import get_random_non_segment_links_with_chunks
 
     resolver = LLMParallelResolver(window_words_per_side=30)
-    samples = get_random_non_segment_links_with_chunks(n=60, use_remote=True, seed=65, use_cache=True)
+    samples = get_random_non_segment_links_with_chunks(n=60, use_remote=True, seed=66, use_cache=True)
     for i, item in enumerate(samples, 1):
         print(f"\n=== Sample {i} ===")
         link = item["link"]
