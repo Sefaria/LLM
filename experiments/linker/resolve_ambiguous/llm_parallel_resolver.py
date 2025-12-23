@@ -6,7 +6,7 @@ django.setup()
 import requests
 from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate
-from sefaria.model.text import Ref
+from sefaria.model.text import Ref, AddressType
 
 
 class LLMParallelResolver:
@@ -51,7 +51,7 @@ class LLMParallelResolver:
         self.request_timeout = request_timeout
         self.window_words_per_side = window_words_per_side
         self.sefaria_search_url = sefaria_search_url or os.getenv(
-            "SEFARIA_SEARCH_URL", "https://www.sefaria.org/api/search-wrapper/es8"
+            "SEFARIA_SEARCH_URL", "https://www.sefaria.org/api/search/text/_search"
         )
 
     def resolve(self, link: dict, chunk: dict) -> Optional[Dict[str, Any]]:
@@ -75,6 +75,7 @@ class LLMParallelResolver:
         span = self._find_span_for_ref(chunk, non_segment_ref)
         citing_window, span_window = self._window_around_span(citing_text, span, self.window_words_per_side)
         marked_citing_text = self._mark_citation(citing_window, span_window)
+        base_ref_for_prompt, base_text_for_prompt = self._get_commentary_base_context(citing_ref)
 
         resolution_result = self._query_dicta(
             citing_window,
@@ -84,6 +85,7 @@ class LLMParallelResolver:
             citing_version=chunk.get("versionTitle"),
         )
         if not resolution_result:
+            # First try queries from the citing text alone
             search_queries = self._llm_form_search_query(marked_citing_text) or []
             for search_query in search_queries:
                 search_result = self._query_sefaria_search(
@@ -113,6 +115,45 @@ class LLMParallelResolver:
                         )
                         resolution_result = retry_result
                         break
+
+            # If no hit, fall back to using base text (for commentaries) to seed queries
+            if not resolution_result and base_text_for_prompt:
+                base_queries = self._llm_form_search_query(
+                    marked_citing_text,
+                    base_ref=base_ref_for_prompt,
+                    base_text=base_text_for_prompt,
+                ) or []
+                for search_query in base_queries:
+                    search_result = self._query_sefaria_search(
+                        search_query,
+                        target_ref=non_segment_ref,
+                        citing_ref=citing_ref,
+                        citing_lang=chunk.get("language"),
+                        citing_version=chunk.get("versionTitle"),
+                    )
+                    if search_result:
+                        print(
+                            f"Sefaria search (base-text seeded) succeeded with query '{search_query}' "
+                            f"-> {search_result.get('resolved_ref')}"
+                        )
+                        resolution_result = search_result
+                        break
+                    else:
+                        print(f"Sefaria search (base-text seeded) failed for query '{search_query}', retrying once...")
+                        retry_result = self._query_sefaria_search(
+                            search_query,
+                            target_ref=non_segment_ref,
+                            citing_ref=citing_ref,
+                            citing_lang=chunk.get("language"),
+                            citing_version=chunk.get("versionTitle"),
+                        )
+                        if retry_result:
+                            print(
+                                f"Sefaria search (base-text seeded) retry succeeded with query '{search_query}' "
+                                f"-> {retry_result.get('resolved_ref')}"
+                            )
+                            resolution_result = retry_result
+                            break
         if not resolution_result:
             return None
 
@@ -251,18 +292,23 @@ class LLMParallelResolver:
         close_tag = "</citation>"
         return text[:start] + open_tag + text[start:end] + close_tag + text[end:]
 
-    def _llm_form_search_query(self, marked_citing_text: str) -> Optional[List[str]]:
+    def _llm_form_search_query(
+        self, marked_citing_text: str, base_ref: Optional[str] = None, base_text: Optional[str] = None
+    ) -> Optional[List[str]]:
         """
         Ask the LLM to form short lexical search queries from the surrounding context (not the citation itself).
         """
         if not marked_citing_text:
             return None
-
         import re
 
         context_only = re.sub(
             r"<citation[^>]*>.*?</citation>", " [CITATION] ", marked_citing_text, flags=re.DOTALL
         )
+
+        base_block = ""
+        if base_ref and base_text:
+            base_block = f"Base text of commentary target ({base_ref}):\n{base_text[:3000]}\n\n"
         prompt = ChatPromptTemplate.from_messages(
             [
                 (
@@ -273,9 +319,11 @@ class LLMParallelResolver:
                     "human",
                     "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
                     "Context with citation redacted:\n{context}\n\n"
+                    "{base_block}"
                     "Return 5-6 short lexical search queries (if fewer are possible, give as many as you can), "
                     "each <=6 words, taken from the surrounding context outside the citation span that best "
                     "describes what the citation is referring to. "
+                    "If this is a commentary and base text is provided, prefer keywords that appear verbatim in the base text when relevant. "
                     "Include at least one very short keyword-only query (2-3 important words). "
                     "Prefer lexical forms likely to appear verbatim in the target text; avoid loose summaries. "
                     "Make each query as useful and distinguishing as possible without being verbose. "
@@ -285,13 +333,22 @@ class LLMParallelResolver:
                     "1) <query one>\n"
                     "2) <query two>\n"
                     "3) <query three>\n"
+                    "4) <query four>\n"
+                    "5) <query five>\n"
+                    "6) <query six>\n"
                     "If no clear query is available, respond with a single line: NONE",
                 ),
             ]
         )
         try:
             chain = prompt | self.llm
-            resp = chain.invoke({"citing": marked_citing_text[:6000], "context": context_only[:6000]})
+            resp = chain.invoke(
+                {
+                    "citing": marked_citing_text[:6000],
+                    "context": context_only[:6000],
+                    "base_block": base_block,
+                }
+            )
             content = getattr(resp, "content", "").strip()
             if not content or content.upper() == "NONE":
                 return None
@@ -456,13 +513,13 @@ class LLMParallelResolver:
         citing_link = None
         try:
             if citing_ref:
-                citing_link = f"https://library-linker.cauldron.sefaria.org/{Ref(citing_ref).url()}"
+                citing_link = f"https://library-linker2.cauldron.sefaria.org/{Ref(citing_ref).url()}"
         except Exception:
             citing_link = None
         target_link = None
         try:
             if target_oref:
-                target_link = f"https://library-linker.cauldron.sefaria.org/{target_oref.url()}"
+                target_link = f"https://library-linker2.cauldron.sefaria.org/{target_oref.url()}"
         except Exception:
             target_link = None
 
@@ -475,7 +532,7 @@ class LLMParallelResolver:
 
                 try:
                     cand_oref = Ref(normalized)
-                    cand_link = f"https://library-linker.cauldron.sefaria.org/{cand_oref.url()}"
+                    cand_link = f"https://library-linker2.cauldron.sefaria.org/{cand_oref.url()}"
                     if target_oref and target_oref.contains(cand_oref):
                         debug_hits.append(f"hit: citing={citing_link} resolved={cand_link}")
                         match = {"resolved_ref": normalized, "raw": candidate, "source": "dicta"}
@@ -547,22 +604,26 @@ class LLMParallelResolver:
         slop: int = 10,
     ) -> Optional[Dict[str, Any]]:
         """
-        Call Sefaria's ES search wrapper with a lexical query and return the first hit contained in target_ref.
+        Call Sefaria's ElasticSearch proxy (text index) with a lexical query and return the first hit contained in target_ref.
         """
         payload = {
-            "aggs": ["path"],
-            "field": "naive_lemmatizer",
-            "filter_fields": [],
-            "filters": [],
-            "query": query_text,
+            "from": 0,
             "size": size,
-            "slop": slop,
-            "sort_fields": ["pagesheetrank"],
-            "sort_method": "score",
-            "sort_reverse": False,
-            "sort_score_missing": 0.04,
-            "source_proj": True,
-            "type": "text",
+            "highlight": {
+                "pre_tags": ["<b>"],
+                "post_tags": ["</b>"],
+                "fields": {"naive_lemmatizer": {"fragment_size": 200}},
+            },
+            "query": {
+                "function_score": {
+                    "field_value_factor": {"field": "pagesheetrank", "missing": 0.04},
+                    "query": {
+                        "match_phrase": {
+                            "naive_lemmatizer": {"query": query_text, "slop": slop}
+                        }
+                    },
+                }
+            },
         }
         headers = {
             "Content-Type": "application/json; charset=UTF-8",
@@ -573,13 +634,16 @@ class LLMParallelResolver:
 
         try:
             resp = requests.post(
-                self.sefaria_search_url, json=payload, timeout=self.request_timeout, headers=headers
+                self.sefaria_search_url,
+                json=payload,
+                timeout=self.request_timeout,
+                headers=headers,
             )
             resp.raise_for_status()
             data = resp.json()
         except Exception as exc:
             print(
-                "Sefaria search request failed.\n"
+                "Sefaria search-api request failed.\n"
                 f"Query: {query_text}\n"
                 f"Error: {exc}"
             )
@@ -599,13 +663,13 @@ class LLMParallelResolver:
         citing_link = None
         try:
             if citing_ref:
-                citing_link = f"https://library-linker.cauldron.sefaria.org/{Ref(citing_ref).url()}"
+                citing_link = f"https://library-linker2.cauldron.sefaria.org/{Ref(citing_ref).url()}"
         except Exception:
             citing_link = None
         target_link = None
         try:
             if target_oref:
-                target_link = f"https://library-linker.cauldron.sefaria.org/{target_oref.url()}"
+                target_link = f"https://library-linker2.cauldron.sefaria.org/{target_oref.url()}"
         except Exception:
             target_link = None
 
@@ -615,7 +679,7 @@ class LLMParallelResolver:
                 continue
             try:
                 cand_oref = Ref(normalized)
-                cand_link = f"https://library-linker.cauldron.sefaria.org/{cand_oref.url()}"
+                cand_link = f"https://library-linker2.cauldron.sefaria.org/{cand_oref.url()}"
                 if target_oref and target_oref.contains(cand_oref):
                     debug_hits.append(f"hit: citing={citing_link} resolved={cand_link}")
                     match = {"resolved_ref": normalized, "raw": entry, "source": "sefaria_search", "query": query_text}
@@ -658,6 +722,32 @@ class LLMParallelResolver:
                 continue
         return None
 
+    def _get_commentary_base_context(self, citing_ref: Optional[str]) -> Tuple[Optional[str], Optional[str]]:
+        """
+        For commentary refs, fetch the aligned base ref and text for prompt context.
+        Returns (base_ref, base_text).
+        """
+        if not citing_ref:
+            return None, None
+        try:
+            citing_oref = Ref(citing_ref)
+            base_titles = getattr(citing_oref.index, "base_text_titles", []) or []
+            if not base_titles:
+                return None, None
+            base_title = base_titles[0]
+            section_ref = citing_oref.section_ref()
+            sec_parts = section_ref.sections
+            addr_types = section_ref.index_node.addressTypes
+            for sec, addr_type in zip(sec_parts, addr_types):
+                address = AddressType.to_str_by_address_type(addr_type, "en", sec)
+                base_title += f" {address}"
+            base_ref = Ref(base_title)
+            base_ref_norm = base_ref.normal()
+            base_text = self._get_ref_text(base_ref_norm, lang="he") or self._get_ref_text(base_ref_norm, lang="en")
+            return base_ref_norm, base_text
+        except Exception:
+            return None, None
+
     def _replace_ref_in_link(self, link: dict, old_ref: str, new_ref: str) -> dict:
         updated = dict(link)
         updated_refs = []
@@ -687,7 +777,7 @@ if __name__ == "__main__":
     from utils import get_random_non_segment_links_with_chunks
 
     resolver = LLMParallelResolver(window_words_per_side=30)
-    samples = get_random_non_segment_links_with_chunks(n=60, use_remote=True, seed=63, use_cache=True)
+    samples = get_random_non_segment_links_with_chunks(n=60, use_remote=True, seed=65, use_cache=True)
     for i, item in enumerate(samples, 1):
         print(f"\n=== Sample {i} ===")
         link = item["link"]
