@@ -104,10 +104,14 @@ class LLMParallelResolver:
             citing_ref=citing_ref,
             citing_lang=chunk.get("language"),
             citing_version=chunk.get("versionTitle"),
+            ranking_context=marked_citing_text,
+            base_ref=base_ref_for_prompt,
+            base_text=base_text_for_prompt,
         )
         if not resolution_result:
             # First try queries from the citing text alone
             searched_queries = set()
+            search_candidates: List[Dict[str, Any]] = []
             search_queries = self._llm_form_search_query(marked_citing_text) or []
             for search_query in search_queries:
                 if not search_query or search_query in searched_queries:
@@ -122,8 +126,7 @@ class LLMParallelResolver:
                 )
                 if search_result:
                     print(f"Sefaria search succeeded with query '{search_query}' -> {search_result.get('resolved_ref')}")
-                    resolution_result = search_result
-                    break
+                    search_candidates.append(search_result)
                 else:
                     print(f"Sefaria search failed for query '{search_query}', retrying once...")
                     retry_result = self._query_sefaria_search(
@@ -138,8 +141,7 @@ class LLMParallelResolver:
                             f"Sefaria search retry succeeded with query '{search_query}' "
                             f"-> {retry_result.get('resolved_ref')}"
                         )
-                        resolution_result = retry_result
-                        break
+                        search_candidates.append(retry_result)
 
             # If no hit, fall back to using base text (for commentaries) to seed queries
             if not resolution_result and base_text_for_prompt:
@@ -164,8 +166,7 @@ class LLMParallelResolver:
                             f"Sefaria search (base-text seeded) succeeded with query '{search_query}' "
                             f"-> {search_result.get('resolved_ref')}"
                         )
-                        resolution_result = search_result
-                        break
+                        search_candidates.append(search_result)
                     else:
                         print(f"Sefaria search (base-text seeded) failed for query '{search_query}', retrying once...")
                         retry_result = self._query_sefaria_search(
@@ -180,8 +181,7 @@ class LLMParallelResolver:
                                 f"Sefaria search (base-text seeded) retry succeeded with query '{search_query}' "
                                 f"-> {retry_result.get('resolved_ref')}"
                             )
-                            resolution_result = retry_result
-                            break
+                            search_candidates.append(retry_result)
 
             # If still no hit, expand window (2x current) and retry keyword generation/search
             if not resolution_result:
@@ -208,8 +208,7 @@ class LLMParallelResolver:
                                 f"Sefaria search (expanded window) succeeded with query '{search_query}' "
                                 f"-> {search_result.get('resolved_ref')}"
                             )
-                            resolution_result = search_result
-                            break
+                            search_candidates.append(search_result)
                         else:
                             print(
                                 f"Sefaria search (expanded window) failed for query '{search_query}', retrying once..."
@@ -226,8 +225,7 @@ class LLMParallelResolver:
                                     f"Sefaria search (expanded window) retry succeeded with query '{search_query}' "
                                     f"-> {retry_result.get('resolved_ref')}"
                                 )
-                                resolution_result = retry_result
-                                break
+                                search_candidates.append(retry_result)
 
                     # base-text seeded queries on expanded context
                     if not resolution_result and base_text_for_prompt:
@@ -252,8 +250,7 @@ class LLMParallelResolver:
                                     f"Sefaria search (expanded window + base text) succeeded with query '{search_query}' "
                                     f"-> {search_result.get('resolved_ref')}"
                                 )
-                                resolution_result = search_result
-                                break
+                                search_candidates.append(search_result)
                             else:
                                 print(
                                     f"Sefaria search (expanded window + base text) failed for query '{search_query}', retrying once..."
@@ -270,8 +267,27 @@ class LLMParallelResolver:
                                         f"Sefaria search (expanded window + base text) retry succeeded with query '{search_query}' "
                                         f"-> {retry_result.get('resolved_ref')}"
                                     )
-                                    resolution_result = retry_result
-                                    break
+                                    search_candidates.append(retry_result)
+
+            # If we accumulated candidates from search, pick best via LLM if more than one
+            if search_candidates:
+                deduped_search = self._dedupe_candidates_by_ref(search_candidates)
+                if len(deduped_search) == 1:
+                    resolution_result = deduped_search[0]
+                else:
+                    chosen = self._llm_choose_best_candidate(
+                        marked_citing_text,
+                        non_segment_ref,
+                        deduped_search,
+                        base_ref=base_ref_for_prompt,
+                        base_text=base_text_for_prompt,
+                        lang=chunk.get("language"),
+                    )
+                    if chosen:
+                        print(
+                            f"Sefaria search had {len(deduped_search)} candidates; LLM chose {chosen.get('resolved_ref')}"
+                        )
+                        resolution_result = chosen
         if not resolution_result:
             return None
 
@@ -281,7 +297,12 @@ class LLMParallelResolver:
 
         candidate_text = self._get_ref_text(resolved_ref, chunk.get("language"))
         llm_ok, llm_reason = self._llm_confirm_candidate(
-            marked_citing_text, non_segment_ref, resolved_ref, candidate_text
+            marked_citing_text,
+            non_segment_ref,
+            resolved_ref,
+            candidate_text,
+            base_ref=base_ref_for_prompt,
+            base_text=base_text_for_prompt,
         )
         if not llm_ok:
             print(
@@ -499,11 +520,20 @@ class LLMParallelResolver:
             return None
 
     def _llm_confirm_candidate(
-        self, citing_text: str, target_ref: str, candidate_ref: str, candidate_text: str
+        self,
+        citing_text: str,
+        target_ref: str,
+        candidate_ref: str,
+        candidate_text: str,
+        base_ref: Optional[str] = None,
+        base_text: Optional[str] = None,
     ) -> Tuple[bool, str]:
         """
         Ask the LLM to confirm whether the Dicta-picked candidate is a likely direct/close paraphrase.
         """
+        base_block = ""
+        if base_ref and base_text:
+            base_block = f"Base text of commentary target ({base_ref}):\n{base_text[:3000]}\n\n"
         prompt = ChatPromptTemplate.from_messages(
             [
                 (
@@ -513,6 +543,7 @@ class LLMParallelResolver:
                 (
                     "human",
                     "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
+                    "{base_block}"
                     "Target ref: {target_ref}\n"
                     "Candidate segment ref: {candidate_ref}\n"
                     "Candidate segment text:\n{candidate_text}\n\n"
@@ -526,6 +557,7 @@ class LLMParallelResolver:
         resp = chain.invoke(
             {
                 "citing": citing_text[:6000],
+                "base_block": base_block,
                 "target_ref": target_ref,
                 "candidate_ref": candidate_ref,
                 "candidate_text": candidate_text[:6000],
@@ -551,6 +583,9 @@ class LLMParallelResolver:
         citing_ref: Optional[str] = None,
         citing_lang: Optional[str] = None,
         citing_version: Optional[str] = None,
+        ranking_context: Optional[str] = None,
+        base_ref: Optional[str] = None,
+        base_text: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """
         Call Dicta's parallels API with the provided text and return the best hit (if any).
@@ -583,21 +618,40 @@ class LLMParallelResolver:
                 import json as _json
 
                 data = _json.loads(text)
-            best_hit = self._pick_best_dicta_hit(
+            candidates = self._collect_dicta_hits(
                 data.get("results") or [],
                 target_ref=target_ref,
                 citing_ref=citing_ref,
                 citing_lang=citing_lang,
                 citing_version=citing_version,
             )
-            if best_hit:
-                print(f"Dicta success with payload=text=<len {len(query_text)}> mode=form-string")
-                return best_hit
-            else:
+            if not candidates:
                 print(
                     "Dicta returned no contained matches. Payload sent:\n"
                     f"{query_text[:5000]}{'...' if len(query_text) > 5000 else ''}"
                 )
+                return None
+            deduped_candidates = self._dedupe_candidates_by_ref(candidates)
+            if len(deduped_candidates) == 1:
+                print(f"Dicta success with payload=text=<len {len(query_text)}> mode=form-string")
+                return deduped_candidates[0]
+            # Multiple candidates: let LLM choose best
+            chosen = self._llm_choose_best_candidate(
+                ranking_context or query_text,
+                target_ref,
+                deduped_candidates,
+                base_ref=base_ref,
+                base_text=base_text,
+                lang=citing_lang,
+            )
+            if chosen:
+                print(
+                    "Dicta multiple hits; LLM chose "
+                    f"{chosen.get('resolved_ref')} from {len(deduped_candidates)} candidates"
+                )
+                return chosen
+            else:
+                print("LLM failed to pick among Dicta hits.")
                 return None
         except Exception as exc:
             print(
@@ -607,7 +661,7 @@ class LLMParallelResolver:
             )
             return None
 
-    def _pick_best_dicta_hit(
+    def _collect_dicta_hits(
         self,
         results: List[Dict[str, Any]],
         target_ref: Optional[str] = None,
@@ -616,8 +670,8 @@ class LLMParallelResolver:
         citing_version: Optional[str] = None,
     ) -> Optional[Dict[str, Any]]:
         """
-        Given Dicta results, return the first candidate whose ref is contained within the target_ref.
-        Prints all normalized hits for debugging.
+        Given Dicta results, return the best candidate (highest score) whose ref is contained within the target_ref.
+        Prints all normalized hits and the selected one.
         """
         target_oref = None
         if target_ref:
@@ -627,7 +681,7 @@ class LLMParallelResolver:
                 target_oref = None
 
         debug_hits: List[str] = []
-        match: Optional[Dict[str, Any]] = None
+        candidates: List[Dict[str, Any]] = []
         citing_link = None
         try:
             if citing_ref:
@@ -652,28 +706,18 @@ class LLMParallelResolver:
                     cand_oref = Ref(normalized)
                     cand_link = f"https://library-linker2.cauldron.sefaria.org/{cand_oref.url()}"
                     if target_oref and target_oref.contains(cand_oref):
-                        debug_hits.append(f"hit: citing={citing_link} resolved={cand_link}")
-                        match = {"resolved_ref": normalized, "raw": candidate, "source": "dicta"}
-                        break
+                        score = candidate.get("score")
+                        debug_hits.append(f"hit: citing={citing_link} resolved={cand_link} score={score}")
+                        candidates.append(
+                            {"resolved_ref": normalized, "raw": candidate, "source": "dicta", "score": score}
+                        )
                 except Exception:
                     continue
-
-            if match:
-                raw = match.get("raw", {})
-                base_match = raw.get("baseMatchedText")
-                comp_match = raw.get("compMatchedText")
-                if base_match or comp_match:
-                    print("Dicta matched text:")
-                    if base_match:
-                        print(f"  baseMatchedText: {base_match}")
-                    if comp_match:
-                        print(f"  compMatchedText: {comp_match}")
-                break
 
         if debug_hits:
             print("Dicta hits:\n  " + "\n  ".join(debug_hits))
 
-        if not match:
+        if not candidates:
             # Print misses with additional context if available
             miss_info = []
             if citing_link:
@@ -687,7 +731,120 @@ class LLMParallelResolver:
             if miss_info:
                 print("Dicta misses:\n  " + "\n  ".join(miss_info))
 
-        return match
+        return candidates
+
+    def _llm_choose_best_candidate(
+        self,
+        citing_text: str,
+        target_ref: str,
+        candidates: List[Dict[str, Any]],
+        base_ref: Optional[str] = None,
+        base_text: Optional[str] = None,
+        lang: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Ask the LLM to pick the best candidate ref among multiple hits.
+        """
+        if not candidates:
+            return None
+
+        # Deduplicate by resolved_ref (keep highest score version if duplicates)
+        unique_candidates: Dict[str, Dict[str, Any]] = {}
+        for cand in candidates:
+            ref = cand.get("resolved_ref")
+            if not ref:
+                continue
+            if ref not in unique_candidates:
+                unique_candidates[ref] = cand
+            else:
+                prev_score = unique_candidates[ref].get("score")
+                new_score = cand.get("score")
+                if new_score is not None and (prev_score is None or new_score > prev_score):
+                    unique_candidates[ref] = cand
+
+        # Load candidate texts for ranking
+        numbered = []
+        candidate_payloads = []
+        for idx, (ref, cand) in enumerate(unique_candidates.items(), 1):
+            cand_text = self._get_ref_text(ref, lang=lang) if ref else ""
+            candidate_payloads.append((idx, cand, cand_text))
+            preview = (cand_text or "").strip()
+            preview = preview[:400] + ("..." if len(preview) > 400 else "")
+            score = cand.get("score")
+            numbered.append(f"{idx}) {ref} (score={score})\n{preview}")
+
+        base_block = ""
+        if base_ref and base_text:
+            base_block = f"Base text of commentary target ({base_ref}):\n{base_text[:2000]}\n\n"
+
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "You choose the single best candidate ref that the citing text most directly quotes or paraphrases.",
+                ),
+                (
+                    "human",
+                    "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
+                    f"{base_block}"
+                    "Candidate refs:\n{candidates}\n\n"
+                    "Pick exactly one number. Answer in two lines:\n"
+                    "Reason: <brief rationale>\n"
+                    "Choice: <number>",
+                ),
+            ]
+        )
+
+        chain = prompt | self.llm
+        try:
+            resp = chain.invoke({"citing": citing_text[:6000], "candidates": "\n\n".join(numbered)})
+            content = getattr(resp, "content", "")
+        except Exception:
+            return None
+
+        choice = None
+        import re
+
+        match = re.search(r"choice\s*:\s*([0-9]+)", content, re.IGNORECASE)
+        if match:
+            choice = int(match.group(1))
+        else:
+            nums = re.findall(r"\d+", content)
+            if nums:
+                choice = int(nums[0])
+
+        if choice is None:
+            return None
+        for idx, cand, _text in candidate_payloads:
+            if idx == choice:
+                raw = cand.get("raw", {})
+                base_match = raw.get("baseMatchedText") if isinstance(raw, dict) else None
+                comp_match = raw.get("compMatchedText") if isinstance(raw, dict) else None
+                if base_match or comp_match:
+                    print("Selected candidate matched text:")
+                    if base_match:
+                        print(f"  baseMatchedText: {base_match}")
+                    if comp_match:
+                        print(f"  compMatchedText: {comp_match}")
+                cand["llm_choice_reason"] = content
+                return cand
+        return None
+
+    def _dedupe_candidates_by_ref(self, candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Deduplicate candidates by resolved_ref, keeping highest score if duplicates."""
+        unique: Dict[str, Dict[str, Any]] = {}
+        for cand in candidates:
+            ref = cand.get("resolved_ref")
+            if not ref:
+                continue
+            if ref not in unique:
+                unique[ref] = cand
+            else:
+                prev_score = unique[ref].get("score")
+                new_score = cand.get("score")
+                if new_score is not None and (prev_score is None or new_score > prev_score):
+                    unique[ref] = cand
+        return list(unique.values())
 
     def _normalize_dicta_url_to_ref(self, url: str) -> Optional[str]:
         """Convert Dicta's URL (often starting with //www.sefaria.org/) into a normalized ref string."""
@@ -935,7 +1092,7 @@ if __name__ == "__main__":
     from utils import get_random_non_segment_links_with_chunks
 
     resolver = LLMParallelResolver(window_words_per_side=30)
-    samples = get_random_non_segment_links_with_chunks(n=60, use_remote=True, seed=66, use_cache=True)
+    samples = get_random_non_segment_links_with_chunks(n=60, use_remote=True, seed=68, use_cache=True)
     for i, item in enumerate(samples, 1):
         print(f"\n=== Sample {i} ===")
         link = item["link"]
