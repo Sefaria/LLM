@@ -85,6 +85,8 @@ class LLMParallelResolver:
             return None
 
         citing_ref = chunk.get("ref")
+        if "Beur" in citing_ref:
+            halt = True
         lang = chunk.get("language")
         if lang and lang != "he":
             return None
@@ -298,7 +300,6 @@ class LLMParallelResolver:
         candidate_text = self._get_ref_text(resolved_ref, chunk.get("language"))
         llm_ok, llm_reason = self._llm_confirm_candidate(
             marked_citing_text,
-            non_segment_ref,
             resolved_ref,
             candidate_text,
             base_ref=base_ref_for_prompt,
@@ -312,7 +313,7 @@ class LLMParallelResolver:
             return None
         else:
             print(
-                f"LLM confirmed Dicta pick: citing_ref={citing_ref} target_ref={non_segment_ref} "
+                f"LLM confirmed pick: citing_ref={citing_ref} target_ref={non_segment_ref} "
                 f"candidate_ref={resolved_ref} reason='{llm_reason}'"
             )
 
@@ -522,7 +523,6 @@ class LLMParallelResolver:
     def _llm_confirm_candidate(
         self,
         citing_text: str,
-        target_ref: str,
         candidate_ref: str,
         candidate_text: str,
         base_ref: Optional[str] = None,
@@ -538,18 +538,18 @@ class LLMParallelResolver:
             [
                 (
                     "system",
-                    "You verify whether a citing passage points to a specific target segment.",
+                    "You verify whether one Jewish text is citing or closely paraphrasing a specific segment of another.",
                 ),
                 (
                     "human",
                     "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
                     "{base_block}"
-                    "Target ref: {target_ref}\n"
                     "Candidate segment ref: {candidate_ref}\n"
                     "Candidate segment text:\n{candidate_text}\n\n"
                     "Answer in two lines:\n"
                     "Reason: <brief rationale>\n"
-                    "Verdict: YES or NO (YES if notable wording/phrase overlap is likely; NO if the link is purely thematic/indirect).",
+                    "Verdict: YES or NO (YES if the citing passage explicitly or implicitly cites/paraphrases this exact segment; "
+                    "NO if it is only thematic/indirect and may be pointing to a different segment).",
                 ),
             ]
         )
@@ -558,7 +558,6 @@ class LLMParallelResolver:
             {
                 "citing": citing_text[:6000],
                 "base_block": base_block,
-                "target_ref": target_ref,
                 "candidate_ref": candidate_ref,
                 "candidate_text": candidate_text[:6000],
             }
