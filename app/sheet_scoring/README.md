@@ -198,16 +198,16 @@ Designed for **MongoDB integration** with expected document structure:
 
 ## Output Fields
 
-| Field                       | Description                                    |
-|-----------------------------|------------------------------------------------|
-| **`ref_levels`**            | Raw **0-4 scores** for each reference          |
-| **`ref_scores`**            | **Normalized percentage scores** (sum to 100%) |
-| **`title_interest_level`**  | Title **engagement score** (0-4)               |
-| **`title_interest_reason`** | **Brief explanation** of title score           |
-| **`language`**              | **Detected language code**                     |
-| **`creativity_score`**      | **Percentage** of user-generated content       |
-| **`processed_datetime`**    | **Processing timestamp**                       |
-| **`request_status`**        | **Whether scoring succeded/failed**            |
+| Field                        | Description                                    |
+|------------------------------|------------------------------------------------|
+| **`ref_levels`**             | Raw **0-4 scores** for each reference          |
+| **`ref_scores`**             | **Normalized percentage scores** (sum to 100%) |
+| **`title_interest_level`**   | Title **engagement score** (0-4)               |
+| **`title_interest_reason`**  | **Brief explanation** of title score           |
+| **`language`**               | **Detected language code**                     |
+| **`creativity_score`**       | **Percentage** of user-generated content       |
+| **`processed_datetime`**     | **Processing timestamp**                       |
+| **`request_status`**         | **Whether scoring succeded/failed**            |
 | **`request_status_message`** | **The reason why scoring failed**              |
 
 
