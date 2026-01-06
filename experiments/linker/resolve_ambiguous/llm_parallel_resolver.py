@@ -121,18 +121,19 @@ class LLMParallelResolver:
             api_key=os.getenv("ANTHROPIC_API_KEY"),
         )
 
+        if not ChatOpenAI:
+            raise RuntimeError("OpenAI is required for keyword extraction but langchain_openai is not installed.")
+
+        if not os.getenv("OPENAI_API_KEY"):
+            raise RuntimeError("OPENAI_API_KEY environment variable is required for keyword extraction.")
+
         keyword_model = os.getenv("LLM_KEYWORD_MODEL")
-        if keyword_model or os.getenv("OPENAI_API_KEY"):
-            if not ChatOpenAI:
-                raise RuntimeError("OpenAI keyword model requested but langchain_openai is not installed.")
-            self.keyword_llm = ChatOpenAI(
-                model=keyword_model or "gpt-4o-mini",
-                temperature=0,
-                max_tokens=256,
-                api_key=os.getenv("OPENAI_API_KEY"),
-            )
-        else:
-            self.keyword_llm = self.llm
+        self.keyword_llm = ChatOpenAI(
+            model=keyword_model or "gpt-4o-mini",
+            temperature=0,
+            max_tokens=256,
+            api_key=os.getenv("OPENAI_API_KEY"),
+        )
 
         # Config
         self.cfg = ResolverConfig(
