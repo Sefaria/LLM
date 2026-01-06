@@ -122,11 +122,11 @@ class LLMParallelResolver:
         )
 
         keyword_model = os.getenv("LLM_KEYWORD_MODEL")
-        if keyword_model:
+        if keyword_model or os.getenv("OPENAI_API_KEY"):
             if not ChatOpenAI:
-                raise RuntimeError("LLM_KEYWORD_MODEL is set but langchain_openai is not installed.")
+                raise RuntimeError("OpenAI keyword model requested but langchain_openai is not installed.")
             self.keyword_llm = ChatOpenAI(
-                model=keyword_model,
+                model=keyword_model or "gpt-4o-mini",
                 temperature=0,
                 max_tokens=256,
                 api_key=os.getenv("OPENAI_API_KEY"),
@@ -229,6 +229,107 @@ class LLMParallelResolver:
         marked_citing_text = self._mark_citation(citing_window, span_window)
 
         base_ref, base_text = self._get_commentary_base_context(citing_ref)
+
+        # Early resolution for small segment counts
+        segments = []
+        try:
+            segments = Ref(non_segment_ref).all_segment_refs()
+        except Exception:
+            segments = []
+
+        if segments:
+            def safe_link(tref: Optional[str]) -> Optional[str]:
+                if not tref:
+                    return None
+                try:
+                    return f"https://library-linker2.cauldron.sefaria.org/{Ref(tref).url()}"
+                except Exception:
+                    return None
+
+            citing_link = safe_link(citing_ref)
+            target_link = safe_link(non_segment_ref)
+            if len(segments) == 1:
+                resolved_ref = segments[0].normal()
+                resolved_link = safe_link(resolved_ref)
+                self.debug.log(
+                    f"Auto-resolved single segment: citing_ref={citing_ref} "
+                    f"target_ref={non_segment_ref} resolved_ref={resolved_ref}"
+                )
+                if citing_link or target_link or resolved_link:
+                    parts = []
+                    if citing_link:
+                        parts.append(f"citing={citing_link}")
+                    if target_link:
+                        parts.append(f"target={target_link}")
+                    if resolved_link:
+                        parts.append(f"resolved={resolved_link}")
+                    self.debug.log("Auto-resolve links:\n  " + "\n  ".join(parts))
+                updated_link = self._replace_ref_in_link(link, non_segment_ref, resolved_ref)
+                updated_chunk = self._replace_ref_in_chunk(chunk, non_segment_ref, resolved_ref)
+                return {
+                    "link": updated_link,
+                    "chunk": updated_chunk,
+                    "original_ref": non_segment_ref,
+                    "resolved_ref": resolved_ref,
+                    "selected_segments": [resolved_ref],
+                    "reason": "Automatically resolved: only one segment exists",
+                    "llm_reason": None,
+                    "llm_verdict": "YES",
+                    "dicta_hit": None,
+                    "search_hit": None,
+                    "match_source": "segment_auto",
+                }
+
+            if len(segments) in {2, 3}:
+                range_result = self._llm_pick_small_range(
+                    marked_citing_text,
+                    non_segment_ref,
+                    segments,
+                    base_ref=base_ref,
+                    base_text=base_text,
+                )
+                if range_result:
+                    start_idx, end_idx, reason = range_result
+                    start_idx = max(1, min(start_idx, len(segments)))
+                    end_idx = max(start_idx, min(end_idx, len(segments)))
+                    selected = segments[start_idx - 1:end_idx]
+                    if not selected:
+                        return None
+                    resolved_ref = (
+                        selected[0].normal()
+                        if len(selected) == 1
+                        else selected[0].to(selected[-1]).normal()
+                    )
+                    resolved_link = safe_link(resolved_ref)
+                    self.debug.log(
+                        f"LLM resolved small segment range: citing_ref={citing_ref} "
+                        f"target_ref={non_segment_ref} resolved_ref={resolved_ref} "
+                        f"selected_count={len(selected)} reason='{reason}'"
+                    )
+                    if citing_link or target_link or resolved_link:
+                        parts = []
+                        if citing_link:
+                            parts.append(f"citing={citing_link}")
+                        if target_link:
+                            parts.append(f"target={target_link}")
+                        if resolved_link:
+                            parts.append(f"resolved={resolved_link}")
+                        self.debug.log("LLM small-range links:\n  " + "\n  ".join(parts))
+                    updated_link = self._replace_ref_in_link(link, non_segment_ref, resolved_ref)
+                    updated_chunk = self._replace_ref_in_chunk(chunk, non_segment_ref, resolved_ref)
+                    return {
+                        "link": updated_link,
+                        "chunk": updated_chunk,
+                        "original_ref": non_segment_ref,
+                        "resolved_ref": resolved_ref,
+                        "selected_segments": [s.normal() for s in selected],
+                        "reason": "LLM resolved small segment range",
+                        "llm_reason": reason,
+                        "llm_verdict": "YES",
+                        "dicta_hit": None,
+                        "search_hit": None,
+                        "match_source": "segment_llm_small",
+                    }
 
         # 1) Dicta first
         resolution = self._query_dicta(
@@ -705,6 +806,87 @@ class LLMParallelResolver:
 
         return None
 
+    def _format_segment_texts(self, segments: List[Ref]) -> List[str]:
+        formatted = []
+        for i, seg in enumerate(segments, start=1):
+            text = ""
+            try:
+                text = seg.text("en").as_string()
+            except Exception:
+                pass
+            if not text:
+                try:
+                    text = seg.text("he").as_string()
+                except Exception:
+                    text = ""
+            formatted.append(f"{i}. {seg.normal()} — {text}")
+        return formatted
+
+    def _parse_range_response(self, content: str) -> Optional[Tuple[int, int, str]]:
+        if not content:
+            return None
+        start = end = None
+        reason = content.strip()
+        m = re.search(r"range\s*:\s*([0-9]+)\s*,\s*([0-9]+)", content, re.IGNORECASE)
+        if m:
+            start = int(m.group(1))
+            end = int(m.group(2))
+            reason = re.split(r"range\s*:", content, flags=re.IGNORECASE)[0].replace("Explanation:", "").strip()
+        else:
+            nums = re.findall(r"\d+", content)
+            if nums:
+                start = int(nums[0])
+                end = int(nums[1]) if len(nums) > 1 else int(nums[0])
+        if start is None or end is None:
+            return None
+        return start, end, reason
+
+    def _llm_pick_small_range(
+        self,
+        marked_citing_text: str,
+        target_ref: str,
+        segments: List[Ref],
+        base_ref: Optional[str],
+        base_text: Optional[str],
+    ) -> Optional[Tuple[int, int, str]]:
+        numbered_segments = self._format_segment_texts(segments)
+        prompt = ChatPromptTemplate.from_messages(
+            [
+                (
+                    "system",
+                    "You map a citation to a range of numbered segments. Provide a short reason, "
+                    "then two integers: start and end numbers.",
+                ),
+                (
+                    "human",
+                    "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
+                    "Target higher-level ref: {target_ref}\n\n"
+                    "{base_block}"
+                    "Numbered segment texts:\n{segments}\n\n"
+                    "Which two numbers (start and end) best cover the cited text? "
+                    "If only one segment is relevant, repeat the same number for start and end. "
+                    "Respond in two lines:\n"
+                    "Explanation: <brief reason>\n"
+                    "Range: <start>,<end>",
+                ),
+            ]
+        )
+        base_block = ""
+        if base_ref and base_text:
+            base_block = f"Base text of commentary target ({base_ref}):\n{base_text}\n\n"
+
+        chain = prompt | self.llm
+        resp = chain.invoke(
+            {
+                "citing": marked_citing_text,
+                "target_ref": target_ref,
+                "segments": "\n".join(numbered_segments),
+                "base_block": base_block,
+            }
+        )
+        self._profile_add_tokens(self.llm, resp)
+        return self._parse_range_response(getattr(resp, "content", ""))
+
     # -------- Dicta --------
 
     def _query_dicta(
@@ -1032,7 +1214,7 @@ if __name__ == "__main__":
     from utils import get_random_non_segment_links_with_chunks
 
     resolver = LLMParallelResolver(window_words_per_side=30, debug=True)  # NEW
-    samples = get_random_non_segment_links_with_chunks(n=60, use_remote=True, seed=69, use_cache=True)
+    samples = get_random_non_segment_links_with_chunks(n=60, use_remote=True, seed=71, use_cache=True)
 
     for i, item in enumerate(samples, 1):
         print(f"\n=== Sample {i} ===")
