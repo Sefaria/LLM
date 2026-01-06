@@ -4,6 +4,7 @@ langchain-openai==0.1.8
 anthropic~=0.26.1
 stanza~=1.5.0
 openai~=1.30.0
+httpx~=0.27.0
 typer~=0.4.1
 pydantic~=2.7.1
 loguru~=0.7.2

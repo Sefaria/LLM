@@ -5,6 +5,7 @@ from enum import IntEnum
 from typing import Any, Dict, Iterator, List, Optional, Set, Tuple, Union
 import textwrap
 import tiktoken
+import httpx
 from langchain.schema import HumanMessage
 from langchain_openai import ChatOpenAI
 from sheet_scoring.text_utils import sheet_to_text_views
@@ -107,6 +108,7 @@ class SheetScorer:
 
     def _create_json_llm(self, api_key: str, model: str) -> ChatOpenAI:
         """Create LLM client for JSON responses."""
+        http_client = httpx.Client()
         return ChatOpenAI(
             model=model,
             temperature=0,
@@ -115,15 +117,18 @@ class SheetScorer:
             presence_penalty=0,
             seed=42,
             api_key=api_key,
+            http_client=http_client,
         )
 
     def _create_text_llm(self, api_key: str, model: str) -> ChatOpenAI:
         """Create LLM client for text responses."""
+        http_client = httpx.Client()
         return ChatOpenAI(
             model=model,
             temperature=0,
             model_kwargs={"response_format": {"type": "text"}},
             api_key=api_key,
+            http_client=http_client,
         )
 
     def _invoke_llm_with_function(self, prompt: str,
