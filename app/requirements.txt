@@ -1,6 +1,6 @@
-langchain>=0.1.20
-langchain-core>=0.1.53
-langchain-openai>=0.1.10
+langchain==0.1.20
+langchain-core==0.1.53
+langchain-openai==0.1.10
 anthropic~=0.26.1
 stanza~=1.5.0
 openai~=1.30.0
