@@ -210,7 +210,32 @@ class LLMParallelResolver:
     # -------- public API --------
 
     def resolve(self, link: dict, chunk: dict, profile: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        """
+        Main entry: resolve one ambiguous non-segment reference found in link/chunk.
+        Returns updated link/chunk + metadata, or None if no resolution found.
+        """
         self._profile_reset(profile)
+
+        # Step 1: Validate inputs and extract basic context
+        context = self._validate_and_extract_context(link, chunk)
+        if not context:
+            return None
+
+        # Step 2: Try early segment-based resolution (1-3 segments)
+        early_result = self._try_early_segment_resolution(link, chunk, context)
+        if early_result:
+            return early_result
+
+        # Step 3: Try Dicta and fallback search pipeline
+        resolution = self._find_candidate_resolution(chunk, context)
+        if not resolution:
+            return None
+
+        # Step 4: Confirm candidate with LLM
+        return self._confirm_and_build_result(link, chunk, context, resolution)
+
+    def _validate_and_extract_context(self, link: dict, chunk: dict) -> Optional[dict]:
+        """Extract and validate all required context for resolution."""
         non_segment_ref = self._find_non_segment_ref(link)
         if not non_segment_ref:
             return None
@@ -225,166 +250,218 @@ class LLMParallelResolver:
             return None
 
         span = self._find_span_for_ref(chunk, non_segment_ref)
-        citing_window, span_window = self._window_around_span(citing_text, span, self.cfg.window_words_per_side)
-        marked_citing_text = self._mark_citation(citing_window, span_window)
-
-        base_ref, base_text = self._get_commentary_base_context(citing_ref)
-
-        # Early resolution for small segment counts
-        segments = []
-        try:
-            segments = Ref(non_segment_ref).all_segment_refs()
-        except Exception:
-            segments = []
-
-        if segments:
-            def safe_link(tref: Optional[str]) -> Optional[str]:
-                if not tref:
-                    return None
-                try:
-                    return f"https://library-linker2.cauldron.sefaria.org/{Ref(tref).url()}"
-                except Exception:
-                    return None
-
-            citing_link = safe_link(citing_ref)
-            target_link = safe_link(non_segment_ref)
-            if len(segments) == 1:
-                resolved_ref = segments[0].normal()
-                resolved_link = safe_link(resolved_ref)
-                self.debug.log(
-                    f"Auto-resolved single segment: citing_ref={citing_ref} "
-                    f"target_ref={non_segment_ref} resolved_ref={resolved_ref}"
-                )
-                if citing_link or target_link or resolved_link:
-                    parts = []
-                    if citing_link:
-                        parts.append(f"citing={citing_link}")
-                    if target_link:
-                        parts.append(f"target={target_link}")
-                    if resolved_link:
-                        parts.append(f"resolved={resolved_link}")
-                    self.debug.log("Auto-resolve links:\n  " + "\n  ".join(parts))
-                updated_link = self._replace_ref_in_link(link, non_segment_ref, resolved_ref)
-                updated_chunk = self._replace_ref_in_chunk(chunk, non_segment_ref, resolved_ref)
-                return {
-                    "link": updated_link,
-                    "chunk": updated_chunk,
-                    "original_ref": non_segment_ref,
-                    "resolved_ref": resolved_ref,
-                    "selected_segments": [resolved_ref],
-                    "reason": "Automatically resolved: only one segment exists",
-                    "llm_reason": None,
-                    "llm_verdict": "YES",
-                    "dicta_hit": None,
-                    "search_hit": None,
-                    "match_source": "segment_auto",
-                }
-
-            if len(segments) in {2, 3}:
-                range_result = self._llm_pick_small_range(
-                    marked_citing_text,
-                    non_segment_ref,
-                    segments,
-                    base_ref=base_ref,
-                    base_text=base_text,
-                )
-                if range_result:
-                    start_idx, end_idx, reason = range_result
-                    start_idx = max(1, min(start_idx, len(segments)))
-                    end_idx = max(start_idx, min(end_idx, len(segments)))
-                    selected = segments[start_idx - 1:end_idx]
-                    if not selected:
-                        return None
-                    resolved_ref = (
-                        selected[0].normal()
-                        if len(selected) == 1
-                        else selected[0].to(selected[-1]).normal()
-                    )
-                    resolved_link = safe_link(resolved_ref)
-                    self.debug.log(
-                        f"LLM resolved small segment range: citing_ref={citing_ref} "
-                        f"target_ref={non_segment_ref} resolved_ref={resolved_ref} "
-                        f"selected_count={len(selected)} reason='{reason}'"
-                    )
-                    if citing_link or target_link or resolved_link:
-                        parts = []
-                        if citing_link:
-                            parts.append(f"citing={citing_link}")
-                        if target_link:
-                            parts.append(f"target={target_link}")
-                        if resolved_link:
-                            parts.append(f"resolved={resolved_link}")
-                        self.debug.log("LLM small-range links:\n  " + "\n  ".join(parts))
-                    updated_link = self._replace_ref_in_link(link, non_segment_ref, resolved_ref)
-                    updated_chunk = self._replace_ref_in_chunk(chunk, non_segment_ref, resolved_ref)
-                    return {
-                        "link": updated_link,
-                        "chunk": updated_chunk,
-                        "original_ref": non_segment_ref,
-                        "resolved_ref": resolved_ref,
-                        "selected_segments": [s.normal() for s in selected],
-                        "reason": "LLM resolved small segment range",
-                        "llm_reason": reason,
-                        "llm_verdict": "YES",
-                        "dicta_hit": None,
-                        "search_hit": None,
-                        "match_source": "segment_llm_small",
-                    }
-
-        # 1) Dicta first
-        resolution = self._query_dicta(
-            query_text=citing_window,
-            target_ref=non_segment_ref,
-            citing_ref=citing_ref,
-            citing_lang=chunk.get("language"),
-            citing_version=chunk.get("versionTitle"),
-            ranking_context=marked_citing_text,
-            base_ref=base_ref,
-            base_text=base_text,
+        citing_window, span_window = self._window_around_span(
+            citing_text, span, self.cfg.window_words_per_side
         )
+        marked_citing_text = self._mark_citation(citing_window, span_window)
+        base_ref, base_text = self._get_commentary_base_context(citing_ref)
+        segments = self._get_segments_safely(non_segment_ref)
 
-        # 2) Fallback search pipeline
-        if not resolution:
-            resolution = self._fallback_search_pipeline(
-                marked_citing_text=marked_citing_text,
-                citing_text=citing_text,
-                span=span,
-                non_segment_ref=non_segment_ref,
-                citing_ref=citing_ref,
-                lang=chunk.get("language"),
-                vtitle=chunk.get("versionTitle"),
-                base_ref=base_ref,
-                base_text=base_text,
-            )
+        return {
+            "non_segment_ref": non_segment_ref,
+            "citing_ref": citing_ref,
+            "lang": lang,
+            "vtitle": chunk.get("versionTitle"),
+            "citing_text": citing_text,
+            "citing_window": citing_window,
+            "span": span,
+            "span_window": span_window,
+            "marked_citing_text": marked_citing_text,
+            "base_ref": base_ref,
+            "base_text": base_text,
+            "segments": segments,
+        }
 
-        if not resolution:
+    def _get_segments_safely(self, non_segment_ref: str) -> List:
+        """Safely get all segment refs, returning empty list on error."""
+        try:
+            return Ref(non_segment_ref).all_segment_refs()
+        except Exception:
+            return []
+
+    def _try_early_segment_resolution(
+        self, link: dict, chunk: dict, context: dict
+    ) -> Optional[Dict[str, Any]]:
+        """Try early resolution for refs with 1-3 segments."""
+        segments = context["segments"]
+        if not segments:
             return None
 
+        if len(segments) == 1:
+            return self._resolve_single_segment(link, chunk, context)
+
+        if len(segments) in {2, 3}:
+            return self._resolve_small_segment_range(link, chunk, context)
+
+        return None
+
+    def _resolve_single_segment(
+        self, link: dict, chunk: dict, context: dict
+    ) -> Dict[str, Any]:
+        """Automatically resolve when there's only one segment."""
+        segments = context["segments"]
+        non_segment_ref = context["non_segment_ref"]
+        citing_ref = context["citing_ref"]
+        resolved_ref = segments[0].normal()
+
+        self.debug.log(
+            f"Auto-resolved single segment: citing_ref={citing_ref} "
+            f"target_ref={non_segment_ref} resolved_ref={resolved_ref}"
+        )
+        self._log_resolution_links(citing_ref, non_segment_ref, resolved_ref, "Auto-resolve")
+
+        return self._build_resolution_result(
+            link=link,
+            chunk=chunk,
+            non_segment_ref=non_segment_ref,
+            resolved_ref=resolved_ref,
+            selected_segments=[resolved_ref],
+            reason="Automatically resolved: only one segment exists",
+            llm_reason=None,
+            match_source="segment_auto",
+        )
+
+    def _resolve_small_segment_range(
+        self, link: dict, chunk: dict, context: dict
+    ) -> Optional[Dict[str, Any]]:
+        """Use LLM to resolve refs with 2-3 segments."""
+        segments = context["segments"]
+        non_segment_ref = context["non_segment_ref"]
+        citing_ref = context["citing_ref"]
+        marked_citing_text = context["marked_citing_text"]
+        base_ref = context["base_ref"]
+        base_text = context["base_text"]
+
+        range_result = self._llm_pick_small_range(
+            marked_citing_text, non_segment_ref, segments,
+            base_ref=base_ref, base_text=base_text,
+        )
+        if not range_result:
+            return None
+
+        start_idx, end_idx, reason = range_result
+        selected = self._extract_segment_range(segments, start_idx, end_idx)
+        if not selected:
+            return None
+
+        resolved_ref = self._build_resolved_ref_from_segments(selected)
+
+        self.debug.log(
+            f"LLM resolved small segment range: citing_ref={citing_ref} "
+            f"target_ref={non_segment_ref} resolved_ref={resolved_ref} "
+            f"selected_count={len(selected)} reason='{reason}'"
+        )
+        self._log_resolution_links(citing_ref, non_segment_ref, resolved_ref, "LLM small-range")
+
+        return self._build_resolution_result(
+            link=link,
+            chunk=chunk,
+            non_segment_ref=non_segment_ref,
+            resolved_ref=resolved_ref,
+            selected_segments=[s.normal() for s in selected],
+            reason="LLM resolved small segment range",
+            llm_reason=reason,
+            match_source="segment_llm_small",
+        )
+
+    def _extract_segment_range(self, segments: List, start_idx: int, end_idx: int) -> List:
+        """Extract and validate segment range."""
+        start_idx = max(1, min(start_idx, len(segments)))
+        end_idx = max(start_idx, min(end_idx, len(segments)))
+        return segments[start_idx - 1:end_idx]
+
+    def _build_resolved_ref_from_segments(self, selected: List) -> str:
+        """Build a resolved ref string from selected segments."""
+        if len(selected) == 1:
+            return selected[0].normal()
+        return selected[0].to(selected[-1]).normal()
+
+    def _find_candidate_resolution(self, chunk: dict, context: dict) -> Optional[Dict[str, Any]]:
+        """Try Dicta API first, then fallback to search pipeline."""
+        # Try Dicta first
+        resolution = self._query_dicta(
+            query_text=context["citing_window"],
+            target_ref=context["non_segment_ref"],
+            citing_ref=context["citing_ref"],
+            citing_lang=context["lang"],
+            citing_version=context["vtitle"],
+            ranking_context=context["marked_citing_text"],
+            base_ref=context["base_ref"],
+            base_text=context["base_text"],
+        )
+        if resolution:
+            return resolution
+
+        # Fallback to search pipeline
+        return self._fallback_search_pipeline(
+            marked_citing_text=context["marked_citing_text"],
+            citing_text=context["citing_text"],
+            span=context["span"],
+            non_segment_ref=context["non_segment_ref"],
+            citing_ref=context["citing_ref"],
+            lang=context["lang"],
+            vtitle=context["vtitle"],
+            base_ref=context["base_ref"],
+            base_text=context["base_text"],
+        )
+
+    def _confirm_and_build_result(
+        self, link: dict, chunk: dict, context: dict, resolution: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """Confirm candidate with LLM and build final result."""
         resolved_ref = resolution.get("resolved_ref")
         if not resolved_ref:
             return None
 
-        # 3) Confirm with LLM
-        candidate_text = self._get_ref_text(resolved_ref, chunk.get("language"))
+        candidate_text = self._get_ref_text(resolved_ref, context["lang"])
         ok, reason = self._llm_confirm_candidate(
-            marked_citing_text,
+            context["marked_citing_text"],
             resolved_ref,
             candidate_text,
-            base_ref=base_ref,
-            base_text=base_text,
+            base_ref=context["base_ref"],
+            base_text=context["base_text"],
         )
+
         if not ok:
             self.debug.log(
-                f"LLM rejected: citing_ref={citing_ref} target_ref={non_segment_ref} "
+                f"LLM rejected: citing_ref={context['citing_ref']} "
+                f"target_ref={context['non_segment_ref']} "
                 f"candidate_ref={resolved_ref} reason='{reason}'"
             )
             return None
 
         self.debug.log(
-            f"LLM confirmed: citing_ref={citing_ref} target_ref={non_segment_ref} "
+            f"LLM confirmed: citing_ref={context['citing_ref']} "
+            f"target_ref={context['non_segment_ref']} "
             f"candidate_ref={resolved_ref} reason='{reason}'"
         )
 
+        source = resolution.get("source", "Dicta")
+        return self._build_resolution_result(
+            link=link,
+            chunk=chunk,
+            non_segment_ref=context["non_segment_ref"],
+            resolved_ref=resolved_ref,
+            selected_segments=[resolved_ref],
+            reason=f"{source.title()} hit {resolved_ref} confirmed by LLM",
+            llm_reason=reason,
+            match_source=source,
+            resolution=resolution,
+        )
+
+    def _build_resolution_result(
+        self,
+        link: dict,
+        chunk: dict,
+        non_segment_ref: str,
+        resolved_ref: str,
+        selected_segments: List[str],
+        reason: str,
+        llm_reason: Optional[str],
+        match_source: str,
+        resolution: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Build the final resolution result dictionary."""
         updated_link = self._replace_ref_in_link(link, non_segment_ref, resolved_ref)
         updated_chunk = self._replace_ref_in_chunk(chunk, non_segment_ref, resolved_ref)
 
@@ -393,14 +470,44 @@ class LLMParallelResolver:
             "chunk": updated_chunk,
             "original_ref": non_segment_ref,
             "resolved_ref": resolved_ref,
-            "selected_segments": [resolved_ref],
-            "reason": f"{resolution.get('source', 'Dicta').title()} hit {resolved_ref} confirmed by LLM",
-            "llm_reason": reason,
+            "selected_segments": selected_segments,
+            "reason": reason,
+            "llm_reason": llm_reason,
             "llm_verdict": "YES",
-            "dicta_hit": resolution if resolution.get("source") == "dicta" else None,
-            "search_hit": resolution if resolution.get("source") == "sefaria_search" else None,
-            "match_source": resolution.get("source"),
+            "dicta_hit": resolution if resolution and resolution.get("source") == "dicta" else None,
+            "search_hit": resolution if resolution and resolution.get("source") == "sefaria_search" else None,
+            "match_source": match_source,
         }
+
+    def _log_resolution_links(
+        self, citing_ref: str, target_ref: str, resolved_ref: str, label: str
+    ) -> None:
+        """Log resolution links for debugging."""
+        citing_link = self._safe_build_link(citing_ref)
+        target_link = self._safe_build_link(target_ref)
+        resolved_link = self._safe_build_link(resolved_ref)
+
+        if not (citing_link or target_link or resolved_link):
+            return
+
+        parts = []
+        if citing_link:
+            parts.append(f"citing={citing_link}")
+        if target_link:
+            parts.append(f"target={target_link}")
+        if resolved_link:
+            parts.append(f"resolved={resolved_link}")
+
+        self.debug.log(f"{label} links:\n  " + "\n  ".join(parts))
+
+    def _safe_build_link(self, tref: Optional[str]) -> Optional[str]:
+        """Safely build a Sefaria library link from a ref."""
+        if not tref:
+            return None
+        try:
+            return f"https://library-linker2.cauldron.sefaria.org/{Ref(tref).url()}"
+        except Exception:
+            return None
 
     # -------- fallback pipeline (clean + dedup) --------
 
