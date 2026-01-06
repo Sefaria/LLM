@@ -2,10 +2,15 @@
 Citation Classifier and Book Title Extractor for Sefaria
 
 This script uses LangChain to:
-1. Classify if a citation is complete (has all information to locate the exact source)
+1. Classify if a citation/reference is complete (has all information to locate the exact source)
+   - Quotations with missing punctuation are still considered complete if they have identifying information
 2. Extract the top 3 Sefaria book titles from complete citations
+3. Analyze references to extract:
+   - Completeness status
+   - The title as it appears in the reference
+   - The canonical Hebrew title from Sefaria
 
-Supports both Hebrew and English citations.
+Supports both Hebrew and English citations and references.
 """
 
 import sys
@@ -17,8 +22,14 @@ sys.path.insert(0, str(app_path))
 
 from basic_langchain.chat_models import ChatOpenAI, ChatAnthropic
 from basic_langchain.schema import HumanMessage, SystemMessage
-from typing import Any
+from util.general import run_parallel
+from typing import Any, TypeVar
 from pydantic import BaseModel, Field
+import pymongo
+import json
+
+T = TypeVar('T', bound=BaseModel)
+
 
 
 class CitationCompleteness(BaseModel):
@@ -31,6 +42,14 @@ class BookTitlePrediction(BaseModel):
     """Model for book title predictions"""
     book_titles: list[str] = Field(description="Top 3 predicted Sefaria book titles", max_length=3)
     confidence: str = Field(description="Overall confidence level: high, medium, or low")
+
+
+class ReferenceAnalysis(BaseModel):
+    """Model for complete reference analysis including canonical Hebrew title"""
+    reasoning: str = Field(description="Explanation of the analysis")
+    is_complete: bool = Field(description="Whether the reference is complete (quotations with missing punctuation are still complete)")
+    quoted_title: str = Field(description="The title as it appears in the reference, or 'N/A' if no title found")
+    canonical_title: str = Field(description="The canonical Hebrew title from Sefaria, or 'N/A' if not found")
 
 
 class CitationAnalyzer:
@@ -49,7 +68,7 @@ class CitationAnalyzer:
         else:
             self.llm = ChatOpenAI(model=model_name, temperature=temperature)
     
-    def _parse_json_response(self, response_content: str, model_class: type[BaseModel]) -> BaseModel:
+    def _parse_json_response(self, response_content: str, model_class: type[T]) -> T:
         """
         Parse JSON response from LLM, handling markdown code blocks
         
@@ -205,26 +224,97 @@ Provide exactly 3 predictions using Sefaria's exact spelling."""
                 confidence="low"
             )
     
+    def analyze_reference_with_canonical_title(self, reference: str) -> ReferenceAnalysis:
+        """
+        Analyze a reference to check completeness, extract title, and get canonical Hebrew title
+
+        Args:
+            reference: The reference text in Hebrew or English
+
+        Returns:
+            ReferenceAnalysis object with reasoning, is_complete, quoted_title, and canonical_title
+        """
+        system_prompt = """You are an expert in Jewish texts and citations. Your task is to analyze a reference and provide:
+
+1. **Completeness check**: Determine if the reference is COMPLETE (has all information to locate the exact source).
+   - IMPORTANT: A quotation with missing punctuation is STILL considered complete if it has enough information to identify the source.
+   - Examples of COMPLETE references:
+     * "Genesis 1:1" (book + chapter + verse)
+     * "בראשית א:א" (book + chapter + verse in Hebrew)
+     * "Talmud Bavli Berakhot 2a"
+     * "Rashi on Genesis 1:1"
+     * A direct quotation that clearly identifies a specific source (even if punctuation is missing)
+   - Examples of INCOMPLETE references:
+     * "1:1" (missing book name)
+     * "verse 5" (missing book and chapter)
+     * "ibid." or "שם" (refers to previous citation)
+     * "there" or "above" (relative reference)
+
+2. **Title extraction**: If the book/text title it appears in the reference:
+   - Extract exactly how the title appears in the text
+   - Return "N/A" if no title is found
+
+3. **Canonical Hebrew title**: If title was found, provide the Sefaria canonical Hebrew title for the book.
+   - Use your knowledge of Sefaria's Hebrew titles
+   - Examples:
+     * "Genesis" → "בראשית"
+     * "Berakhot" (Talmud) → "ברכות"
+     * "Rashi on Genesis" → "רש\"י על בראשית"
+     * "Mishnah Berakhot" → "משנה ברכות"
+   - Return "N/A" if the title cannot be determined or matched
+
+Respond in JSON format with:
+- "reasoning": Brief explanation of your analysis
+- "is_complete": true/false (remember: quotations with missing punctuation can still be complete)
+- "quoted_title": The title as it appears in the reference, or "N/A"
+- "canonical_title": The canonical Hebrew title from Sefaria, or "N/A"
+"""
+
+        user_prompt = f"""Analyze this reference: "{reference}"
+
+Provide your analysis following the format specified."""
+
+        messages = [
+            SystemMessage(system_prompt),
+            HumanMessage(user_prompt)
+        ]
+
+        response = self.llm(messages)
+
+        try:
+            result = self._parse_json_response(response.content, ReferenceAnalysis)
+            return result
+        except Exception as e:
+            print(f"Failed to parse JSON response: {e}")
+            print(f"Content: {response.content}")
+            # Return a fallback response
+            return ReferenceAnalysis(
+                reasoning=f"Failed to parse response: {str(e)}",
+                is_complete=False,
+                quoted_title="N/A",
+                canonical_title="N/A"
+            )
+
     def analyze_citation(self, citation: str) -> dict[str, Any]:
         """
         Complete analysis: classify completeness and extract book titles if complete
-        
+
         Args:
             citation: The citation text in Hebrew or English
-            
+
         Returns:
             Dictionary with completeness and book titles (if applicable)
         """
         # Step 1: Classify if citation is complete
         completeness = self.classify_citation(citation)
-        
+
         result: dict[str, Any] = {
             "citation": citation,
             "is_complete": completeness.is_complete,
             "reasoning": completeness.reasoning,
             "book_titles": None
         }
-        
+
         # Step 2: If complete, extract book titles
         if completeness.is_complete:
             book_prediction = self.get_book_titles(citation)
@@ -232,18 +322,18 @@ Provide exactly 3 predictions using Sefaria's exact spelling."""
                 "titles": book_prediction.book_titles,
                 "confidence": book_prediction.confidence
             }
-        
+
         return result
 
 
-def main():
+def test():
     """Example usage of the CitationAnalyzer"""
-    
+
     # Initialize analyzer
-    analyzer = CitationAnalyzer(model_name="gpt-4o", temperature=0.0)
-    
-    # Test citations (mix of complete and incomplete, Hebrew and English)
-    test_citations = [
+    analyzer = CitationAnalyzer(model_name="claude-sonnet-4-5-20250929", temperature=0.0)
+
+    # Test references for the new analyze_reference_with_canonical_title method
+    test_references = [
         "Genesis 1:1",
         "בראשית א:א",
         "Rashi on Exodus 12:2",
@@ -254,29 +344,93 @@ def main():
         "שם",  # Incomplete - means "ibid."
         "Shulchan Arukh, Orach Chayim 1:1",
         "the next chapter",  # Incomplete
+        '"In the beginning God created" (Genesis 1:1)',  # Quotation with reference
+        'ויהי ערב ויהי בקר',  # Quotation without explicit reference - incomplete
     ]
-    
+
     print("=" * 80)
-    print("CITATION ANALYSIS RESULTS")
+    print("REFERENCE ANALYSIS WITH CANONICAL HEBREW TITLES")
     print("=" * 80)
-    
-    for citation in test_citations:
+
+    for reference in test_references:
         print(f"\n{'=' * 80}")
-        print(f"Citation: {citation}")
+        print(f"Reference: {reference}")
         print("-" * 80)
-        
-        result = analyzer.analyze_citation(citation)
-        
-        print(f"Complete: {result['is_complete']}")
-        print(f"Reasoning: {result['reasoning']}")
-        
-        if result['book_titles']:
-            print(f"\nTop 3 Book Titles:")
-            for i, title in enumerate(result['book_titles']['titles'], 1):
-                print(f"  {i}. {title}")
-            print(f"Confidence: {result['book_titles']['confidence']}")
-        
+
+        result = analyzer.analyze_reference_with_canonical_title(reference)
+
+        print(f"Complete: {result.is_complete}")
+        print(f"Reasoning: {result.reasoning}")
+        print(f"Quoted Title: {result.quoted_title}")
+        print(f"Canonical Hebrew Title: {result.canonical_title}")
+
         print("=" * 80)
+
+    # Also demonstrate JSON output
+    print("\n" + "=" * 80)
+    print("EXAMPLE JSON OUTPUT")
+    print("=" * 80)
+    example_ref = "Genesis 1:1"
+    result = analyzer.analyze_reference_with_canonical_title(example_ref)
+    print(json.dumps({
+        "reasoning": result.reasoning,
+        "is_complete": result.is_complete,
+        "quoted_title": result.quoted_title,
+        "canonical_title": result.canonical_title
+    }, ensure_ascii=False, indent=2))
+    print("=" * 80)
+
+
+def main():
+    with open('texts.json') as fp:
+        texts = json.load(fp)
+    analyzer = CitationAnalyzer(model_name="claude-sonnet-4-5-20250929", temperature=0.0)
+    maximum = 766746
+    refs = texts[:maximum]
+    results = []
+    for r, ref in enumerate(refs):
+        try:
+            result = analyzer.analyze_reference_with_canonical_title(ref)
+        except Exception as e:
+            print('Exception', r, e)
+        results.append({
+            'ref': ref,
+            "is_complete": result.is_complete,
+            "reasoning": result.reasoning,
+            "quoted_title": result.quoted_title,
+            "canonical_title": result.canonical_title
+        })
+    # results = run_parallel(refs, analyzer.analyze_reference_with_canonical_title, 50)
+    # results = [{
+    #             'ref': ref,
+    #             "is_complete": analysis.is_complete,
+    #             "reasoning": analysis.reasoning,
+    #             "quoted_title": analysis.quoted_title,
+    #             "canonical_title": analysis.canonical_title
+    #         } for analysis, ref in zip(results, refs)]
+
+    with open('results.json', 'w', encoding="utf-8") as fp:
+        json.dump(results, fp, ensure_ascii=False, indent=4)
+    print(f"Total analyzed: {len(results)}")
+    print(f"Complete references: {len([r for r in results if r['is_complete']])}")
+    print(f"With canonical titles: {len([r for r in results if r['canonical_title'] != 'N/A'])}")
+
+
+def make_spans_file():
+    client = pymongo.MongoClient('localhost', 27017, username='', password='')
+    db = client['sefaria']
+    col = db.linker_output
+    pipeline = [
+        {"$unwind": "$spans"},
+        {"$match": {
+            "spans.type": "citation",
+            "spans.failed": True,
+        }},
+        {"$replaceRoot": {"newRoot": {"text": "$spans.text"}}}
+    ]
+    texts = list(set([doc["text"] for doc in col.aggregate(pipeline)]))
+    with open('texts.json', 'w', encoding='utf-8') as fp:
+        json.dump(texts, fp, ensure_ascii=False)
 
 
 if __name__ == "__main__":
