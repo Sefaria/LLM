@@ -417,6 +417,26 @@ class LLMParallelResolver:
         if not resolved_ref:
             return None
 
+        # Edge case: Metzudat Zion is always approved without LLM confirmation
+        citing_ref = context.get("citing_ref", "")
+        if citing_ref.startswith("Metzudat Zion"):
+            self.debug.log(
+                f"Auto-approved Metzudat Zion (skipped LLM): citing_ref={citing_ref} "
+                f"target_ref={context['non_segment_ref']} resolved_ref={resolved_ref}"
+            )
+            source = resolution.get("source", "Dicta")
+            return self._build_resolution_result(
+                link=link,
+                chunk=chunk,
+                non_segment_ref=context["non_segment_ref"],
+                resolved_ref=resolved_ref,
+                selected_segments=[resolved_ref],
+                reason=f"{source.title()} hit {resolved_ref}, auto-approved (Metzudat Zion)",
+                llm_reason="Metzudat Zion is always approved",
+                match_source=source,
+                resolution=resolution,
+            )
+
         candidate_text = self._get_ref_text(resolved_ref, context["lang"])
         ok, reason = self._llm_confirm_candidate(
             context["marked_citing_text"],
