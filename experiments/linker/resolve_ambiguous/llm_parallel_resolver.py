@@ -222,17 +222,22 @@ class LLMParallelResolver:
         if not context:
             return None
 
-        # Step 2: Try early segment-based resolution (1-3 segments)
+        # Step 2: Try early segment-based resolution (1-3 segments) - works for any language
         early_result = self._try_early_segment_resolution(link, chunk, context)
         if early_result:
             return early_result
 
-        # Step 3: Try Dicta and fallback search pipeline
+        # Step 3: For non-Hebrew, we can't use Dicta/search pipeline, so stop here
+        lang = context.get("lang")
+        if lang and lang != "he":
+            return None
+
+        # Step 4: Try Dicta and fallback search pipeline (Hebrew only)
         resolution = self._find_candidate_resolution(chunk, context)
         if not resolution:
             return None
 
-        # Step 4: Confirm candidate with LLM
+        # Step 5: Confirm candidate with LLM
         return self._confirm_and_build_result(link, chunk, context, resolution)
 
     def _validate_and_extract_context(self, link: dict, chunk: dict) -> Optional[dict]:
@@ -243,8 +248,6 @@ class LLMParallelResolver:
 
         citing_ref = chunk.get("ref")
         lang = chunk.get("language")
-        if lang and lang != "he":
-            return None
 
         citing_text = self._get_ref_text(citing_ref, lang, chunk.get("versionTitle"))
         if not citing_text:
@@ -792,14 +795,21 @@ class LLMParallelResolver:
 
         prompt = ChatPromptTemplate.from_messages(
             [
-                ("system", "You verify whether one Jewish text is citing or closely paraphrasing a specific segment."),
+                (
+                    "system",
+                    "You verify whether one Jewish text is genuinely citing or closely paraphrasing a specific target segment. "
+                ),
                 (
                     "human",
-                    "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
+                    "Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
+                    "{citing}\n\n"
                     "{base_block}"
-                    "Candidate segment ref: {candidate_ref}\n"
+                    "Candidate segment ref (retrieved by similarity): {candidate_ref}\n"
                     "Candidate segment text:\n{candidate_text}\n\n"
-                    "Answer in two lines:\nReason: <brief rationale>\nVerdict: YES or NO",
+                    "Your task is to determine whether the citing passage is actually referring to this candidate segment.\n\n"
+                    "Answer in exactly two lines:\n"
+                    "Reason: <brief rationale>\n"
+                    "Verdict: YES or NO",
                 ),
             ]
         )
