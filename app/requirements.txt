@@ -1,4 +1,5 @@
 langchain[llms]~=0.2.1
+langsmith~=0.1.0
 anthropic~=0.26.1
 stanza~=1.5.0
 openai~=1.30.0

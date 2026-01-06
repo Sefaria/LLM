@@ -5,10 +5,17 @@ import time
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple, Union
 
+# Configure LangSmith integration BEFORE any LangChain imports
+os.environ["LANGSMITH_TRACING_V2"] = "true"
+os.environ["LANGSMITH_ENDPOINT"] = "https://api.smith.langchain.com"
+os.environ["LANGSMITH_PROJECT"] = "citation-disambiguator"
+# LANGSMITH_API_KEY should be set in your environment
+
 import django
 import requests
 from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate
+from langsmith import traceable
 
 django.setup()
 
@@ -210,6 +217,7 @@ class LLMParallelResolver:
 
     # -------- public API --------
 
+    @traceable(run_type="chain", name="resolve_ambiguous_ref")
     def resolve(self, link: dict, chunk: dict, profile: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         """
         Main entry: resolve one ambiguous non-segment reference found in link/chunk.
@@ -283,6 +291,7 @@ class LLMParallelResolver:
         except Exception:
             return []
 
+    @traceable(run_type="chain", name="try_early_segment_resolution")
     def _try_early_segment_resolution(
         self, link: dict, chunk: dict, context: dict
     ) -> Optional[Dict[str, Any]]:
@@ -409,6 +418,7 @@ class LLMParallelResolver:
             base_text=context["base_text"],
         )
 
+    @traceable(run_type="chain", name="confirm_and_build_result")
     def _confirm_and_build_result(
         self, link: dict, chunk: dict, context: dict, resolution: Dict[str, Any]
     ) -> Optional[Dict[str, Any]]:
@@ -734,6 +744,7 @@ class LLMParallelResolver:
 
     # -------- LLM helpers --------
 
+    @traceable(run_type="llm", name="llm_form_search_query")
     def _llm_form_search_query(
         self, marked_citing_text: str, base_ref: Optional[str] = None, base_text: Optional[str] = None
     ) -> Optional[List[str]]:
@@ -769,7 +780,14 @@ class LLMParallelResolver:
         try:
             chain = prompt | self.keyword_llm
             resp = chain.invoke(
-                {"citing": marked_citing_text[:6000], "context": context_only[:6000], "base_block": base_block}
+                {"citing": marked_citing_text[:6000], "context": context_only[:6000], "base_block": base_block},
+                config={
+                    "metadata": {
+                        "has_base_text": base_ref is not None,
+                        "base_ref": base_ref or "none"
+                    },
+                    "tags": ["search_query", "keyword_extraction", "citation_disambiguation"]
+                }
             )
             self._profile_add_tokens(self.keyword_llm, resp)
             content = getattr(resp, "content", "").strip()
@@ -801,6 +819,7 @@ class LLMParallelResolver:
             self.debug.log(f"LLM lexical search query formation failed: {exc}")
             return None
 
+    @traceable(run_type="llm", name="llm_confirm_candidate")
     def _llm_confirm_candidate(
         self,
         citing_text: str,
@@ -841,6 +860,14 @@ class LLMParallelResolver:
                 "base_block": base_block,
                 "candidate_ref": candidate_ref,
                 "candidate_text": (candidate_text or "")[:6000],
+            },
+            config={
+                "metadata": {
+                    "candidate_ref": candidate_ref,
+                    "has_base_text": base_ref is not None,
+                    "base_ref": base_ref or "none"
+                },
+                "tags": ["confirmation", "llm_verdict", "citation_disambiguation"]
             }
         )
         self._profile_add_tokens(self.llm, resp)
@@ -859,6 +886,7 @@ class LLMParallelResolver:
             verdict = "YES" if content.lower().startswith("y") else "NO"
         return verdict == "YES", content
 
+    @traceable(run_type="llm", name="llm_choose_best_candidate")
     def _llm_choose_best_candidate(
         self,
         citing_text: str,
@@ -912,7 +940,18 @@ class LLMParallelResolver:
 
         chain = prompt | self.llm
         try:
-            resp = chain.invoke({"citing": citing_text[:6000], "candidates": "\n\n".join(numbered)})
+            resp = chain.invoke(
+                {"citing": citing_text[:6000], "candidates": "\n\n".join(numbered)},
+                config={
+                    "metadata": {
+                        "target_ref": target_ref,
+                        "num_candidates": len(payloads),
+                        "has_base_text": base_ref is not None,
+                        "base_ref": base_ref or "none"
+                    },
+                    "tags": ["candidate_selection", "llm_choice", "citation_disambiguation"]
+                }
+            )
             self._profile_add_tokens(self.llm, resp)
             content = getattr(resp, "content", "")
         except Exception as exc:
@@ -979,6 +1018,7 @@ class LLMParallelResolver:
             return None
         return start, end, reason
 
+    @traceable(run_type="llm", name="llm_pick_small_range")
     def _llm_pick_small_range(
         self,
         marked_citing_text: str,
@@ -1020,6 +1060,15 @@ class LLMParallelResolver:
                 "target_ref": target_ref,
                 "segments": "\n".join(numbered_segments),
                 "base_block": base_block,
+            },
+            config={
+                "metadata": {
+                    "target_ref": target_ref,
+                    "num_segments": len(segments),
+                    "has_base_text": base_ref is not None,
+                    "base_ref": base_ref or "none"
+                },
+                "tags": ["segment_range", "range_selection", "citation_disambiguation"]
             }
         )
         self._profile_add_tokens(self.llm, resp)
@@ -1352,7 +1401,7 @@ if __name__ == "__main__":
     from utils import get_random_non_segment_links_with_chunks
 
     resolver = LLMParallelResolver(window_words_per_side=30, debug=True)  # NEW
-    samples = get_random_non_segment_links_with_chunks(n=60, use_remote=True, seed=71, use_cache=True)
+    samples = get_random_non_segment_links_with_chunks(n=60, use_remote=True, seed=69, use_cache=True)
 
     for i, item in enumerate(samples, 1):
         print(f"\n=== Sample {i} ===")
