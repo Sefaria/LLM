@@ -2,6 +2,7 @@ import os
 import json
 import random
 from contextlib import contextmanager
+from typing import List
 
 import django
 from pymongo import MongoClient
@@ -42,6 +43,84 @@ def links_collection(use_remote: bool):
     finally:
         client.close()
         server.stop()
+
+
+@contextmanager
+def linker_output_collection(use_remote: bool):
+    """
+    Yield the linker_output collection, optionally via the remote SSH-tunneled Mongo used in analysis scripts.
+    """
+    if not use_remote:
+        # For local, assume the collection exists in the same database
+        yield db["linker_output"]
+        return
+
+    # sshtunnel relies on paramiko.DSSKey which is removed in newer paramiko versions.
+    if not hasattr(paramiko, "DSSKey"):
+        paramiko.DSSKey = paramiko.RSAKey
+
+    server = SSHTunnelForwarder(
+        (CONNECTION["ssh_host"], CONNECTION["ssh_port"]),
+        ssh_username=CONNECTION["ssh_user"],
+        ssh_pkey=os.path.expanduser(CONNECTION["ssh_pkey"]),
+        remote_bind_address=(CONNECTION["remote_bind_host"], CONNECTION["remote_bind_port"]),
+    )
+    server.start()
+    client = MongoClient(f"mongodb://127.0.0.1:{server.local_bind_port}")
+    try:
+        # Use the same database as links collection (sefaria-library-linker2)
+        yield client[CONNECTION["mongo_db"]]["linker_output"]
+    finally:
+        client.close()
+        server.stop()
+
+
+def get_ambiguous_linker_outputs(
+    use_remote: bool = False,
+    limit: int = None,
+    progress: bool = False,
+    span_type: str = "citation",
+) -> list:
+    """
+    Return all linker output objects from the linker_output collection that have ambiguous resolution.
+    Uses the query: { spans : { $elemMatch : { ambiguous : true, type : <span_type> } } }
+
+    Args:
+        use_remote: If True, connect to remote MongoDB via SSH tunnel
+        limit: Optional limit on the number of results to return
+        progress: If True, show progress bar (requires tqdm)
+        span_type: Filter for span type. Defaults to "citation". Set to None for all types.
+
+    Returns:
+        List of linker output documents with ambiguous spans of the specified type
+    """
+    results: list = []
+
+    with linker_output_collection(use_remote) as collection:
+        # Build query based on whether span_type is specified
+        if span_type:
+            query = {"spans": {"$elemMatch": {"ambiguous": True, "type": span_type}}}
+        else:
+            query = {"spans": {"$elemMatch": {"ambiguous": True}}}
+
+        cursor = collection.find(query)
+        if limit:
+            cursor = cursor.limit(limit)
+
+        total = collection.count_documents(query) if progress else None
+
+        cursor_iter = cursor
+        if progress and total:
+            try:
+                from tqdm import tqdm
+                cursor_iter = tqdm(cursor, desc="Fetching ambiguous linker outputs", total=total)
+            except Exception:
+                pass
+
+        for doc in cursor_iter:
+            results.append(doc)
+
+    return results
 
 
 def get_random_non_segment_links_with_chunks(
@@ -178,6 +257,39 @@ def _find_chunk_for_link(link: dict, chunks_col):
     return None
 
 if __name__ == '__main__':
-    random_links = get_random_non_segment_links_with_chunks(5, use_remote=True, seed=613, use_cache=False)
-    for item in random_links:
-        print(item)
+    # Test get_ambiguous_linker_outputs - default is citations only
+    print("Testing get_ambiguous_linker_outputs (default: citations only)...")
+    ambiguous_citations = get_ambiguous_linker_outputs(use_remote=True, limit=5, progress=True)
+    print(f"Found {len(ambiguous_citations)} ambiguous citation outputs\n")
+
+    for i, output in enumerate(ambiguous_citations, 1):
+        print(f"{i}. Ref: {output.get('ref')}")
+        ambiguous_spans = [span for span in output.get('spans', []) if span.get('ambiguous') and span.get('type') == 'citation']
+        print(f"   Ambiguous citation spans: {len(ambiguous_spans)}")
+        for span in ambiguous_spans[:2]:
+            print(f"   - Text: '{span.get('text', 'N/A')[:50]}' → Ref: {span.get('ref', 'N/A')}")
+        print()
+
+    print("="*80 + "\n")
+
+    # Test with span_type=None to get all types
+    print("Testing get_ambiguous_linker_outputs (all types)...")
+    ambiguous_all = get_ambiguous_linker_outputs(use_remote=True, limit=5, progress=True, span_type=None)
+    print(f"Found {len(ambiguous_all)} ambiguous linker outputs (all types)\n")
+
+    for i, output in enumerate(ambiguous_all, 1):
+        print(f"{i}. Ref: {output.get('ref')}")
+        ambiguous_spans = [span for span in output.get('spans', []) if span.get('ambiguous')]
+        print(f"   Ambiguous spans: {len(ambiguous_spans)}")
+        for span in ambiguous_spans[:2]:  # Show first 2 ambiguous spans
+            print(f"   - Type: {span.get('type', 'N/A')}, Text: {span.get('text', 'N/A')[:50]}")
+            if 'ref' in span:
+                print(f"     Ref: {span.get('ref')}")
+        print()
+
+    print("\n" + "="*80 + "\n")
+
+    # Original test
+    # random_links = get_random_non_segment_links_with_chunks(5, use_remote=True, seed=613, use_cache=False)
+    # for item in random_links:
+    #     print(item)
