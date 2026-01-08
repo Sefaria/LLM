@@ -306,7 +306,6 @@ class SheetScorer:
             {sheet_title}
         
             TASK: Return JSON with keys `title_interest_level` (0-4) and `title_interest_reason` ( < 20 words). 
-            Choose a higher score when the title:
         
             Title interest level (int 0–4):
               0: Not interesting / off‑topic for users
