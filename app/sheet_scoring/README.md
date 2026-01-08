@@ -113,14 +113,15 @@ ISO-639-1 language code of the sheet, and in case the sheet has no user generate
 ### Initialization Parameters
 
 ```python
-scorer = SheetScorer(
+with SheetScorer(
     api_key=os.getenv("OPENAI_API_KEY"),
     model="gpt-4o-mini",                    # Default model
     max_prompt_tokens=128000,               # Input token budget
     token_margin=16384,                     # Reserved for output
-    max_ref_to_process=800,                 # Max num of refs that can be processed 
+    max_ref_to_process=800,                 # Max num of refs that can be processed
     chunk_size=80                           # Refs per LLM call
-)
+) as scorer:
+    result = scorer.process_sheet_by_content(...)
 ```
 
 The constants DEFAULT_MAX_OUTPUT_TOKENS, DEFAULT_MAX_INPUT_OUTPUT_TOKENS are model specific 

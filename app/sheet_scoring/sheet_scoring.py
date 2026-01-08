@@ -7,9 +7,8 @@ from sefaria_llm_interface.sheet_scoring import (
 
 
 def score_one_sheet(inp: SheetScoringInput) -> SheetScoringOutput:
-    scorer = SheetScorer(
-        api_key=os.getenv("OPENAI_API_KEY"))
-    return scorer.process_sheet_by_content(sheet_id=inp.sheet_id,
-                                           title=inp.title,
-                                           sources=inp.sources,
-                                           expanded_refs=inp.expanded_refs)
+    with SheetScorer(api_key=os.getenv("OPENAI_API_KEY")) as scorer:
+        return scorer.process_sheet_by_content(sheet_id=inp.sheet_id,
+                                               title=inp.title,
+                                               sources=inp.sources,
+                                               expanded_refs=inp.expanded_refs)

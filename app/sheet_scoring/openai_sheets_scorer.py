@@ -103,12 +103,25 @@ class SheetScorer:
         self.model = model
         self.chunk_size = chunk_size
         self.max_ref_to_process = max_ref_to_process
+        self._http_client_json = httpx.Client()
+        self._http_client_text = httpx.Client()
         self.llm = self._create_json_llm(api_key, model)
         self.summarizer = self._create_text_llm(api_key, model)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+        return False
+
+    def close(self):
+        """Close HTTP clients to release resources."""
+        self._http_client_json.close()
+        self._http_client_text.close()
+
     def _create_json_llm(self, api_key: str, model: str) -> ChatOpenAI:
         """Create LLM client for JSON responses."""
-        http_client = httpx.Client()
         return ChatOpenAI(
             model=model,
             temperature=0,
@@ -117,18 +130,17 @@ class SheetScorer:
             presence_penalty=0,
             seed=42,
             api_key=api_key,
-            http_client=http_client,
+            http_client=self._http_client_json,
         )
 
     def _create_text_llm(self, api_key: str, model: str) -> ChatOpenAI:
         """Create LLM client for text responses."""
-        http_client = httpx.Client()
         return ChatOpenAI(
             model=model,
             temperature=0,
             model_kwargs={"response_format": {"type": "text"}},
             api_key=api_key,
-            http_client=http_client,
+            http_client=self._http_client_text,
         )
 
     def _invoke_llm_with_function(self, prompt: str,
