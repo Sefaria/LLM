@@ -36,8 +36,8 @@ class ResolverConfig:
     dicta_url: str = "https://parallels-3-0a.loadbalancer.dicta.org.il/parallels/api/findincorpus"
     sefaria_search_url: str = "https://www.sefaria.org/api/search/text/_search"
 
-    min_threshold: float = 1.0
-    max_distance: float = 10.0
+    min_threshold: float = 7.0
+    max_distance: float = 4.0
     request_timeout: int = 30
     window_words_per_side: int = 120
 
@@ -837,16 +837,18 @@ class LLMParallelResolver:
                 (
                     "system",
                     "You verify whether one Jewish text is genuinely citing or closely paraphrasing a specific target segment. "
+                    "Be strict in your evaluation."
                 ),
                 (
                     "human",
                     "Citing passage (the citation span is wrapped in <citation ...></citation>):\n"
                     "{citing}\n\n"
                     "{base_block}"
-                    "Candidate segment ref (retrieved by similarity): {candidate_ref}\n"
+                    "Candidate segment ref (retrieved by similarity):\n{candidate_ref}\n\n"
                     "Candidate segment text:\n{candidate_text}\n\n"
-                    "Your task is to determine whether the citing passage is actually referring to this candidate segment.\n\n"
-                    "Answer in exactly two lines:\n"
+                    "Determine whether the citing passage is actually referring to this candidate segment.\n"
+                    "If base text is provided, consider whether the commentary is discussing that base passage.\n\n"
+                    "Answer in exactly two lines (no preamble):\n"
                     "Reason: <brief rationale>\n"
                     "Verdict: YES or NO",
                 ),
@@ -883,8 +885,298 @@ class LLMParallelResolver:
                         break
 
         if verdict is None:
-            verdict = "YES" if content.lower().startswith("y") else "NO"
+            # More robust fallback parsing
+            if "verdict:" in content.lower():
+                verdict_line = [line for line in content.splitlines() if "verdict:" in line.lower()]
+                if verdict_line:
+                    verdict = "YES" if "yes" in verdict_line[0].lower() else "NO"
+            else:
+                # Last resort: check if content starts with y/n
+                verdict = "YES" if content.lower().startswith("y") else "NO"
+
+        if verdict is None:
+            self.debug.log(f"Could not parse LLM verdict from: {content}")
+            verdict = "NO"  # Default to NO if unparseable
+
         return verdict == "YES", content
+
+    # -------- Dicta + Search query methods --------
+
+    @traceable(run_type="tool", name="query_dicta")
+    def _query_dicta(
+        self,
+        query_text: str,
+        target_ref: Optional[str] = None,
+        citing_ref: Optional[str] = None,
+        citing_lang: Optional[str] = None,
+        citing_version: Optional[str] = None,
+        ranking_context: Optional[str] = None,
+        base_ref: Optional[str] = None,
+        base_text: Optional[str] = None,
+    ) -> Optional[Dict[str, Any]]:
+        """Query Dicta parallels API."""
+        start = time.perf_counter()
+        params = {
+            "minthreshold": int(self.cfg.min_threshold) if self.cfg.min_threshold is not None else "",
+            "maxdistance": int(self.cfg.max_distance) if self.cfg.max_distance is not None else "",
+        }
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+            "Origin": "https://parallels.dicta.org.il",
+            "Referer": "https://parallels.dicta.org.il/",
+        }
+
+        # Debug: Show exact URL and params
+        param_str = "&".join([f"{k}={v}" for k, v in params.items() if v != ""])
+        full_url = f"{self.cfg.dicta_url}?{param_str}"
+        self.debug.log(f"[Base Resolver] Dicta URL: {full_url}")
+        self.debug.log(f"[Base Resolver] Dicta text query (first 200 chars): {query_text[:200]}")
+
+        try:
+            data = self.http.post_form(
+                self.cfg.dicta_url,
+                params=params,
+                data=f"text={query_text}".encode("utf-8"),
+                headers=headers,
+            )
+        except Exception as exc:
+            self.debug.log(f"Dicta request failed: {exc}")
+            return None
+        finally:
+            self._profile_add("dicta_seconds", time.perf_counter() - start)
+
+        candidates = self._collect_dicta_hits(
+            data.get("results") or [],
+            target_ref=target_ref,
+            citing_ref=citing_ref,
+            citing_lang=citing_lang,
+            citing_version=citing_version,
+        )
+        if not candidates:
+            self.debug.log("Dicta returned no contained matches")
+            return None
+
+        deduped = self._dedupe_candidates_by_ref(candidates)
+        if len(deduped) == 1:
+            self.debug.log(f"Dicta success: {deduped[0].get('resolved_ref')}")
+            return deduped[0]
+
+        chosen = self._llm_choose_best_candidate(
+            ranking_context or query_text,
+            target_ref or "",
+            deduped,
+            base_ref=base_ref,
+            base_text=base_text,
+            lang=citing_lang,
+        )
+        if chosen:
+            self.debug.log(f"Dicta multiple hits; LLM chose {chosen.get('resolved_ref')} from {len(deduped)}")
+        else:
+            self.debug.log("LLM failed to pick among Dicta hits")
+        return chosen
+
+    def _collect_dicta_hits(
+        self,
+        results: List[Dict[str, Any]],
+        target_ref: Optional[str] = None,
+        citing_ref: Optional[str] = None,
+        citing_lang: Optional[str] = None,
+        citing_version: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """Collect Dicta hits that match the target ref."""
+        target_oref = None
+        if target_ref:
+            try:
+                target_oref = Ref(target_ref)
+            except Exception:
+                pass
+
+        candidates: List[Dict[str, Any]] = []
+        for entry in results:
+            for cand in entry.get("data", []):
+                url = cand.get("url") or cand.get("compUrl") or ""
+                normalized = self._normalize_dicta_url_to_ref(url)
+                if not normalized:
+                    continue
+                try:
+                    oref = Ref(normalized)
+                    if not oref.is_segment_level():
+                        continue
+                    if target_oref and target_oref.contains(oref):
+                        score = cand.get("score")
+                        candidates.append({"resolved_ref": normalized, "raw": cand, "source": "dicta", "score": score})
+                except Exception:
+                    continue
+
+        return candidates
+
+    @traceable(run_type="tool", name="query_sefaria_search")
+    def _query_sefaria_search(
+        self,
+        query_text: str,
+        target_ref: Optional[str] = None,
+        citing_ref: Optional[str] = None,
+        citing_lang: Optional[str] = None,
+        citing_version: Optional[str] = None,
+        size: int = 500,
+        slop: int = 10,
+    ) -> Optional[Dict[str, Any]]:
+        """Query Sefaria search API."""
+        start = time.perf_counter()
+        path_regex = self._path_regex_for_ref(target_ref)
+
+        # Build query with proper filter handling
+        bool_query = {
+            "must": {"match_phrase": {"naive_lemmatizer": {"query": query_text, "slop": slop}}}
+        }
+
+        # Only add filter if we have a path_regex
+        if path_regex:
+            bool_query["filter"] = {"bool": {"should": [{"regexp": {"path": path_regex}}]}}
+
+        payload = {
+            "from": 0,
+            "size": size,
+            "highlight": {"pre_tags": ["<b>"], "post_tags": ["</b>"], "fields": {"naive_lemmatizer": {"fragment_size": 200}}},
+            "query": {
+                "function_score": {
+                    "field_value_factor": {"field": "pagesheetrank", "missing": 0.04},
+                    "query": {
+                        "bool": bool_query
+                    },
+                }
+            },
+        }
+        headers = {
+            "Content-Type": "application/json; charset=UTF-8",
+            "Accept": "application/json",
+            "Origin": "https://www.sefaria.org",
+            "Referer": "https://www.sefaria.org/texts",
+        }
+
+        try:
+            data = self.http.post_json(self.cfg.sefaria_search_url, payload=payload, headers=headers)
+        except Exception as exc:
+            self.debug.log(f"Sefaria search-api request failed: {exc}")
+            return None
+        finally:
+            self._profile_add("es_seconds", time.perf_counter() - start)
+
+        target_oref = None
+        try:
+            target_oref = Ref(target_ref) if target_ref else None
+        except Exception:
+            pass
+
+        hits = (data.get("hits") or {}).get("hits") or []
+        for entry in hits:
+            normalized = self._extract_ref_from_search_hit(entry)
+            if not normalized:
+                continue
+            try:
+                cand_oref = Ref(normalized)
+                if not cand_oref.is_segment_level():
+                    continue
+                if target_oref and target_oref.contains(cand_oref):
+                    self.debug.log(f"Search found: {normalized}")
+                    return {"resolved_ref": normalized, "raw": entry, "source": "sefaria_search", "query": query_text}
+            except Exception:
+                continue
+
+        return None
+
+    def _extract_ref_from_search_hit(self, hit: Dict[str, Any]) -> Optional[str]:
+        """Extract ref from search hit."""
+        candidates: List[Optional[str]] = []
+        for k in ("ref", "he_ref", "sourceRef"):
+            if k in hit:
+                candidates.append(hit.get(k))
+        src = hit.get("_source") or {}
+        for k in ("ref", "he_ref", "sourceRef"):
+            if k in src:
+                candidates.append(src.get(k))
+
+        for c in candidates:
+            if not c:
+                continue
+            try:
+                return Ref(c).normal()
+            except Exception:
+                continue
+        return None
+
+    def _path_regex_for_ref(self, target_ref: Optional[str]) -> Optional[str]:
+        """Build path regex for search filtering."""
+        if not target_ref:
+            return None
+        try:
+            oref = Ref(target_ref)
+            idx = oref.index
+            parts: List[str] = []
+            parts.extend(getattr(idx, "categories", []) or [])
+            parts.append(idx.title)
+            path = "/".join([p for p in parts if p])
+            return path.replace("/", r"\/") + ".*" if path else None
+        except Exception:
+            return None
+
+    # -------- misc helpers --------
+
+    def _normalize_dicta_url_to_ref(self, url: str) -> Optional[str]:
+        """Normalize a Dicta URL to a Sefaria ref."""
+        if not url:
+            return None
+        cleaned = url.lstrip("/")
+        if cleaned.startswith("www.sefaria.org/"):
+            cleaned = cleaned[len("www.sefaria.org/"):]
+        if cleaned.startswith("sefaria.org/"):
+            cleaned = cleaned[len("sefaria.org/"):]
+        cleaned = cleaned.split("?")[0]
+        try:
+            from urllib.parse import unquote
+            cleaned = unquote(cleaned)
+        except Exception:
+            pass
+        cleaned = cleaned.replace("_", " ")
+        try:
+            return Ref(cleaned).normal()
+        except Exception:
+            return None
+
+    def _dedupe_candidates_by_ref(self, candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Deduplicate candidates by ref, keeping highest score."""
+        unique: Dict[str, Dict[str, Any]] = {}
+        for c in candidates:
+            r = c.get("resolved_ref")
+            if not r:
+                continue
+            if r not in unique:
+                unique[r] = c
+            else:
+                ps, ns = unique[r].get("score"), c.get("score")
+                if ns is not None and (ps is None or ns > ps):
+                    unique[r] = c
+        return list(unique.values())
+
+    def _replace_ref_in_link(self, link: dict, old_ref: str, new_ref: str) -> dict:
+        """Replace a ref in a link dict."""
+        updated = dict(link)
+        updated["refs"] = [new_ref if r == old_ref else r for r in link.get("refs", [])]
+        return updated
+
+    def _replace_ref_in_chunk(self, chunk: dict, old_ref: str, new_ref: str) -> dict:
+        """Replace a ref in a chunk dict."""
+        updated = dict(chunk)
+        spans = []
+        for s in chunk.get("spans") or []:
+            if s.get("type") == "citation" and s.get("ref") == old_ref:
+                ns = dict(s)
+                ns["ref"] = new_ref
+                spans.append(ns)
+            else:
+                spans.append(s)
+        updated["spans"] = spans
+        return updated
 
     @traceable(run_type="llm", name="llm_choose_best_candidate")
     def _llm_choose_best_candidate(
@@ -927,13 +1219,21 @@ class LLMParallelResolver:
 
         prompt = ChatPromptTemplate.from_messages(
             [
-                ("system", "You choose the single best candidate ref that the citing text most directly quotes/paraphrases."),
+                (
+                    "system",
+                    "You choose the single best candidate ref that the citing text most directly quotes/paraphrases. "
+                    "You must respond with an actual number, not a placeholder or variable."
+                ),
                 (
                     "human",
                     "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
                     f"{base_block}"
                     "Candidate refs:\n{candidates}\n\n"
-                    "Pick exactly one number. Answer in two lines:\nReason: <brief rationale>\nChoice: <number>",
+                    "Pick exactly ONE number from the list above (e.g., 1, 2, 3, etc.).\n\n"
+                    "Output format (replace with actual content, do NOT use placeholders):\n"
+                    "Reason: Your brief explanation here\n"
+                    "Choice: 1\n\n"
+                    "Now provide your answer:",
                 ),
             ]
         )
@@ -983,429 +1283,971 @@ class LLMParallelResolver:
 
         return None
 
-    def _format_segment_texts(self, segments: List[Ref]) -> List[str]:
-        formatted = []
-        for i, seg in enumerate(segments, start=1):
-            text = ""
-            try:
-                text = seg.text("en").as_string()
-            except Exception:
-                pass
-            if not text:
-                try:
-                    text = seg.text("he").as_string()
-                except Exception:
-                    text = ""
-            formatted.append(f"{i}. {seg.normal()} — {text}")
-        return formatted
-
-    def _parse_range_response(self, content: str) -> Optional[Tuple[int, int, str]]:
-        if not content:
-            return None
-        start = end = None
-        reason = content.strip()
-        m = re.search(r"range\s*:\s*([0-9]+)\s*,\s*([0-9]+)", content, re.IGNORECASE)
-        if m:
-            start = int(m.group(1))
-            end = int(m.group(2))
-            reason = re.split(r"range\s*:", content, flags=re.IGNORECASE)[0].replace("Explanation:", "").strip()
-        else:
-            nums = re.findall(r"\d+", content)
-            if nums:
-                start = int(nums[0])
-                end = int(nums[1]) if len(nums) > 1 else int(nums[0])
-        if start is None or end is None:
-            return None
-        return start, end, reason
-
-    @traceable(run_type="llm", name="llm_pick_small_range")
-    def _llm_pick_small_range(
+    def _llm_choose_among_matches(
         self,
-        marked_citing_text: str,
-        target_ref: str,
-        segments: List[Ref],
+        matching_candidates: List[Dict[str, Any]],
+        citing_text: str,
         base_ref: Optional[str],
         base_text: Optional[str],
-    ) -> Optional[Tuple[int, int, str]]:
-        numbered_segments = self._format_segment_texts(segments)
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    "You map a citation to a range of numbered segments. Provide a short reason, "
-                    "then two integers: start and end numbers.",
-                ),
-                (
-                    "human",
-                    "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
-                    "Target higher-level ref: {target_ref}\n\n"
-                    "{base_block}"
-                    "Numbered segment texts:\n{segments}\n\n"
-                    "Which two numbers (start and end) best cover the cited text? "
-                    "If only one segment is relevant, repeat the same number for start and end. "
-                    "Respond in two lines:\n"
-                    "Explanation: <brief reason>\n"
-                    "Range: <start>,<end>",
-                ),
-            ]
-        )
+        lang: Optional[str],
+        source: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Use LLM to choose the best candidate when multiple matches are found.
+
+        Args:
+            matching_candidates: List of dicts with 'candidate', 'score'/'query', 'raw'
+            citing_text: The citing passage text
+            base_ref: Base text ref if commentary
+            base_text: Base text if commentary
+            lang: Language
+            source: "Dicta" or "Search" for logging
+        """
+        # Build options for LLM
+        options = []
+        for i, match in enumerate(matching_candidates, 1):
+            cand_ref = match["candidate"]["ref"]
+
+            # Get score or query info
+            if "score" in match:
+                info = f"Dicta score: {match['score']}"
+            elif "query" in match:
+                info = f"Search query: '{match['query']}'"
+            else:
+                info = "Match found"
+
+            # Get text preview
+            cand_text = self.base_resolver._get_ref_text(cand_ref, lang)
+            preview = (cand_text or "").strip()[:300]
+            if cand_text and len(cand_text) > 300:
+                preview += "..."
+
+            options.append(
+                f"{i}) {cand_ref}\n"
+                f"   {info}\n"
+                f"   Text: {preview}"
+            )
+
+        # Escape curly braces
+        def escape_braces(text: str) -> str:
+            if not text:
+                return text
+            return text.replace("{", "{{").replace("}", "}}")
+
+        citing_escaped = escape_braces(citing_text[:6000])
+        options_escaped = escape_braces("\n\n".join(options))
+
         base_block = ""
         if base_ref and base_text:
-            base_block = f"Base text of commentary target ({base_ref}):\n{base_text}\n\n"
+            base_text_escaped = escape_braces(base_text[:2000])
+            base_block = f"Base text of commentary target ({base_ref}):\n{base_text_escaped}\n\n"
 
-        chain = prompt | self.llm
-        resp = chain.invoke(
-            {
-                "citing": marked_citing_text,
-                "target_ref": target_ref,
-                "segments": "\n".join(numbered_segments),
-                "base_block": base_block,
-            },
-            config={
-                "metadata": {
-                    "target_ref": target_ref,
-                    "num_segments": len(segments),
-                    "has_base_text": base_ref is not None,
-                    "base_ref": base_ref or "none"
-                },
-                "tags": ["segment_range", "range_selection", "citation_disambiguation"]
-            }
-        )
-        self._profile_add_tokens(self.llm, resp)
-        return self._parse_range_response(getattr(resp, "content", ""))
+        # LLM prompt to choose
+        from langchain_core.prompts import ChatPromptTemplate
+        prompt = ChatPromptTemplate.from_messages([
+            (
+                "system",
+                f"You are choosing the best match from multiple {source} results for an ambiguous citation. "
+                "You must respond with an actual number, not a placeholder or variable."
+            ),
+            ("human",
+             "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
+             "{base_block}"
+             "Multiple possible matches found:\n{options}\n\n"
+             "Pick exactly ONE number from the list above (e.g., 1, 2, 3, etc.).\n\n"
+             "Output format (replace with actual content, do NOT use placeholders):\n"
+             "Reason: Your brief explanation here\n"
+             "Choice: 1\n\n"
+             "Now provide your answer:"
+            ),
+        ])
 
-    # -------- Dicta --------
-
-    def _query_dicta(
-        self,
-        query_text: str,
-        target_ref: Optional[str] = None,
-        citing_ref: Optional[str] = None,
-        citing_lang: Optional[str] = None,
-        citing_version: Optional[str] = None,
-        ranking_context: Optional[str] = None,
-        base_ref: Optional[str] = None,
-        base_text: Optional[str] = None,
-    ) -> Optional[Dict[str, Any]]:
-        start = time.perf_counter()
-        params = {
-            "minthreshold": int(self.cfg.min_threshold) if self.cfg.min_threshold is not None else "",
-            "maxdistance": int(self.cfg.max_distance) if self.cfg.max_distance is not None else "",
-        }
-        headers = {
-            "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-            "Origin": "https://parallels.dicta.org.il",
-            "Referer": "https://parallels.dicta.org.il/",
-        }
-
+        chain = prompt | self.base_resolver.llm
         try:
-            data = self.http.post_form(
-                self.cfg.dicta_url,
-                params=params,
-                data=f"text={query_text}".encode("utf-8"),
-                headers=headers,
+            resp = chain.invoke(
+                {
+                    "citing": citing_escaped,
+                    "options": options_escaped,
+                    "base_block": base_block
+                },
+                config={
+                    "metadata": {
+                        "num_options": len(options),
+                        "source": source,
+                    },
+                    "tags": ["ambiguous_resolution", "multiple_matches", "citation_disambiguation"]
+                }
             )
+            self.base_resolver._profile_add_tokens(self.base_resolver.llm, resp)
+            content = getattr(resp, "content", "")
         except Exception as exc:
-            self.debug.log(
-                "Dicta request failed.\n"
-                f"Payload (first 2000 chars): {query_text[:2000]}{'...' if len(query_text) > 2000 else ''}\n"
-                f"Error: {exc}"
-            )
-            return None
-        finally:
-            self._profile_add("dicta_seconds", time.perf_counter() - start)
-
-        candidates = self._collect_dicta_hits(
-            data.get("results") or [],
-            target_ref=target_ref,
-            citing_ref=citing_ref,
-            citing_lang=citing_lang,
-            citing_version=citing_version,
-        )
-        if not candidates:
-            self.debug.log(
-                "Dicta returned no contained matches. "
-                f"Payload length={len(query_text)}"
-            )
+            self.debug.log(f"LLM choice among matches failed: {exc}")
             return None
 
-        deduped = self._dedupe_candidates_by_ref(candidates)
-        if len(deduped) == 1:
-            self.debug.log(f"Dicta success: payload_len={len(query_text)}")
-            return deduped[0]
+        # Parse the choice
+        import re
+        m = re.search(r"choice\s*:\s*(\d+)", content, re.IGNORECASE)
+        if not m:
+            nums = re.findall(r"\d+", content or "")
+            if not nums:
+                self.debug.log(f"Could not parse LLM choice from: {content}")
+                return None
+            choice = int(nums[0])
+        else:
+            choice = int(m.group(1))
 
-        chosen = self._llm_choose_best_candidate(
-            ranking_context or query_text,
-            target_ref or "",
-            deduped,
+        if 1 <= choice <= len(matching_candidates):
+            match = matching_candidates[choice - 1]
+            enriched_candidate = dict(match["candidate"])
+            enriched_candidate["resolved_ref"] = match.get("resolved_ref", match["candidate"]["ref"])
+            resolved = enriched_candidate["resolved_ref"]
+            self.debug.log(f"LLM chose option {choice}: {match['candidate']['ref']} → {resolved}")
+            return enriched_candidate
+        else:
+            self.debug.log(f"LLM choice {choice} out of range (1-{len(matching_candidates)})")
+            return None
+
+    def _llm_confirm_match(
+        self,
+        marked_citing_text: str,
+        candidate_ref: str,
+        candidate_text: str,
+        base_ref: Optional[str],
+        base_text: Optional[str],
+        citing_ref: str
+    ) -> bool:
+        """
+        Use LLM to confirm if the candidate is a correct match for the citation.
+        Returns True if confirmed, False if rejected.
+        """
+        # Special case: Metzudat Zion is always confirmed
+        if citing_ref.startswith("Metzudat Zion"):
+            self.debug.log("Auto-confirming Metzudat Zion")
+            return True
+
+        # Use the existing LLM confirmation method
+        confirmed, reason = self.base_resolver._llm_confirm_candidate(
+            citing_text=marked_citing_text,
+            candidate_ref=candidate_ref,
+            candidate_text=candidate_text,
             base_ref=base_ref,
             base_text=base_text,
-            lang=citing_lang,
         )
-        if chosen:
-            self.debug.log(f"Dicta multiple hits; LLM chose {chosen.get('resolved_ref')} from {len(deduped)}")
-        else:
-            self.debug.log("LLM failed to pick among Dicta hits.")
-        return chosen
 
-    def _collect_dicta_hits(
+        self.debug.log(f"LLM confirmation for {candidate_ref}: {confirmed}, reason: {reason}")
+        return confirmed
+
+    def _build_simple_resolution(
         self,
-        results: List[Dict[str, Any]],
-        target_ref: Optional[str] = None,
-        citing_ref: Optional[str] = None,
-        citing_lang: Optional[str] = None,
-        citing_version: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
-        target_oref = None
-        if target_ref:
+        candidate: Dict[str, Any],
+        source: str,
+        citing_ref: str,
+        lang: Optional[str]
+    ) -> Dict[str, Any]:
+        """
+        Build a resolution result from a confirmed candidate.
+        Returns the candidate ref as resolved_ref, with the matched segment as metadata.
+        """
+        # resolved_ref is the candidate (e.g., "Genesis 7:1-3")
+        # matched_segment is the specific segment Dicta/Search found (e.g., "Genesis 7:2")
+        matched_segment = candidate.get("resolved_ref")  # The segment-level ref from Dicta/Search
+        result = {
+            "span": candidate["span"],
+            "original_ref": candidate["ref"],
+            "resolved_ref": candidate["ref"],  # Return the candidate ref
+            "reason": f"Matched via {source} and confirmed by LLM",
+            "llm_reason": f"Confirmed as correct match",
+            "match_source": source,
+        }
+        # Add the matched segment as metadata if it exists and differs from candidate
+        if matched_segment and matched_segment != candidate["ref"]:
+            result["matched_segment"] = matched_segment
+        return result
+
+    def _build_debug_url(self, tref: str, lang: Optional[str] = None) -> str:
+        """
+        Build a Sefaria library URL with debug_mode=linker for easy debugging.
+        """
+        if not tref:
+            return ""
+        try:
+            from urllib.parse import quote
+            oref = Ref(tref)
+            url_safe_ref = oref.url()
+            base_url = f"https://library-linker2.cauldron.sefaria.org/{url_safe_ref}"
+            params = []
+            if lang:
+                params.append(f"lang={lang}")
+            params.append("debug_mode=linker")
+            return base_url + "?" + "&".join(params)
+        except Exception:
+            # Fallback if ref parsing fails
             try:
-                target_oref = Ref(target_ref)
+                from urllib.parse import quote
+                url_safe_ref = quote(tref.replace(" ", "_"))
+                base_url = f"https://library-linker2.cauldron.sefaria.org/{url_safe_ref}"
+                params = []
+                if lang:
+                    params.append(f"lang={lang}")
+                params.append("debug_mode=linker")
+                return base_url + "?" + "&".join(params)
             except Exception:
-                target_oref = None
+                return ""
 
-        def safe_link(tref: Optional[str]) -> Optional[str]:
-            if not tref:
-                return None
+
+class LLMParallelAmbiguousResolver:
+    """
+    Resolves ambiguous citation spans in linker_output documents.
+    Uses Dicta and search to find matches among ambiguous candidates,
+    then LLM to confirm correctness.
+    """
+
+    def __init__(
+        self,
+        debug: bool = False,
+        window_words_per_side: int = 120,
+        min_threshold: float = 1.0,
+        max_distance: float = 10.0,
+        **kwargs
+    ):
+        """
+        Args:
+            debug: Enable debug logging
+            window_words_per_side: Words to include on each side of citation
+            min_threshold: Minimum threshold for Dicta matching (default: 7.0)
+            max_distance: Maximum distance for Dicta matching (default: 4.0)
+            **kwargs: Additional config parameters passed to LLMParallelResolver
+        """
+        self.base_resolver = LLMParallelResolver(
+            debug=debug,
+            window_words_per_side=window_words_per_side,
+            min_threshold=min_threshold,
+            max_distance=max_distance,
+            **kwargs
+        )
+        self.debug = self.base_resolver.debug
+
+    @traceable(run_type="chain", name="resolve_ambiguous_linker_output")
+    def resolve(
+        self,
+        linker_output: dict,
+        profile: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Resolve all ambiguous citation spans in a linker_output document.
+        """
+        self.base_resolver._profile_reset(profile)
+
+        citing_ref = linker_output.get("ref")
+        lang = linker_output.get("language")
+        vtitle = linker_output.get("versionTitle")
+        spans = linker_output.get("spans", [])
+
+        self.debug.log(f"Processing linker_output document: ref={citing_ref}, lang={lang}, total_spans={len(spans)}")
+
+        # Filter to only ambiguous citation spans
+        ambiguous_citations = [
+            span for span in spans
+            if span.get("ambiguous") is True and span.get("type") == "citation"
+        ]
+
+        if not ambiguous_citations:
+            self.debug.log("No ambiguous citation spans found")
+            return {
+                "ref": citing_ref,
+                "total_groups": 0,
+                "resolved_groups": 0,
+                "unresolved_groups": 0,
+                "total_ambiguous_spans": 0,
+                "resolutions": [],
+                "unresolved_spans": [],
+                "profile": profile or {}
+            }
+
+        self.debug.log(f"Found {len(ambiguous_citations)} ambiguous citation spans")
+
+        # Group ambiguous spans by charRange - spans with same charRange are alternative resolutions
+        from collections import defaultdict
+        char_range_groups = defaultdict(list)
+        for span in ambiguous_citations:
+            char_range = tuple(span.get('charRange', []))
+            if char_range:
+                char_range_groups[char_range].append(span)
+
+        self.debug.log(f"Grouped into {len(char_range_groups)} unique citation locations")
+
+        # Get the full text of the citing document once
+        citing_text = self.base_resolver._get_ref_text(citing_ref, lang, vtitle)
+        if not citing_text:
+            self.debug.log(f"Could not retrieve text for citing ref: {citing_ref}")
+            total_groups = len(char_range_groups)
+
+            return {
+                "ref": citing_ref,
+                "total_groups": total_groups,
+                "resolved_groups": 0,
+                "unresolved_groups": total_groups,
+                "total_ambiguous_spans": len(ambiguous_citations),
+                "resolutions": [],
+                "unresolved_spans": ambiguous_citations,
+                "profile": profile or {}
+            }
+
+        resolutions = []
+        unresolved_spans = []
+
+        # Process each group of ambiguous spans (one group per citation location)
+        for group_idx, (char_range, span_group) in enumerate(sorted(char_range_groups.items()), 1):
+            self.debug.log(
+                f"Processing group {group_idx}/{len(char_range_groups)}: "
+                f"charRange={list(char_range)}, {len(span_group)} alternative(s), "
+                f"text='{span_group[0].get('text', '')[:30]}...'"
+            )
+
+            resolution = self._resolve_span_group(
+                span_group=span_group,
+                citing_ref=citing_ref,
+                citing_text=citing_text,
+                lang=lang,
+                vtitle=vtitle,
+                linker_output=linker_output
+            )
+
+            if resolution:
+                resolutions.append(resolution)
+                self.debug.log(f"✓ Resolved group {group_idx} to: {resolution.get('resolved_ref')}")
+            else:
+                unresolved_spans.extend(span_group)
+                self.debug.log(f"✗ Could not resolve group {group_idx}")
+
+        # Count groups, not individual spans
+        total_groups = len(char_range_groups)
+        resolved_groups = len(resolutions)
+        unresolved_groups = total_groups - resolved_groups
+
+        result = {
+            "ref": citing_ref,
+            "total_groups": total_groups,
+            "resolved_groups": resolved_groups,
+            "unresolved_groups": unresolved_groups,
+            "total_ambiguous_spans": len(ambiguous_citations),
+            "resolutions": resolutions,
+            "unresolved_spans": unresolved_spans,
+            "profile": profile or {}
+        }
+
+        self.debug.log(
+            f"Completed: {resolved_groups}/{total_groups} groups resolved "
+            f"({unresolved_groups} unresolved groups, {len(unresolved_spans)} unresolved spans)"
+        )
+
+        return result
+
+    @traceable(run_type="chain", name="resolve_span_group")
+    def _resolve_span_group(
+        self,
+        span_group: List[dict],
+        citing_ref: str,
+        citing_text: str,
+        lang: Optional[str],
+        vtitle: Optional[str],
+        linker_output: dict
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Resolve a group of ambiguous spans that represent alternative resolutions for the same citation.
+        """
+        if not span_group:
+            return None
+
+        # Check if this is Hebrew (required for Dicta + search pipeline)
+        if lang != "he":
+            self.debug.log(f"Skipping non-Hebrew span group (lang={lang})")
+            return None
+
+        # Use the first span to get the text and charRange (all spans in group have same text/range)
+        representative_span = span_group[0]
+        citation_text = representative_span.get("text", "")
+
+        # Print citing URL
+        citing_url = self._build_debug_url(citing_ref, lang)
+        self.debug.log(f"Citing ref: {citing_ref}")
+        self.debug.log(f"  URL: {citing_url}")
+
+        self.debug.log(
+            f"Resolving group with {len(span_group)} alternatives for '{citation_text}': "
+            f"{[s.get('ref') for s in span_group]}"
+        )
+
+        # Normalize all candidate refs first
+        valid_candidates = []
+        for span in span_group:
+            candidate_ref = span.get("ref")
+            if not candidate_ref:
+                continue
             try:
-                return f"https://library-linker2.cauldron.sefaria.org/{Ref(tref).url()}"
-            except Exception:
-                return None
+                oref = Ref(candidate_ref)
+                valid_candidates.append({
+                    "span": span,
+                    "ref": oref.normal(),
+                    "oref": oref
+                })
+            except Exception as e:
+                self.debug.log(f"Invalid ref in span: {candidate_ref}, error: {e}")
+                continue
 
-        citing_link = safe_link(citing_ref)
-        target_link = safe_link(target_ref) if target_oref else None
+        if not valid_candidates:
+            self.debug.log("No valid candidates found")
+            return None
 
-        debug_hits: List[str] = []
-        candidates: List[Dict[str, Any]] = []
+        # Debug: Print all candidates
+        self.debug.log(f"Valid candidates ({len(valid_candidates)}):")
+        for i, cand in enumerate(valid_candidates, 1):
+            cand_url = self._build_debug_url(cand['ref'], lang)
+            self.debug.log(f"  {i}. {cand['ref']}")
+            self.debug.log(f"     {cand_url}")
+
+        # Get context for matching
+        base_ref, base_text = self.base_resolver._get_commentary_base_context(citing_ref)
+        citing_window, span_window = self.base_resolver._window_around_span(
+            citing_text, representative_span, self.base_resolver.cfg.window_words_per_side
+        )
+        marked_citing_text = self.base_resolver._mark_citation(citing_window, span_window)
+
+        # Step 1: Try Dicta once to see if it matches any of our candidates
+        self.debug.log("Trying Dicta to find match among candidates...")
+        dicta_match = self._try_dicta_for_candidates(
+            citing_window=citing_window,
+            candidates=valid_candidates,
+            citing_ref=citing_ref,
+            lang=lang,
+            vtitle=vtitle,
+            base_ref=base_ref,
+            base_text=base_text
+        )
+
+        if dicta_match:
+            # Dicta found a match - verify with LLM
+            # Use resolved_ref if available (segment-level), otherwise use original ref
+            match_ref = dicta_match.get('resolved_ref', dicta_match['ref'])
+            self.debug.log(f"Dicta found match: {dicta_match['ref']} → {match_ref}, verifying with LLM...")
+            confirmed = self._llm_confirm_match(
+                marked_citing_text=marked_citing_text,
+                candidate_ref=match_ref,
+                candidate_text=self.base_resolver._get_ref_text(match_ref, lang),
+                base_ref=base_ref,
+                base_text=base_text,
+                citing_ref=citing_ref
+            )
+
+            if confirmed:
+                self.debug.log(f"✓ LLM confirmed Dicta match: {match_ref}")
+                return self._build_simple_resolution(dicta_match, "dicta", citing_ref, lang)
+            else:
+                self.debug.log(f"✗ LLM rejected Dicta match: {match_ref}")
+
+        # Step 2: Dicta missed or was rejected - try search queries
+        self.debug.log("Dicta didn't find valid match, trying search queries...")
+        search_match = self._try_search_for_candidates(
+            marked_citing_text=marked_citing_text,
+            citing_text=citing_text,
+            representative_span=representative_span,
+            candidates=valid_candidates,
+            citing_ref=citing_ref,
+            lang=lang,
+            vtitle=vtitle,
+            base_ref=base_ref,
+            base_text=base_text
+        )
+
+        if search_match:
+            # Search found a match - verify with LLM
+            # Use resolved_ref if available (segment-level), otherwise use original ref
+            match_ref = search_match.get('resolved_ref', search_match['ref'])
+            self.debug.log(f"Search found match: {search_match['ref']} → {match_ref}, verifying with LLM...")
+            confirmed = self._llm_confirm_match(
+                marked_citing_text=marked_citing_text,
+                candidate_ref=match_ref,
+                candidate_text=self.base_resolver._get_ref_text(match_ref, lang),
+                base_ref=base_ref,
+                base_text=base_text,
+                citing_ref=citing_ref
+            )
+
+            if confirmed:
+                self.debug.log(f"✓ LLM confirmed search match: {match_ref}")
+                return self._build_simple_resolution(search_match, "search", citing_ref, lang)
+            else:
+                self.debug.log(f"✗ LLM rejected search match: {match_ref}")
+
+        # Step 3: Nothing worked - return None
+        self.debug.log("Could not find valid match among candidates")
+        return None
+
+    def _try_dicta_for_candidates(
+        self,
+        citing_window: str,
+        candidates: List[Dict[str, Any]],
+        citing_ref: str,
+        lang: Optional[str],
+        vtitle: Optional[str],
+        base_ref: Optional[str],
+        base_text: Optional[str]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Query Dicta once with citing text to see if it matches any of the candidates.
+        If multiple candidates match, uses LLM to choose the best one.
+        Returns the matching candidate, or None if no match.
+        """
+        # Build a set of candidate refs for quick lookup
+        candidate_refs = {c["ref"] for c in candidates}
+
+        # Query Dicta and get raw results
+        try:
+            start = time.perf_counter()
+            params = {
+                "minthreshold": int(self.base_resolver.cfg.min_threshold) if self.base_resolver.cfg.min_threshold is not None else "",
+                "maxdistance": int(self.base_resolver.cfg.max_distance) if self.base_resolver.cfg.max_distance is not None else "",
+            }
+            headers = {
+                "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+                "Origin": "https://parallels.dicta.org.il",
+                "Referer": "https://parallels.dicta.org.il/",
+            }
+
+            # Debug: Show exact URL and params
+            param_str = "&".join([f"{k}={v}" for k, v in params.items() if v != ""])
+            full_url = f"{self.base_resolver.cfg.dicta_url}?{param_str}"
+            self.debug.log(f"Dicta URL: {full_url}")
+            self.debug.log(f"Dicta text query (first 200 chars): {citing_window[:200]}")
+
+            data = self.base_resolver.http.post_form(
+                self.base_resolver.cfg.dicta_url,
+                params=params,
+                data=f"text={citing_window}".encode("utf-8"),
+                headers=headers,
+            )
+            self.base_resolver._profile_add("dicta_seconds", time.perf_counter() - start)
+        except Exception as exc:
+            self.debug.log(f"Dicta request failed: {exc}")
+            return None
+
+        # Collect all Dicta results that match our candidates
+        matching_candidates = []
+        results = data.get("results") or []
 
         for entry in results:
-            for cand in entry.get("data", []):
-                url = cand.get("url") or cand.get("compUrl") or ""
-                normalized = self._normalize_dicta_url_to_ref(url)
+            for hit in entry.get("data", []):
+                url = hit.get("url") or hit.get("compUrl") or ""
+                normalized = self.base_resolver._normalize_dicta_url_to_ref(url)
                 if not normalized:
                     continue
+
                 try:
-                    oref = Ref(normalized)
-                    if not oref.is_segment_level():
-                        continue
-                    if target_oref and target_oref.contains(oref):
-                        score = cand.get("score")
-                        debug_hits.append(f"hit: citing={citing_link} resolved={safe_link(normalized)} score={score}")
-                        candidates.append({"resolved_ref": normalized, "raw": cand, "source": "dicta", "score": score})
+                    result_oref = Ref(normalized)
+
+                    # Check if this result is contained within any of our candidates
+                    for cand in candidates:
+                        try:
+                            cand_oref = cand["oref"]
+                            # Check containment: candidate contains result
+                            # E.g., "Genesis 7" contains "Genesis 7:15"
+                            if cand_oref.contains(result_oref):
+                                score = hit.get("score")
+                                self.debug.log(f"Dicta found matching candidate: {normalized} matches {cand['ref']} (score={score})")
+                                matching_candidates.append({
+                                    "candidate": cand,
+                                    "score": score,
+                                    "raw": hit,
+                                    "resolved_ref": normalized  # Store the actual segment-level ref
+                                })
+                                break  # Only match to first candidate that contains it
+                        except Exception:
+                            continue
                 except Exception:
                     continue
 
-        if debug_hits:
-            self.debug.log("Dicta hits:\n  " + "\n  ".join(debug_hits))
-        elif any([citing_link, target_link, citing_lang, citing_version]):
-            miss = []
-            if citing_link:
-                miss.append(f"citing={citing_link}")
-            if target_link:
-                miss.append(f"target={target_link}")
-            if citing_lang:
-                miss.append(f"lang={citing_lang}")
-            if citing_version:
-                miss.append(f"version={citing_version}")
-            self.debug.log("Dicta misses:\n  " + "\n  ".join(miss))
-
-        return candidates
-
-    def _normalize_dicta_url_to_ref(self, url: str) -> Optional[str]:
-        if not url:
-            return None
-        cleaned = url.lstrip("/")
-        if cleaned.startswith("www.sefaria.org/"):
-            cleaned = cleaned[len("www.sefaria.org/") :]
-        if cleaned.startswith("sefaria.org/"):
-            cleaned = cleaned[len("sefaria.org/") :]
-        cleaned = cleaned.split("?")[0]
-        try:
-            from urllib.parse import unquote
-            cleaned = unquote(cleaned)
-        except Exception:
-            pass
-        cleaned = cleaned.replace("_", " ")
-        try:
-            return Ref(cleaned).normal()
-        except Exception:
+        if not matching_candidates:
+            self.debug.log(f"Dicta returned no matches from candidates: {candidate_refs}")
             return None
 
-    # -------- Sefaria search --------
+        # Debug: Show summary of all Dicta matches
+        self.debug.log(f"Dicta matches summary ({len(matching_candidates)} total):")
+        for i, match in enumerate(matching_candidates, 1):
+            resolved = match.get('resolved_ref', match['candidate']['ref'])
+            self.debug.log(f"  {i}. {match['candidate']['ref']} → {resolved} (score={match['score']})")
 
-    def _query_sefaria_search(
+        # Deduplicate by segment-level resolved_ref, keeping highest score
+        deduped_by_segment = {}
+        for match in matching_candidates:
+            segment_ref = match.get('resolved_ref', match['candidate']['ref'])
+            if segment_ref not in deduped_by_segment:
+                deduped_by_segment[segment_ref] = match
+            else:
+                # Keep the match with higher score
+                existing_score = deduped_by_segment[segment_ref].get('score', 0)
+                new_score = match.get('score', 0)
+                if new_score > existing_score:
+                    deduped_by_segment[segment_ref] = match
+
+        deduped_matches = list(deduped_by_segment.values())
+
+        if len(deduped_matches) < len(matching_candidates):
+            self.debug.log(f"Deduped {len(matching_candidates)} matches to {len(deduped_matches)} unique segments")
+
+        # If only one unique segment, return it directly
+        if len(deduped_matches) == 1:
+            match = deduped_matches[0]
+            enriched_candidate = dict(match["candidate"])
+            enriched_candidate["resolved_ref"] = match.get("resolved_ref", match["candidate"]["ref"])
+            self.debug.log(f"Dicta matched single unique segment: {match['candidate']['ref']} → {enriched_candidate['resolved_ref']}")
+            return enriched_candidate
+
+        # Multiple unique segments - use LLM to choose the single best segment for confirmation
+        self.debug.log(f"Dicta matched {len(deduped_matches)} unique segments, using LLM to choose best segment")
+        return self._llm_choose_among_matches(
+            deduped_matches,
+            citing_window,
+            base_ref,
+            base_text,
+            lang,
+            "Dicta"
+        )
+
+    def _try_search_for_candidates(
         self,
-        query_text: str,
-        target_ref: Optional[str] = None,
-        citing_ref: Optional[str] = None,
-        citing_lang: Optional[str] = None,
-        citing_version: Optional[str] = None,
-        size: int = 500,
-        slop: int = 10,
+        marked_citing_text: str,
+        citing_text: str,
+        representative_span: dict,
+        candidates: List[Dict[str, Any]],
+        citing_ref: str,
+        lang: Optional[str],
+        vtitle: Optional[str],
+        base_ref: Optional[str],
+        base_text: Optional[str]
     ) -> Optional[Dict[str, Any]]:
-        start = time.perf_counter()
-        path_regex = self._path_regex_for_ref(target_ref)
-        payload = {
-            "from": 0,
-            "size": size,
-            "highlight": {"pre_tags": ["<b>"], "post_tags": ["</b>"], "fields": {"naive_lemmatizer": {"fragment_size": 200}}},
-            "query": {
-                "function_score": {
-                    "field_value_factor": {"field": "pagesheetrank", "missing": 0.04},
-                    "query": {
-                        "bool": {
-                            "must": {"match_phrase": {"naive_lemmatizer": {"query": query_text, "slop": slop}}},
-                            "filter": ({"bool": {"should": [{"regexp": {"path": path_regex}}]}} if path_regex else {}),
-                        }
+        """
+        Generate search queries and try to match any of the candidates.
+        If multiple candidates match, uses LLM to choose the best one.
+        Returns the matching candidate, or None if no match.
+        """
+        # Build a set of candidate refs for quick lookup
+        candidate_refs = {c["ref"] for c in candidates}
+
+        # Generate search queries from context
+        queries = self.base_resolver._llm_form_search_query(
+            marked_citing_text, base_ref=base_ref, base_text=base_text
+        )
+
+        if not queries:
+            self.debug.log("LLM couldn't generate search queries")
+            return None
+
+        self.debug.log(f"Generated {len(queries)} search queries: {queries}")
+
+        # Collect all matching candidates from all queries
+        matching_candidates = []
+        seen_refs = set()
+
+        # Try each query
+        for query in queries:
+            search_result = self.base_resolver._query_sefaria_search(
+                query_text=query,
+                target_ref=None,  # Don't filter, check all results
+                citing_ref=citing_ref,
+                citing_lang=lang,
+                citing_version=vtitle,
+            )
+
+            if search_result:
+                search_ref = search_result.get("resolved_ref")
+                if search_ref not in seen_refs:
+                    try:
+                        result_oref = Ref(search_ref)
+                        if not result_oref.is_segment_level():
+                            continue
+
+                        # Check if this result is contained within any of our candidates
+                        for cand in candidates:
+                            try:
+                                cand_oref = cand["oref"]
+                                # Check containment: candidate contains result
+                                if cand_oref.contains(result_oref):
+                                    self.debug.log(f"Search matched candidate: {search_ref} matches {cand['ref']} with query '{query}'")
+                                    seen_refs.add(search_ref)
+                                    matching_candidates.append({
+                                        "candidate": cand,
+                                        "query": query,
+                                        "raw": search_result,
+                                        "resolved_ref": search_ref  # Store the actual segment-level ref
+                                    })
+                                    break  # Only match to first candidate that contains it
+                            except Exception:
+                                continue
+                    except Exception:
+                        continue
+
+        if not matching_candidates:
+            self.debug.log("Search didn't match any candidates")
+            return None
+
+        # Debug: Show summary of all search matches
+        self.debug.log(f"Search matches summary ({len(matching_candidates)} total):")
+        for i, match in enumerate(matching_candidates, 1):
+            resolved = match.get('resolved_ref', match['candidate']['ref'])
+            self.debug.log(f"  {i}. {match['candidate']['ref']} → {resolved} (query='{match['query']}')")
+
+        # Deduplicate by segment-level resolved_ref, keeping first occurrence
+        deduped_by_segment = {}
+        for match in matching_candidates:
+            segment_ref = match.get('resolved_ref', match['candidate']['ref'])
+            if segment_ref not in deduped_by_segment:
+                deduped_by_segment[segment_ref] = match
+
+        deduped_matches = list(deduped_by_segment.values())
+
+        if len(deduped_matches) < len(matching_candidates):
+            self.debug.log(f"Deduped {len(matching_candidates)} matches to {len(deduped_matches)} unique segments")
+
+        # If only one unique segment, return it directly
+        if len(deduped_matches) == 1:
+            match = deduped_matches[0]
+            enriched_candidate = dict(match["candidate"])
+            enriched_candidate["resolved_ref"] = match.get("resolved_ref", match["candidate"]["ref"])
+            self.debug.log(f"Search matched single unique segment: {match['candidate']['ref']} → {enriched_candidate['resolved_ref']}")
+            return enriched_candidate
+
+        # Multiple unique segments - use LLM to choose the single best segment for confirmation
+        self.debug.log(f"Search matched {len(deduped_matches)} unique segments, using LLM to choose best segment")
+        return self._llm_choose_among_matches(
+            deduped_matches,
+            marked_citing_text,
+            base_ref,
+            base_text,
+            lang,
+            "Search"
+        )
+
+    def _llm_choose_among_matches(
+        self,
+        matching_candidates: List[Dict[str, Any]],
+        citing_text: str,
+        base_ref: Optional[str],
+        base_text: Optional[str],
+        lang: Optional[str],
+        source: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Use LLM to choose the best candidate when multiple matches are found.
+        """
+        # Build options for LLM
+        options = []
+        for i, match in enumerate(matching_candidates, 1):
+            cand_ref = match["candidate"]["ref"]
+
+            # Get score or query info
+            if "score" in match:
+                info = f"Dicta score: {match['score']}"
+            elif "query" in match:
+                info = f"Search query: '{match['query']}'"
+            else:
+                info = "Match found"
+
+            # Get text preview
+            cand_text = self.base_resolver._get_ref_text(cand_ref, lang)
+            preview = (cand_text or "").strip()[:300]
+            if cand_text and len(cand_text) > 300:
+                preview += "..."
+
+            options.append(
+                f"{i}) {cand_ref}\n"
+                f"   {info}\n"
+                f"   Text: {preview}"
+            )
+
+        # Escape curly braces
+        def escape_braces(text: str) -> str:
+            if not text:
+                return text
+            return text.replace("{", "{{").replace("}", "}}")
+
+        citing_escaped = escape_braces(citing_text[:6000])
+        options_escaped = escape_braces("\n\n".join(options))
+
+        base_block = ""
+        if base_ref and base_text:
+            base_text_escaped = escape_braces(base_text[:2000])
+            base_block = f"Base text of commentary target ({base_ref}):\n{base_text_escaped}\n\n"
+
+        # LLM prompt to choose
+        from langchain_core.prompts import ChatPromptTemplate
+        prompt = ChatPromptTemplate.from_messages([
+            (
+                "system",
+                f"You are choosing the best match from multiple {source} results for an ambiguous citation. "
+                "You must respond with an actual number, not a placeholder or variable."
+            ),
+            ("human",
+             "Citing passage (citation wrapped in <citation ...></citation>):\n{citing}\n\n"
+             "{base_block}"
+             "Multiple possible matches found:\n{options}\n\n"
+             "Pick exactly ONE number from the list above (e.g., 1, 2, 3, etc.).\n\n"
+             "Output format (replace with actual content, do NOT use placeholders):\n"
+             "Reason: Your brief explanation here\n"
+             "Choice: 1\n\n"
+             "Now provide your answer:"
+            ),
+        ])
+
+        chain = prompt | self.base_resolver.llm
+        try:
+            resp = chain.invoke(
+                {
+                    "citing": citing_escaped,
+                    "options": options_escaped,
+                    "base_block": base_block
+                },
+                config={
+                    "metadata": {
+                        "num_options": len(options),
+                        "source": source,
                     },
+                    "tags": ["ambiguous_resolution", "multiple_matches", "citation_disambiguation"]
                 }
-            },
-        }
-        headers = {
-            "Content-Type": "application/json; charset=UTF-8",
-            "Accept": "application/json",
-            "Origin": "https://www.sefaria.org",
-            "Referer": "https://www.sefaria.org/texts",
-        }
-
-        try:
-            data = self.http.post_json(self.cfg.sefaria_search_url, payload=payload, headers=headers)
+            )
+            self.base_resolver._profile_add_tokens(self.base_resolver.llm, resp)
+            content = getattr(resp, "content", "")
         except Exception as exc:
-            self.debug.log(f"Sefaria search-api request failed. query='{query_text}' error={exc}")
+            self.debug.log(f"LLM choice among matches failed: {exc}")
             return None
-        finally:
-            self._profile_add("es_seconds", time.perf_counter() - start)
 
-        target_oref = None
-        try:
-            target_oref = Ref(target_ref) if target_ref else None
-        except Exception:
-            target_oref = None
-
-        hits = (data.get("hits") or {}).get("hits") or []
-        match: Optional[Dict[str, Any]] = None
-
-        def safe_link(tref: Optional[str]) -> Optional[str]:
-            if not tref:
+        # Parse the choice
+        import re
+        m = re.search(r"choice\s*:\s*(\d+)", content, re.IGNORECASE)
+        if not m:
+            nums = re.findall(r"\d+", content or "")
+            if not nums:
+                self.debug.log(f"Could not parse LLM choice from: {content}")
                 return None
-            try:
-                return f"https://library-linker2.cauldron.sefaria.org/{Ref(tref).url()}"
-            except Exception:
-                return None
-
-        citing_link = safe_link(citing_ref)
-        target_link = safe_link(target_ref) if target_oref else None
-
-        debug_hits: List[str] = []
-        for entry in hits:
-            normalized = self._extract_ref_from_search_hit(entry)
-            if not normalized:
-                continue
-            try:
-                cand_oref = Ref(normalized)
-                if not cand_oref.is_segment_level():
-                    continue
-                if target_oref and target_oref.contains(cand_oref):
-                    debug_hits.append(f"hit: citing={citing_link} resolved={safe_link(normalized)}")
-                    match = {"resolved_ref": normalized, "raw": entry, "source": "sefaria_search", "query": query_text}
-                    break
-            except Exception:
-                continue
-
-        if debug_hits:
-            self.debug.log("Sefaria search hits:\n  " + "\n  ".join(debug_hits))
+            choice = int(nums[0])
         else:
-            miss = []
-            if citing_link:
-                miss.append(f"citing={citing_link}")
-            if target_link:
-                miss.append(f"target={target_link}")
-            if citing_lang:
-                miss.append(f"lang={citing_lang}")
-            if citing_version:
-                miss.append(f"version={citing_version}")
-            if path_regex:
-                miss.append(f"path_regex={path_regex}")
-            self.debug.log("Sefaria search misses:\n  " + "\n  ".join(miss) if miss else "Sefaria search misses.")
+            choice = int(m.group(1))
 
-        return match
-
-    def _extract_ref_from_search_hit(self, hit: Dict[str, Any]) -> Optional[str]:
-        candidates: List[Optional[str]] = []
-        for k in ("ref", "he_ref", "sourceRef"):
-            if k in hit:
-                candidates.append(hit.get(k))
-        src = hit.get("_source") or {}
-        for k in ("ref", "he_ref", "sourceRef"):
-            if k in src:
-                candidates.append(src.get(k))
-
-        for c in candidates:
-            if not c:
-                continue
-            try:
-                return Ref(c).normal()
-            except Exception:
-                continue
-        return None
-
-    def _path_regex_for_ref(self, target_ref: Optional[str]) -> Optional[str]:
-        if not target_ref:
+        if 1 <= choice <= len(matching_candidates):
+            match = matching_candidates[choice - 1]
+            enriched_candidate = dict(match["candidate"])
+            enriched_candidate["resolved_ref"] = match.get("resolved_ref", match["candidate"]["ref"])
+            resolved = enriched_candidate["resolved_ref"]
+            self.debug.log(f"LLM chose option {choice}: {match['candidate']['ref']} → {resolved}")
+            return enriched_candidate
+        else:
+            self.debug.log(f"LLM choice {choice} out of range (1-{len(matching_candidates)})")
             return None
+
+    def _llm_confirm_match(
+        self,
+        marked_citing_text: str,
+        candidate_ref: str,
+        candidate_text: str,
+        base_ref: Optional[str],
+        base_text: Optional[str],
+        citing_ref: str
+    ) -> bool:
+        """
+        Use LLM to confirm if the candidate is a correct match for the citation.
+        Returns True if confirmed, False if rejected.
+        """
+        # Special case: Metzudat Zion is always confirmed
+        if citing_ref.startswith("Metzudat Zion"):
+            self.debug.log("Auto-confirming Metzudat Zion")
+            return True
+
+        # Use the existing LLM confirmation method
+        confirmed, reason = self.base_resolver._llm_confirm_candidate(
+            citing_text=marked_citing_text,
+            candidate_ref=candidate_ref,
+            candidate_text=candidate_text,
+            base_ref=base_ref,
+            base_text=base_text,
+        )
+
+        self.debug.log(f"LLM confirmation for {candidate_ref}: {confirmed}, reason: {reason}")
+        return confirmed
+
+    def _build_simple_resolution(
+        self,
+        candidate: Dict[str, Any],
+        source: str,
+        citing_ref: str,
+        lang: Optional[str]
+    ) -> Dict[str, Any]:
+        """
+        Build a resolution result from a confirmed candidate.
+        Returns the candidate ref as resolved_ref, with the matched segment as metadata.
+        """
+        # resolved_ref is the candidate (e.g., "Genesis 7:1-3")
+        # matched_segment is the specific segment Dicta/Search found (e.g., "Genesis 7:2")
+        matched_segment = candidate.get("resolved_ref")  # The segment-level ref from Dicta/Search
+        result = {
+            "span": candidate["span"],
+            "original_ref": candidate["ref"],
+            "resolved_ref": candidate["ref"],  # Return the candidate ref
+            "reason": f"Matched via {source} and confirmed by LLM",
+            "llm_reason": f"Confirmed as correct match",
+            "match_source": source,
+        }
+        # Add the matched segment as metadata if it exists and differs from candidate
+        if matched_segment and matched_segment != candidate["ref"]:
+            result["matched_segment"] = matched_segment
+        return result
+
+    def _build_debug_url(self, tref: str, lang: Optional[str] = None) -> str:
+        """
+        Build a Sefaria library URL with debug_mode=linker for easy debugging.
+        """
+        if not tref:
+            return ""
         try:
-            oref = Ref(target_ref)
-            idx = oref.index
-            parts: List[str] = []
-            parts.extend(getattr(idx, "categories", []) or [])
-            parts.append(idx.title)
-            path = "/".join([p for p in parts if p])
-            return path.replace("/", r"\/") + ".*" if path else None
+            from urllib.parse import quote
+            oref = Ref(tref)
+            url_safe_ref = oref.url()
+            base_url = f"https://library-linker2.cauldron.sefaria.org/{url_safe_ref}"
+            params = []
+            if lang:
+                params.append(f"lang={lang}")
+            params.append("debug_mode=linker")
+            return base_url + "?" + "&".join(params)
         except Exception:
-            return None
-
-    # -------- misc --------
-
-    def _dedupe_candidates_by_ref(self, candidates: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        unique: Dict[str, Dict[str, Any]] = {}
-        for c in candidates:
-            r = c.get("resolved_ref")
-            if not r:
-                continue
-            if r not in unique:
-                unique[r] = c
-            else:
-                ps, ns = unique[r].get("score"), c.get("score")
-                if ns is not None and (ps is None or ns > ps):
-                    unique[r] = c
-        return list(unique.values())
-
-    def _replace_ref_in_link(self, link: dict, old_ref: str, new_ref: str) -> dict:
-        updated = dict(link)
-        updated["refs"] = [new_ref if r == old_ref else r for r in link.get("refs", [])]
-        return updated
-
-    def _replace_ref_in_chunk(self, chunk: dict, old_ref: str, new_ref: str) -> dict:
-        updated = dict(chunk)
-        spans = []
-        for s in chunk.get("spans") or []:
-            if s.get("type") == "citation" and s.get("ref") == old_ref:
-                ns = dict(s)
-                ns["ref"] = new_ref
-                spans.append(ns)
-            else:
-                spans.append(s)
-        updated["spans"] = spans
-        return updated
+            # Fallback if ref parsing fails
+            try:
+                from urllib.parse import quote
+                url_safe_ref = quote(tref.replace(" ", "_"))
+                base_url = f"https://library-linker2.cauldron.sefaria.org/{url_safe_ref}"
+                params = []
+                if lang:
+                    params.append(f"lang={lang}")
+                params.append("debug_mode=linker")
+                return base_url + "?" + "&".join(params)
+            except Exception:
+                return ""
 
 
 if __name__ == "__main__":
-    from utils import get_random_non_segment_links_with_chunks
+    from utils import get_random_ambiguous_linker_outputs
 
-    resolver = LLMParallelResolver(window_words_per_side=30, debug=True)  # NEW
-    samples = get_random_non_segment_links_with_chunks(n=60, use_remote=True, seed=69, use_cache=True)
+    ambiguous_resolver = LLMParallelAmbiguousResolver(debug=True)
+    ambiguous_outputs = get_random_ambiguous_linker_outputs(seed=43, use_cache=True, use_remote=True, n=10, progress=True)
 
-    for i, item in enumerate(samples, 1):
-        print(f"\n=== Sample {i} ===")
+    for i, output in enumerate(ambiguous_outputs, 1):
+        print(f"\n=== Ambiguous Output {i} ===")
         try:
-            print(resolver.resolve(item["link"], item["chunk"]))
-        except Exception as exc:  # pragma: no cover
-            print(f"Error resolving sample {i}: {exc}")
+            result = ambiguous_resolver.resolve(output)
+            print(f"Ref: {result['ref']}")
+            print(f"Total groups: {result['total_groups']}")
+            print(f"Resolved groups: {result['resolved_groups']}")
+            print(f"Unresolved groups: {result['unresolved_groups']}")
+            print(f"Total ambiguous spans: {result['total_ambiguous_spans']}")
+            for res in result['resolutions']:
+                print(f"  - {res['original_ref']} → {res['resolved_ref']} ({res['match_source']})")
+        except Exception as exc:
+            print(f"Error resolving ambiguous output {i}: {exc}")
+
