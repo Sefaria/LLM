@@ -672,7 +672,7 @@ class SheetScorer:
         final_chunk_scores = final_data.get(self.REF_SCORES_FIELD, {})
         ref_scores.update(final_chunk_scores)
 
-        # # Normalize to percentages
+        # Normalize to percentages
         score_percentages = self._normalize_scores_to_percentages(
             score_levels=ref_scores,
             sheet_tokens=self._count_tokens(content)
