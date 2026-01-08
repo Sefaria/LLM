@@ -158,10 +158,11 @@ def _process_group(item: Dict[str, Any], index: int) -> Dict[str, Any]:
 def main() -> None:
     # Configuration
     num_documents = 200  # Number of linker output documents to fetch
+    max_groups = 3  # Maximum number of ambiguity groups to process (None for unlimited)
     workers = 10
     seed = 616
     use_remote = True
-    use_cache = True
+    use_cache = True  # WARNING: Cache key includes num_documents. Set to False if you change num_documents.
     span_type = "citation"
     output_path = "experiments/linker/resolve_ambiguous/llm_parallel_ambiguous_resolver_profile.csv"
 
@@ -178,14 +179,27 @@ def main() -> None:
     if not linker_outputs:
         raise RuntimeError("No ambiguous linker outputs found. Check database connectivity or filters.")
 
+    print(f"Fetched {len(linker_outputs)} documents (expected {num_documents})")
+    if len(linker_outputs) != num_documents:
+        print(f"  ⚠️  Warning: Got {len(linker_outputs)} documents instead of {num_documents}. Cache may be stale.")
+        print(f"  To fetch fresh data, set use_cache=False or delete the cache file.")
+
     print(f"Extracting ambiguity groups from {len(linker_outputs)} documents...")
 
     # Extract all ambiguity groups from all documents
     all_groups = []
     sample_index = 0
+    total_groups_available = 0
+
     for doc_index, linker_output in enumerate(linker_outputs):
         groups = _extract_ambiguity_groups(linker_output)
+        total_groups_available += len(groups)
+
         for group_index, group in enumerate(groups):
+            # Stop if we've reached the max_groups limit
+            if max_groups is not None and len(all_groups) >= max_groups:
+                break
+
             all_groups.append({
                 "item": {
                     "linker_output": linker_output,
@@ -197,7 +211,14 @@ def main() -> None:
             })
             sample_index += 1
 
-    print(f"Found {len(all_groups)} total ambiguity groups to process")
+        # Break outer loop if limit reached
+        if max_groups is not None and len(all_groups) >= max_groups:
+            break
+
+    if max_groups is not None and total_groups_available > max_groups:
+        print(f"Found {total_groups_available} total ambiguity groups, limiting to {len(all_groups)} (max_groups={max_groups})")
+    else:
+        print(f"Found {len(all_groups)} total ambiguity groups to process")
 
     if not all_groups:
         raise RuntimeError("No ambiguity groups found in the fetched linker outputs.")
