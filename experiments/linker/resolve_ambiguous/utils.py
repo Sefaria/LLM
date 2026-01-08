@@ -113,12 +113,123 @@ def get_ambiguous_linker_outputs(
         if progress and total:
             try:
                 from tqdm import tqdm
-                cursor_iter = tqdm(cursor, desc="Fetching ambiguous linker outputs", total=total)
+                cursor_iter = tqdm(cursor, desc="Fetching ambiguous linker outputs", total=min(total, limit) if limit else total)
             except Exception:
                 pass
 
         for doc in cursor_iter:
             results.append(doc)
+
+    return results
+
+
+def get_random_ambiguous_linker_outputs(
+    n: int,
+    use_remote: bool = False,
+    seed: int = None,
+    use_cache: bool = False,
+    progress: bool = False,
+    span_type: str = "citation",
+) -> list:
+    """
+    Return up to n random linker output documents that have ambiguous spans of the specified type.
+
+    Performance improvements:
+    - Avoids per-iteration `skip(idx)` calls (which are O(idx) in MongoDB).
+    - Fetches a batch of random candidates with a single aggregate query (or a single scan fallback).
+    - Supports caching for deterministic results with the same seed.
+
+    Args:
+        n: Number of random ambiguous linker outputs to return
+        use_remote: If True, connect to remote MongoDB via SSH tunnel
+        seed: Random seed for reproducibility. If None, results are non-deterministic.
+        use_cache: If True, cache results to disk and reuse on subsequent calls with same parameters
+        progress: If True, show progress bar (requires tqdm)
+        span_type: Filter for span type. Defaults to "citation". Set to None for all types.
+
+    Returns:
+        List of up to n random linker output documents with ambiguous spans of the specified type
+    """
+    cache_key = f"ambiguous-{'remote' if use_remote else 'local'}-n{n}-seed{seed}-type{span_type}"
+    cache_dir = os.path.join(os.path.dirname(__file__), ".cache")
+    cache_file = os.path.join(cache_dir, f"{cache_key}.json")
+
+    if use_cache and os.path.isfile(cache_file):
+        try:
+            with open(cache_file, "r") as fin:
+                return json.load(fin)
+        except Exception:
+            pass
+
+    rng = random.Random(seed)
+    results: list = []
+    seen_ids: set[str] = set()
+
+    with linker_output_collection(use_remote) as collection:
+        # Build query based on whether span_type is specified
+        if span_type:
+            query = {"spans": {"$elemMatch": {"ambiguous": True, "type": span_type}}}
+        else:
+            query = {"spans": {"$elemMatch": {"ambiguous": True}}}
+
+        total = collection.count_documents(query)
+        if total == 0:
+            return results
+
+        # Determine sample size - over-sample to ensure we get enough after filtering
+        sample_size = min(total, n * 3)
+
+        # First try to use Mongo's $sample for fast random selection
+        try:
+            pipeline = [
+                {"$match": query},
+                {"$sample": {"size": sample_size}},
+            ]
+            candidates: List[dict] = list(collection.aggregate(pipeline))
+        except Exception:
+            # Fallback: scan IDs once, then sample in memory deterministically via `seed`
+            id_cursor = collection.find(query, {"_id": 1})
+            ids = [doc["_id"] for doc in id_cursor]
+            if not ids:
+                return results
+            rng.shuffle(ids)
+            chosen_ids = ids[:sample_size]
+            candidates = list(
+                collection.find(
+                    {"_id": {"$in": chosen_ids}},
+                )
+            )
+
+        candidate_iter = candidates
+        if progress:
+            try:
+                from tqdm import tqdm
+                candidate_iter = tqdm(
+                    candidate_iter,
+                    desc="Scanning ambiguous linker outputs",
+                    total=len(candidates),
+                )
+            except Exception:
+                pass
+
+        for doc in candidate_iter:
+            if len(results) >= n:
+                break
+
+            doc_id = str(doc.get("_id"))
+            if doc_id in seen_ids:
+                continue
+            seen_ids.add(doc_id)
+
+            results.append(doc)
+
+    if use_cache:
+        try:
+            os.makedirs(cache_dir, exist_ok=True)
+            with open(cache_file, "w") as fout:
+                json.dump(results, fout, default=str)
+        except Exception:
+            pass
 
     return results
 
@@ -257,9 +368,42 @@ def _find_chunk_for_link(link: dict, chunks_col):
     return None
 
 if __name__ == '__main__':
-    # Test get_ambiguous_linker_outputs - default is citations only
-    print("Testing get_ambiguous_linker_outputs (default: citations only)...")
-    ambiguous_citations = get_ambiguous_linker_outputs(use_remote=True, limit=5, progress=True)
+    # Test get_random_ambiguous_linker_outputs with caching and seed
+    print("Testing get_random_ambiguous_linker_outputs (random with seed)...")
+    random_ambiguous = get_random_ambiguous_linker_outputs(
+        n=5,
+        use_remote=True,
+        seed=42,
+        use_cache=False,
+        progress=True
+    )
+    print(f"Found {len(random_ambiguous)} random ambiguous citation outputs\n")
+
+    for i, output in enumerate(random_ambiguous, 1):
+        print(f"{i}. Ref: {output.get('ref')}")
+        ambiguous_spans = [span for span in output.get('spans', []) if span.get('ambiguous') and span.get('type') == 'citation']
+        print(f"   Ambiguous citation spans: {len(ambiguous_spans)}")
+
+        # Group by charRange to show unique citation locations
+        from collections import defaultdict
+        char_range_groups = defaultdict(list)
+        for span in ambiguous_spans:
+            char_range = tuple(span.get('charRange', []))
+            if char_range:
+                char_range_groups[char_range].append(span)
+
+        print(f"   Unique citation locations: {len(char_range_groups)}")
+        for j, (char_range, spans) in enumerate(list(char_range_groups.items())[:2], 1):
+            print(f"   {j}. charRange={list(char_range)}: {len(spans)} alternative(s)")
+            print(f"      Text: '{spans[0].get('text', 'N/A')[:40]}'")
+            print(f"      Refs: {[s.get('ref', 'N/A') for s in spans[:3]]}")
+        print()
+
+    print("="*80 + "\n")
+
+    # Test get_ambiguous_linker_outputs - default is citations only (non-random)
+    print("Testing get_ambiguous_linker_outputs (non-random, limit 3)...")
+    ambiguous_citations = get_ambiguous_linker_outputs(use_remote=True, limit=3, progress=True)
     print(f"Found {len(ambiguous_citations)} ambiguous citation outputs\n")
 
     for i, output in enumerate(ambiguous_citations, 1):
@@ -268,23 +412,6 @@ if __name__ == '__main__':
         print(f"   Ambiguous citation spans: {len(ambiguous_spans)}")
         for span in ambiguous_spans[:2]:
             print(f"   - Text: '{span.get('text', 'N/A')[:50]}' → Ref: {span.get('ref', 'N/A')}")
-        print()
-
-    print("="*80 + "\n")
-
-    # Test with span_type=None to get all types
-    print("Testing get_ambiguous_linker_outputs (all types)...")
-    ambiguous_all = get_ambiguous_linker_outputs(use_remote=True, limit=5, progress=True, span_type=None)
-    print(f"Found {len(ambiguous_all)} ambiguous linker outputs (all types)\n")
-
-    for i, output in enumerate(ambiguous_all, 1):
-        print(f"{i}. Ref: {output.get('ref')}")
-        ambiguous_spans = [span for span in output.get('spans', []) if span.get('ambiguous')]
-        print(f"   Ambiguous spans: {len(ambiguous_spans)}")
-        for span in ambiguous_spans[:2]:  # Show first 2 ambiguous spans
-            print(f"   - Type: {span.get('type', 'N/A')}, Text: {span.get('text', 'N/A')[:50]}")
-            if 'ref' in span:
-                print(f"     Ref: {span.get('ref')}")
         print()
 
     print("\n" + "="*80 + "\n")
