@@ -134,10 +134,10 @@ The tool uses an **adjustable approach** for canonical quotations:
 2. **Conditionally includes** canonical quotes only if the **entire bundle** fits within token limits
 and **add_full_commentary is set to True** 
 3. **Truncates intelligently** using **LLM summarization** when content exceeds limits 
-   4. ***LLM Summarization***: Uses secondary LLM to compress content while preserving key information 
-   5. ***Reference Preservation***: Maintains all biblical reference tags during compression 
-   6. ***Character Fallback***: Falls back to character-based truncation if summarization fails
 
+    1. ***LLM Summarization***: Uses secondary LLM to compress content while preserving key information 
+    2. ***Reference Preservation***: Maintains all biblical reference tags during compression 
+    3. ***Character Fallback***: Falls back to character-based truncation if summarization fails
 ## Grading Strategy 
 Processed content is sent to LLM, together with references for grading: 
 
