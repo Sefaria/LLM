@@ -430,7 +430,7 @@ class SheetScorer:
         logger.info("Sending to LLM sheet without quotations text")
         return no_quotes_content
 
-    def _get_title_info(self,sheet_title: str) -> Dict[str, Any]:
+    def _get_title_info(self, sheet_title: str) -> Dict[str, Any]:
         """Obtain title-interest score ONLY (used when no content)."""
         prompt = self._create_title_only_prompt_function(sheet_title)
         try:
