@@ -780,12 +780,12 @@ class SheetScorer:
         content = self._sheet_to_text(
             no_quotes_content=no_quotes_content,
             full_content=full_content,
-            max_tokens=self.max_prompt_tokens-self.token_margin,
+            max_tokens=self.max_prompt_tokens - self.token_margin,
             add_full_commentary=add_full_commentary)
         # Process with GPT
         gpt_analysis = self.get_gpt_scores(content, expanded_refs, title)
         if not gpt_analysis:
-            request_status_message=f"Failed to get GPT scores for sheet {sheet_id}"
+            request_status_message = f"Failed to get GPT scores for sheet {sheet_id}"
             logger.error(request_status_message)
             return self.create_failure_output(sheet_id=sheet_id,
                                               request_status_message=request_status_message)
