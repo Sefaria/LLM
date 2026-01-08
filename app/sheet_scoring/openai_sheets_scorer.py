@@ -98,6 +98,7 @@ class SheetScorer:
             max_ref_to_process: int = DEFAULT_MAX_REFS_TO_PROCESS,
             chunk_size: int = DEFAULT_CHUNK_SIZE,
     ):
+        raise 
         self.max_prompt_tokens = max_prompt_tokens
         self.token_margin = token_margin
         self.model = model
