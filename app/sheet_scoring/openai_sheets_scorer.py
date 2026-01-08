@@ -103,8 +103,8 @@ class SheetScorer:
         self.model = model
         self.chunk_size = chunk_size
         self.max_ref_to_process = max_ref_to_process
-        self.llm = self._create_json_llm(api_key,model)
-        self.summarizer = self._create_text_llm(api_key,model)
+        self.llm = self._create_json_llm(api_key, model)
+        self.summarizer = self._create_text_llm(api_key, model)
 
     def _create_json_llm(self, api_key: str, model: str) -> ChatOpenAI:
         """Create LLM client for JSON responses."""
