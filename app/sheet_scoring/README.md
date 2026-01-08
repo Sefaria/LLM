@@ -75,7 +75,7 @@ Sheet titles are scored for **user engagement** on a **0-4 scale**:
 user_tokens / total_tokens - Higher = more original content vs canonical quotes.
 
 ### Language
-ISO-639-1 language code of the sheet, and in case sheet sheet has no user generated content language code of the title.
+ISO-639-1 language code of the sheet, and in case the sheet has no user generated content, the language code of the title.
 
 ## Data Structures
 #### Input (SheetScoringInput)
