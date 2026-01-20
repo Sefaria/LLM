@@ -74,7 +74,7 @@ def claude_sentencizer_first_sentence(text):
     from basic_langchain.chat_models import ChatAnthropic
     from basic_langchain.schema import SystemMessage, HumanMessage
     from util.general import get_by_xml_tag
-    system = SystemMessage(content="Given a text discussing Torah topics will little to no punctuation, "
+    system = SystemMessage(content="Given a text discussing Torah topics with little to no punctuation, "
                                    "output the first sentence. Input is in <input> tags. The first sentence "
                                    "should be output verbatim as it appears in <input> wrapped in "
                                    "<first_sentence> tags. Since the input text has no punctuation, use your judgement as to where the first sentence ends. Prefer smaller sentences.")

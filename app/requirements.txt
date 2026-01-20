@@ -1,8 +1,11 @@
-langchain[llms]~=0.2.1
+langchain==0.2.1
+langchain-core==0.2.2
+langchain-openai==0.1.8
 langsmith~=0.1.0
 anthropic~=0.26.1
 stanza~=1.5.0
 openai~=1.30.0
+httpx~=0.27.0
 typer~=0.4.1
 pydantic~=2.7.1
 loguru~=0.7.2
@@ -10,9 +13,9 @@ tqdm~=4.66.1
 celery[redis]~=5.2.7
 diff-match-patch
 dnspython~=2.5.0
-tiktoken~=0.4.0
+tiktoken
 readability_lxml
 tenacity==8.3.0
 requests
 numpy
-git+https://github.com/Sefaria/LLM@v1.0.3#egg=sefaria_llm_interface&subdirectory=app/llm_interface
+git+https://github.com/Sefaria/LLM@v1.3.6#egg=sefaria_llm_interface&subdirectory=app/llm_interface
