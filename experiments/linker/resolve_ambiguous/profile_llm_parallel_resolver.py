@@ -93,8 +93,8 @@ def _process_item(item: Dict[str, Any], index: int) -> Dict[str, Any]:
 
 def main() -> None:
     samples_count = 1000
-    workers = 2
-    seed = 613
+    workers = 10
+    seed = 616
     use_remote = True
     use_cache = True
     output_path = "experiments/linker/resolve_ambiguous/llm_parallel_resolver_profile.csv"
