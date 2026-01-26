@@ -746,6 +746,9 @@ class SheetScorer:
                                  sources: List[Dict[str, Union[str, Dict[str, str]]]],
                                  add_full_commentary=False) -> SheetScoringOutput:
         """Score a single sheet based on its content."""
+
+        logger.info(f"Scorer got sheet {sheet_id}")
+
         if not expanded_refs:
             request_status_message = f"No expanded refs for sheet {sheet_id}, skipping"
             logger.info(request_status_message)
@@ -789,6 +792,7 @@ class SheetScorer:
             return self.create_failure_output(sheet_id=sheet_id,
                                               request_status_message=request_status_message)
 
+        logger.info(f"Returning results for sheet {sheet_id}")
         return SheetScoringOutput(
                 sheet_id=sheet_id,
                 ref_levels=gpt_analysis[self.REF_LEVELS_FIELD],
