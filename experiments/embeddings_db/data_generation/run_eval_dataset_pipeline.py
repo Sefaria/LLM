@@ -20,8 +20,8 @@ PIPELINE_PRESETS = {
     "sanity_check": {
         "VERBOSE": True,
         "RUN_SAMPLING": True,
-        "SAMPLE_N": 20,
-        "SAMPLE_MIN_PAGESHEETRANK": 1.0,
+        "SAMPLE_N": 100,
+        "SAMPLE_MIN_PAGESHEETRANK": 2.0,
         "SAMPLE_SEED": 613,
         "SAMPLE_USE_REMOTE": True,
         "SAMPLE_REMOTE_DB": CONNECTION["mongo_db"],

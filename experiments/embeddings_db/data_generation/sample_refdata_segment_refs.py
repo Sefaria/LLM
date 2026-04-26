@@ -120,6 +120,40 @@ def read_jsonl(path: Path) -> list[dict]:
     return rows
 
 
+def cache_metadata_path(cache_path: Path) -> Path:
+    return cache_path.with_suffix(f"{cache_path.suffix}.meta.json")
+
+
+def read_cache_metadata(cache_path: Path) -> Optional[dict]:
+    metadata_path = cache_metadata_path(cache_path)
+    if not metadata_path.exists():
+        return None
+    with metadata_path.open("r") as fin:
+        return json.load(fin)
+
+
+def write_cache_metadata(cache_path: Path, metadata: dict) -> None:
+    metadata_path = cache_metadata_path(cache_path)
+    metadata_path.parent.mkdir(parents=True, exist_ok=True)
+    with metadata_path.open("w") as fout:
+        json.dump(metadata, fout, ensure_ascii=False, indent=2)
+
+
+def expected_cache_metadata(min_pagesheetrank: float) -> dict:
+    return {
+        "min_pagesheetrank": min_pagesheetrank,
+        "remote_db": REMOTE_DB,
+        "cache_mode": REMOTE_READ_CACHE_MODE,
+    }
+
+
+def cache_matches_settings(cache_path: Path, min_pagesheetrank: float) -> bool:
+    metadata = read_cache_metadata(cache_path)
+    if metadata is None:
+        return False
+    return metadata == expected_cache_metadata(min_pagesheetrank)
+
+
 def get_candidate_refs(collection, min_pagesheetrank: float) -> list[dict]:
     query = {"pagesheetrank": {"$gt": min_pagesheetrank}}
     total = collection.count_documents(query) if VERBOSE else None
@@ -146,11 +180,14 @@ def load_remote_cache_rows(cache_path: Path) -> list[dict]:
 def get_remote_candidate_pool(collection, min_pagesheetrank: float) -> list[dict]:
     cache_path = Path(REMOTE_READ_CACHE_PATH) if REMOTE_READ_CACHE_PATH is not None else None
     if REMOTE_READ_CACHE_ENABLED and REMOTE_READ_CACHE_MODE == "candidate_pool" and cache_path is not None and cache_path.exists():
-        return load_remote_cache_rows(cache_path)
+        if cache_matches_settings(cache_path, min_pagesheetrank):
+            return load_remote_cache_rows(cache_path)
+        log(f"Ignoring stale candidate-pool cache at {cache_path}; settings changed")
 
     candidates = get_candidate_refs(collection, min_pagesheetrank)
     if REMOTE_READ_CACHE_ENABLED and REMOTE_READ_CACHE_MODE == "candidate_pool" and cache_path is not None:
         write_jsonl(candidates, cache_path)
+        write_cache_metadata(cache_path, expected_cache_metadata(min_pagesheetrank))
     return candidates
 
 
@@ -234,7 +271,9 @@ def sample_refs(
     ):
         cache_path = Path(REMOTE_READ_CACHE_PATH)
         if cache_path.exists():
-            return load_remote_cache_rows(cache_path)
+            if cache_matches_settings(cache_path, min_pagesheetrank):
+                return load_remote_cache_rows(cache_path)
+            log(f"Ignoring stale sampled-rows cache at {cache_path}; settings changed")
 
     log(f"Opening {'remote' if use_remote else 'local'} RefData collection")
     with ref_data_collection(use_remote, remote_db) as collection:
@@ -249,7 +288,9 @@ def sample_refs(
         and REMOTE_READ_CACHE_MODE == "sampled_rows"
         and REMOTE_READ_CACHE_PATH is not None
     ):
-        write_jsonl(rows, Path(REMOTE_READ_CACHE_PATH))
+        cache_path = Path(REMOTE_READ_CACHE_PATH)
+        write_jsonl(rows, cache_path)
+        write_cache_metadata(cache_path, expected_cache_metadata(min_pagesheetrank))
 
     return rows
 
