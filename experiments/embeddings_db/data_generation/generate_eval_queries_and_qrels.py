@@ -8,6 +8,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from contextlib import contextmanager
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 from typing import Optional
 
@@ -158,6 +159,20 @@ def get_ref_text(tref: str, lang: str) -> Optional[str]:
     return text or None
 
 
+@lru_cache(maxsize=None)
+def get_ref_text_for_llm(tref: str, lang: str) -> str:
+    if not tref:
+        return ""
+    try:
+        text = Ref(tref).text(lang).as_string()
+        if text:
+            return text
+        fallback_lang = "he" if lang == "en" else "en"
+        return Ref(tref).text(fallback_lang).as_string() or ""
+    except Exception:
+        return ""
+
+
 def choose_langs_for_ref(available_by_lang: dict[str, Optional[str]]) -> list[str]:
     available_langs = [lang for lang in TEXT_LANGS if available_by_lang.get(lang)]
     if TEXT_LANG_SELECTION_MODE == "all_available":
@@ -224,12 +239,21 @@ def choose_query_types_for_doc(doc: dict) -> list[str]:
 def make_query_type_prompt(doc: dict, query_type: str) -> str:
     query_lang = doc["metadata"]["lang"]
     query_language_name = QUERY_LANGUAGE_NAMES.get(query_lang, query_lang)
+    llm_text = get_ref_text_for_llm(doc["metadata"]["ref"], query_lang)
+    query_type_specific_rules = ""
+    if query_type == "sentence":
+        query_type_specific_rules = f"""
+- Sentence queries must not be phrased as questions.
+- Do not ask for information or use interrogative structure.
+- Avoid question words such as who, what, when, where, why, how, and their {query_language_name} equivalents.
+- Sentence queries should read like declarative search inputs describing a topic, case, claim, law, argument, or scenario.
+- Prefer formulations like "discussion of...", "case of...", "law of...", "argument about...", "passage describing...".
+- If a sentence query could be rewritten as a natural question with only minor edits, rewrite it to be more clearly declarative.
+""".strip()
     compact_doc = {
         "doc_id": doc["doc_id"],
-        "ref": doc["metadata"]["ref"],
-        "category": doc["metadata"]["category"],
         "lang": query_lang,
-        "text": doc["text"][:2400],
+        "text": llm_text,
     }
     return f"""
 You are creating an information-retrieval evaluation dataset for Jewish text search.
@@ -242,11 +266,13 @@ Rules:
 - Query type must be: {query_type}.
 - The supplied document is highly relevant to every query you create.
 - Prefer realistic user search language over citation wording.
-- Focus on the content of the text itself, not on metadata about the ref.
-- Avoid queries that are mainly based on the title, category, book name, author name, or other reference metadata unless that information is explicitly central to the passage content.
+- Use only the passage text itself as the basis for the queries.
+- Do not infer or mention book names, authors, categories, titles, or reference metadata.
+- Do not generate queries about where the text comes from; generate queries only about what the text says.
 - Keep keyword queries short.
 - Question queries should be natural user questions.
 - Sentence queries should be natural sentence-length search inputs, not questions.
+{query_type_specific_rules}
 
 Return only valid JSON. Do not use markdown fences.
 Shape:
