@@ -1,0 +1,588 @@
+{"query_id": "q_he_keyword_0_0", "text": "ברכות השחר לאחר התפילה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_0_1", "text": "ברכת נטילת ידיים שחרית אחרי תפילה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_0_2", "text": "ברכת אלהי נשמה יצא מחיה המתים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_3_0", "text": "דיון בכך שיוסף נקרא על שם מנשה בגלל שניהם הוציאו דיבה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_3_1", "text": "הסבר מדוע נשיא אפרים הופרד משבט מנשה לאחר שלא הוציא דיבה על הארץ", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_3_2", "text": "קשר בין חלוקת הארץ בפרשת מסעי ובספר יהושע לבין הדיבה שהוציאו על הארץ", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_2_0", "text": "למה שבט יוסף נקרא על שם מנשה ולא אפרים בפרשת המרגלים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_2_1", "text": "מה הקשר בין דיבת יוסף על אחיו לבין דיבת המרגלים על הארץ?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_2_2", "text": "מדוע נפרדו שבטי אפרים ומנשה בפרשת המרגלים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_1_0", "text": "האם אפשר לומר ברכות השחר אחרי התפילה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_1_1", "text": "למה לא אומרים ברכת על נטילת ידיים אחרי התפילה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_1_2", "text": "מדוע ברכת אלוהי נשמה לא ניתן לאומרה לאחר התפילה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_4_0", "text": "למה רחל לקחה את התרפים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_4_1", "text": "איפה רחל הסתירה את התרפים שלקחה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_4_2", "text": "מה עשתה רחל עם התרפים כשיצאו ממצרים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_6_0", "text": "דילוג בין נביאים בקריאה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_6_1", "text": "תרי עשר מדלג בנביא", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_6_2", "text": "אין מדלגין מסוף הספר לתחילתו", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_5_0", "text": "תיאור של רחל שלוקחת את התרפים ומסתירה אותם בכר הגמל", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_5_1", "text": "סדר האירועים בין אהל לאה לאהל רחל בעניין גניבת התרפים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_5_2", "text": "דיון בפרשת גניבת התרפים על ידי רחל ומקום הסתרתם", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_7_0", "text": "האם מותר לדלג בין נביאים שונים בקריאה בציבור?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_7_1", "text": "מה הדין לגבי דילוג בתוך תרי עשר?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_7_2", "text": "האם מותר לדלג מסוף ספר לתחילתו בקריאת הפטרה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_10_0", "text": "שרטוט הלכה למשה מסיני", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_10_1", "text": "ספר תורה שרטוט", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_10_2", "text": "כאמיתה של תורה ספר תורה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_11_0", "text": "דיון בדין שרטוט בספר תורה כהלכה למשה מסיני", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_11_1", "text": "השוואה בין כתיבת מגילה לספר תורה עצמו מבחינת הלכות כתיבה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_11_2", "text": "דרישת שרטוט בכתיבת ספר תורה כדין הלכה למשה מסיני", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_8_0", "text": "האם אישה מותרת בגילוי עריות להנאת עצמה ומה הדין לגבי איש?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_8_1", "text": "מדוע אסתר לא נחשבת כגילוי עריות למרות שנבעלה לנכרי?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_8_2", "text": "האם מותר להתרפאות על ידי גילוי עריות כשיש סכנת נפשות?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_9_0", "text": "דיון בדין יהרג ואל יעבור בעבירת גילוי עריות להנאת עצמו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_9_1", "text": "מעשה רב כהנא שנפל מהגג כדי להינצל מאיסור עריות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_9_2", "text": "הבדל בין ישראל הבא על הנכרית לנכרי הבא על בת ישראל לעניין קנאים פוגעין", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_12_0", "text": "בית המקדש לעתיד יאמר שירה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_12_1", "text": "שירה שלימות בפועל", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_12_2", "text": "בית המקדש משלים את העולם", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_13_0", "text": "דיון על שירת בית המקדש לעתיד לבוא וההרים העונים אחריו שירה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_13_1", "text": "הקשר בין שלימות לשירה ובין חסרון לאבל ודממה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_13_2", "text": "בית המקדש כמקור שלימות כל העולם בדומה למלך המשלים את עמו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_15_0", "text": "מדוע כינויים מסוימים מיוחדים לשם אל ולא לשמות אחרים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_15_1", "text": "מה ההבדל בין הכינויים של שם אלהים לכינויים של שם יהוה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_15_2", "text": "מה היא פעולת כל כינוי של שמות הקודש ומאיזה דבר הוא נמשך?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_14_0", "text": "כינויים לשם אל אלהים יהוה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_14_1", "text": "פעולת כינויי השם", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_14_2", "text": "טעם ייחוד כינויים לשמות הקודש", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_16_0", "text": "ברכת כהנים מתי אומרים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_16_1", "text": "כן יהי רצון ברכת כהנים קהל", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_16_2", "text": "ברכת כהנים בית אבל תשעה באב", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_20_0", "text": "איפוך רב ששת", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_20_1", "text": "כלפי ליא הפיכת סדר", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_20_2", "text": "רב ששת תיקון טעות", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_17_0", "text": "דיון בנוסח ברכת כהנים בתפילת שחרית ומוסף ומתי אומרים אלהינו ואלהי אבותינו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_17_1", "text": "הלכה שאין אומרים ברכת כהנים בבית אבל ובתשעה באב בשחרית", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_17_2", "text": "מנהג הקהל לומר כן יהי רצון ולא אמן בזמן ברכת כהנים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_19_0", "text": "משל על ליסטים שנרתע ממראה דיוקנא של המלך בדרך", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_19_1", "text": "תיאור של לגיון המלך שמושך את הליסטים לאורח שבו נמצא המלך", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_19_2", "text": "משל על אדם שיצא לפגוע בבני אדם ונעצר כשראה את פני המלך", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_18_0", "text": "ליסטים שראה את המלך וברח", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_18_1", "text": "לגיון המלך מושך ליסטים בדרך", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_18_2", "text": "ליסטים יוצא לקטול בני אדם נרתע", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_21_0", "text": "מה אמר רב ששת כשהיה צריך להפוך את הסדר?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_21_1", "text": "מה פירוש כלפי ליא בגמרא?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_21_2", "text": "מתי רב ששת אומר איפוך?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_22_0", "text": "משיח לא רוצה לראות", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_22_1", "text": "ייתי משיח", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_22_2", "text": "משיח יבוא בלא אחמיניה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_24_0", "text": "היכן היה בית הסקילה ממוקם?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_24_1", "text": "האם בית הסקילה היה חוץ לבית דין בלבד או חוץ לשלוש מחנות?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_24_2", "text": "מה ההבדל בין חוץ לבית דין לחוץ לשלוש מחנות לגבי מקום הסקילה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_23_0", "text": "דיון על משיח ועל מי שאינו רוצה לראותו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_23_1", "text": "ביטוי של אדם שמייחל לביאת המשיח אך מבקש שלא לחיות בזמנו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_23_2", "text": "פירוש הביטוי ייתי משיח ולא אחמיניה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_25_0", "text": "דיון על מיקום בית הסקילה ביחס לבית דין ולשלוש המחנות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_25_1", "text": "בית הסקילה היה חוץ לשלוש מחנות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_25_2", "text": "הלכה על המרחק הנדרש של מקום הוצאת להורג מבית הדין", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_26_0", "text": "חזקה ללא טענה אינה חזקה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_26_1", "text": "אכל פירות שדה ולא יודע ממי קנה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_26_2", "text": "שטר בטל בטלה חזקה והחזרת פירות", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_28_0", "text": "מה פירוש הביטוי להבל וריק?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_28_1", "text": "מה ההבדל בין הבל לריק?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_28_2", "text": "איפה מופיע הביטוי להבל וריק בתפילה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_30_0", "text": "שאול גאון רימה תולעה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_30_1", "text": "ירידה לשאול נבלים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_30_2", "text": "יוצע רימה מכסה תולעה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_29_0", "text": "תיאור עבודת האומות כהבל וריק", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_29_1", "text": "ביטוי המתאר דברים חסרי תועלת ומשמעות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_29_2", "text": "דיון בביטוי הבל וריק בתפילה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_27_0", "text": "דיון בחזקה שאין עמה טענה כגון מי שאכל פירות שדה ואינו יודע מאין לו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_27_1", "text": "מצב שבו המחזיק בשדה אינו מוציאים מידו אלא אם המערער מביא עדים שהשדה שלו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_27_2", "text": "חזקה שנעשתה מכוח שטר שנמצא בטל ודין השדה והפירות שנאכלו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_31_0", "text": "מה מכסה את הרשע בשאול לאחר מותו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_31_1", "text": "כיצד מתואר ירידת הגאווה לשאול בתנ\"ך?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_31_2", "text": "מה מצפה לגאים ולמלכים בשאול לפי הנביאים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_33_0", "text": "מה הכוונה שבא ומצאה בתוך ימי עונתה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_33_1", "text": "מתי חל הדין של בא ומצאה בתוך ימי עונתה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_33_2", "text": "מה אמר ריש לקיש משום רבי יהודה נשיאה לגבי עונה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_34_0", "text": "למה צריך לומר עשרת בני המן בנשימה אחת?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_34_1", "text": "אם הפסיק בקריאת עשרת בני המן האם יצא ידי חובה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_34_2", "text": "מאיזה מקום מתחילים לומר בנשימה אחת במגילה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_32_0", "text": "ריש לקיש ימי עונה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_32_1", "text": "בא ומצאה בתוך ימי עונתה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_32_2", "text": "רבי יהודה נשיאה עונה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_36_0", "text": "תרח אברם לוט שרי יציאה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_36_1", "text": "ויצאו אתם פירוש", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_36_2", "text": "מי יצא עם תרח", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_35_0", "text": "דין אמירת עשרת בני המן בנשימה אחת בקריאת המגילה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_35_1", "text": "הפסיק בין עשרת בני המן בדיעבד אם יצא ידי חובה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_35_2", "text": "מנהג לומר בנשימה אחת החל מחמש מאות איש ועד עשרת בני המן", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_37_0", "text": "תיאור יציאת תרח ואברם יחד עם לוט ושרי", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_37_1", "text": "פסוק המתאר את בני המשפחה שיצאו יחד במסע", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_37_2", "text": "דיון בזהות האנשים שיצאו יחד עם תרח ואברם", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_40_0", "text": "מזונות אשת כהן תרומה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_40_1", "text": "חצי חולין חצי תרומה מזונות", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_40_2", "text": "טורח שמירת תרומה טהרה אישה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_41_0", "text": "האם בעל כהן יכול לתת לאשתו את כל מזונותיה בתרומה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_41_1", "text": "מדוע אסור לתת לאישה את כל מזונותיה תרומה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_41_2", "text": "כמה תרומה וכמה חולין צריך הכהן לתת לאשתו למזונות?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_39_0", "text": "דיון על השאלה מה המרחק גדול יותר משמים לארץ או ממזרח למערב", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_39_1", "text": "הגדרת חכם גיבור ועשיר לפי זקני הנגב שנשאלו על ידי אלכסנדר מוקדון", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_39_2", "text": "תשובת החכמים לשאלה מה על האדם לעשות כדי לחיות ומה יגרום לו למות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_38_0", "text": "מה ההבדל בין מרחק שמים לארץ לבין מרחק מזרח למערב?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_38_1", "text": "מי נקרא חכם גיבור ועשיר לפי חז\"ל?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_38_2", "text": "מה עשה אלכסנדר מוקדון כשזקני הנגב סירבו לענות על שאלותיו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_42_0", "text": "שבע ברכות אחר ברכת המזון פנים חדשות", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_42_1", "text": "ברכת אשר ברא בית חתנים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_42_2", "text": "שמעו ברכת נישואין חופה מברכים שבע ברכות", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_44_0", "text": "הצלה מאויב עז", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_44_1", "text": "שונאים אמצו ממני", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_44_2", "text": "תפילה על הצלה מאויבים חזקים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_43_0", "text": "דיון בברכת אשר ברא כברכה האחרונה מתוך שבע ברכות בבית חתנים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_43_1", "text": "מקרה של אורחים שלא שמעו ברכת נישואין ומברכים בשבילם שבע ברכות אחר ברכת המזון", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_43_2", "text": "הגדרת פנים חדשות כמי שלא אכל בסעודת החתן עד עתה ומברכים בשבילו שבע ברכות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_45_0", "text": "תיאור הצלה מאויב עז וחזק מן המתנגד", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_45_1", "text": "פסוק המתאר שונאים שאמצו וגברו על הדובר", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_45_2", "text": "בקשת הצלה מידי אויב חזק ושונאים עצומים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_47_0", "text": "הדלקת נרות חנוכה בעוד היום גדול אחר פלג המנחה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_47_1", "text": "כמות השמן הנדרשת לנרות חנוכה כדי שידלקו חצי שעה אחר צאת הכוכבים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_47_2", "text": "הנוהג הנכון להתפלל מנחה לפני הדלקת נרות חנוכה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_46_0", "text": "מתי מותר להדליק נרות חנוכה לפני הלילה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_46_1", "text": "כמה שמן צריך לשים בנרות חנוכה כדי לצאת ידי חובה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_46_2", "text": "האם צריך להתפלל מנחה לפני הדלקת נרות חנוכה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_49_0", "text": "דיון במקרה שבו הפקיר את נזקיו ודינו כבור", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_49_1", "text": "מקרה שבו אפקרינהו ודינו שווה לפי רב ושמואל", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_49_2", "text": "השוואה בין נזק שהופקר לדין בור לפי שני האמוראים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_48_0", "text": "מה הדין כשהפקיר את נזקיו האם זה נחשב כבור?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_48_1", "text": "מתי מזיק שהפקיר נכסיו נחשב לבור לפי רב ושמואל?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_48_2", "text": "מה ההבדל בין מזיק שהפקיר לבין בור?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_50_0", "text": "דוד המלך אבשלום", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_50_1", "text": "נחמה על מות אמנון", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_50_2", "text": "דוד נחם על אמנון", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_52_0", "text": "הוצאת שם רע על בת", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_52_1", "text": "הודה מפי עצמו פטור", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_52_2", "text": "חיוב עדים הוצאת שם רע", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_51_0", "text": "תיאור כיסופי דוד המלך לצאת אל אבשלום לאחר מות אמנון", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_51_1", "text": "דוד המלך נוחם על אמנון לאחר שמת ומתאווה לאבשלום", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_51_2", "text": "מצב שבו אב מתנחם על בנו שמת ומתגעגע לבנו האחר שברח", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_53_0", "text": "דין מוציא שם רע על הבת כשהעדים מעידים עליו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_53_1", "text": "מקרה שבו הנאשם הודה מפי עצמו בהוצאת שם רע ופטור מחיוב", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_53_2", "text": "הבדל בין חיוב עדים לפטור המודה בהוצאת שם רע", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_54_0", "text": "מה קורה אם אשכח את ירושלים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_54_1", "text": "מה פירוש הפסוק תדבק לשוני לחכי?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_54_2", "text": "מה הנשבע מי שאינו מעלה את ירושלים על ראש שמחתו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_55_0", "text": "פסוק על שכחת ירושלים ותדבק לשוני לחכי", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_55_1", "text": "נוסח הפסוקים אם אשכחך ירושלים תשכח ימיני", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_55_2", "text": "דיון בהעלאת ירושלים על ראש שמחה בטקסים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_56_0", "text": "מילה בשבת מוצצין אספלנית כמון", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_56_1", "text": "לועס כמון בשיניים שבת מילה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_56_2", "text": "כורך סמרטוט על מילה שבת", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_57_0", "text": "דיון במלאכות המותרות לצורך מילה בשבת כגון מציצה ופריעה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_57_1", "text": "מקרה של שכח לשחוק כמון מערב שבת ולועס בשיניו ונותן על המילה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_57_2", "text": "כריכת סמרטוט על המילה בשבת כאשר לא הוכן חלוק מראש", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_60_0", "text": "יהיו לרצון אמרי פי", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_60_1", "text": "הגיון לבי לפניך", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_60_2", "text": "צורי וגואלי תפילה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_58_0", "text": "למה הקב\"ה גילה לאברהם את הסוד על סדום?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_58_1", "text": "מה הקשר בין הבטחת הארץ לאברהם לבין חורבן סדום?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_58_2", "text": "מדוע נאמר המכסה אני מאברהם?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_59_0", "text": "דיון על כך שהקדוש ברוך הוא נתן את כל הארץ לאברהם כנחלת עולמים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_59_1", "text": "הסבר מדוע הקדוש ברוך הוא לא ראה לנכון להשמיד ערים מבלי להודיע לאברהם אוהבו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_59_2", "text": "אברהם אב המון גויים ועניין גילוי סוד ההשמדה לפני ביצועה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_61_0", "text": "פסוק יהיו לרצון אמרי פי והגיון לבי לפניך", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_61_1", "text": "נוסח סיום תפילת עמידה בבקשה שדברי הפה יהיו לרצון לפני ה'", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_61_2", "text": "תיאור הפסוק שבו המתפלל פונה לה' כצורו וגואלו בסיום התפילה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_64_0", "text": "גבריאל האיש בספר דניאל", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_64_1", "text": "עמרם החזיר את אשתו", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_64_2", "text": "מחלוקת רבי אבהו ורבי יהודה וילך איש", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_63_0", "text": "דיון על כך שכל הנפשות של הדורות העתידים היו נוכחות בברית סיני אף שגופם עדיין לא נברא", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_63_1", "text": "טענה שהאלילים אינם יכולים להציל את עצמם מגניבה ובוודאי לא את אחרים, בניגוד לאל ישראל השומר את עמו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_63_2", "text": "תיאור שמירת ה' על ישראל כאב המשמר את בנו, שאינו נם ואינו ישן", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_62_0", "text": "מה הכוונה שכל הנפשות היו נוכחות במעמד הברית אפילו שהגוף לא נברא?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_62_1", "text": "למה אמר לבן ליעקב למה גנבת את אלהי ומה הביקורת על כך?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_62_2", "text": "כיצד הקב\"ה שומר על ישראל כמו אב השומר על בנו?", "type": "question", "lang": "he"}
+{"query_id": "q_en_keyword_66_0", "text": "parting from friend matter of halakhah", "type": "keyword", "lang": "en"}
+{"query_id": "q_en_keyword_66_1", "text": "halakhah vs aggadah farewell teaching", "type": "keyword", "lang": "en"}
+{"query_id": "q_en_keyword_66_2", "text": "anecdote illustrating halakhic dictum farewell", "type": "keyword", "lang": "en"}
+{"query_id": "q_he_question_65_0", "text": "מי הוא האיש שהלך בפסוק וילך איש?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_65_1", "text": "למה לא נזכר שמו של עמרם בפסוק וילך איש?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_65_2", "text": "מה הקשר בין גבריאל לנישואי עמרם ויוכבד?", "type": "question", "lang": "he"}
+{"query_id": "q_en_question_67_0", "text": "Why should you part from a friend with a matter of Halakhah?", "type": "question", "lang": "en"}
+{"query_id": "q_en_question_67_1", "text": "What is the difference between parting with a halakhic matter versus an aggadic saying?", "type": "question", "lang": "en"}
+{"query_id": "q_en_question_67_2", "text": "What does it mean to leave someone with a matter of Halakhah rather than aggadah?", "type": "question", "lang": "en"}
+{"query_id": "q_he_sentence_69_0", "text": "תיאור של אנשים היורדים מטבור הארץ", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_69_1", "text": "ראש אחד בא מדרך אלון מעוננים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_69_2", "text": "דיון בדברי געל על עם היורד מטבור הארץ", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_68_0", "text": "מה ראה געל כשהביט מהעיר?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_68_1", "text": "מהו טבור הארץ במקרא?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_68_2", "text": "מי בא מדרך אלון מעוננים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_70_0", "text": "מה אומרים בית הלל לגבי סיבות לגירושין?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_70_1", "text": "האם מותר לגרש אישה אם היא שרפה את האוכל?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_70_2", "text": "מה הפסוק שבית הלל מביאים כראיה לגירושין?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_71_0", "text": "דעת בית הלל שמותר לגרש אשה אפילו הקדיחה תבשילו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_71_1", "text": "הפסוק כי מצא בה ערות דבר כבסיס לדין גירושין לפי בית הלל", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_71_2", "text": "דיון בסיבות המספיקות לגירושין לפי שיטת בית הלל", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_72_0", "text": "מה פירוש הביטוי 'ובלשון חסידים תתקדש'?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_72_1", "text": "כיצד מתקדש השם בלשון חסידים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_72_2", "text": "מה הקשר בין חסידים לקדושה בתפילה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_74_0", "text": "מכות בעשרים ושלשה דיינים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_74_1", "text": "מת ממכותיו דיני נפשות", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_74_2", "text": "מכות שלשה דיינים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_73_0", "text": "תיאור קידוש השם בלשון חסידים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_73_1", "text": "ביטוי המתאר התקדשות בשפת הצדיקים והחסידים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_73_2", "text": "דיון בלשון חסידים ככלי לקדושה ולהתקדשות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_76_0", "text": "מה הטעם של רבי שמעון בן אלעזר לגבי מילת עבד בעל כורחו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_76_1", "text": "האם מותר למול עבד בעל כורחו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_76_2", "text": "מה ההבדל בין עבד איש לבן איש לעניין מילה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_75_0", "text": "דיון על מלקות בשלושה דיינים ואפשרות מיתה מהמכות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_75_1", "text": "מקרה שבו הנידון מת ממכותיו ונוצרים דיני נפשות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_75_2", "text": "שאלת רבי אבהו על הצורך בעשרים ושלושה דיינים במכות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_77_0", "text": "דיון בטעם הדין שמלים עבד כנעני בעל כורחו אך לא בן בעל כורחו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_77_1", "text": "הסבר הפסוק כל עבד איש מקנת כסף ומשמעותו לגבי מילה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_77_2", "text": "הבחנה בין עבד אישה לעבד איש בדיני מילה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_78_0", "text": "מתי יצאו בני ישראל ממצרים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_78_1", "text": "באיזה תאריך נסעו בני ישראל מרעמסס?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_78_2", "text": "מה פירוש 'ביד רמה' ביציאת מצרים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_79_0", "text": "יציאת בני ישראל ממצרים ביד רמה לעיני כל מצרים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_79_1", "text": "תיאור נסיעת בני ישראל מרעמסס בחמישה עשר לחודש הראשון", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_79_2", "text": "ממחרת הפסח יצאו בני ישראל ממצרים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_80_0", "text": "מתי מצווה לקרוא את התורה בפני כל ישראל?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_80_1", "text": "מה הקשר בין שנת השמיטה לחג הסוכות?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_80_2", "text": "כל כמה שנים מתקיים הקהל?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_81_0", "text": "מצוות הקהל בסוף שבע שנים בחג הסוכות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_81_1", "text": "קריאת התורה במועד שנת השמיטה בחג הסוכות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_81_2", "text": "דיון במצוות הקשורות לשנת השמיטה ולחג הסוכות יחד", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_82_0", "text": "מה המנהג לומר אחרי תפילת ראש השנה כדי שלא יחסרו מזונות?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_82_1", "text": "מה אומרים כשראש השנה חל בשבת לפני מזמור לדוד?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_82_2", "text": "מתי אפשר לומר מזמור לדוד אם שכחו לאומרו אחרי התפילה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_84_0", "text": "מן במדבר גרגיר דק", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_84_1", "text": "כזרע גד מן", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_84_2", "text": "פני המדבר דק מן", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_83_0", "text": "מנהג לומר מזמור לדוד לה' הארץ ומלואה אחרי תפילת ראש השנה כדי שלא יחסרו מזונות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_83_1", "text": "סדר אמירת ויכולו ומגן אבות כשחל ראש השנה בשבת לפני מזמור לדוד", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_83_2", "text": "דין מי שלא אמר מזמור לדוד אחר תפילת ראש השנה ומתי יאמרנו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_85_0", "text": "מה היה גודל גרגיר המן במדבר?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_85_1", "text": "למה נאמר שהמן היה דק על פני המדבר?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_85_2", "text": "מה הפירוש של דק על פני המדבר בפסוק על המן?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_86_0", "text": "האם גבר שמדליק נרות שבת מקבל שבת בהדלקה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_86_1", "text": "אם האיש הדליק נרות שבת ולא התנה, האם מותר לו לעשות מלאכה אחר כך?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_86_2", "text": "מה צריך לומר גבר לפני הדלקת נרות שבת אם הוא צריך לעשות מלאכה אחר כך?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_88_0", "text": "טירחא הלכה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_88_1", "text": "מאי בינייהו טירחא", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_88_2", "text": "מחלוקת נפקא מינה טורח", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_89_0", "text": "מה ההבדל המעשי בין שתי הדעות בהלכה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_89_1", "text": "מה ההבדל בין שתי הדעות כשמדובר בטירחה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_89_2", "text": "מהו ההבדל המעשי בין שני הצדדים בסוגיה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_87_0", "text": "דיון בדין האיש המדליק נרות שבת וצריך לעשות מלאכה לאחר מכן", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_87_1", "text": "הדלקת נרות שבת על ידי הבעל אינה מהווה קבלת שבת לפי המנהג", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_87_2", "text": "תנאי שאינו מקבל שבת בהדלקת הנרות כדי לאפשר עשיית מלאכה לאחר מכן", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_90_0", "text": "מה צריכה האשה לבקש בתפילתה בשעת הדלקת נרות שבת?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_90_1", "text": "מה עושים כשיש חופה בערב שבת ומאחרים אותה עד אחרי שקיעת החמה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_90_2", "text": "אם אישה שכחה לברך על נרות שבת עד שחשכה מה דינה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_91_0", "text": "אישה שמדליקה נרות שבת בשעת החופה שחלה בערב שבת ומאחרים אותה עד אחר שקיעת החמה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_91_1", "text": "תפילת האישה בשעת הדלקת נרות שבת שיזכה לבנים מאירים בתורה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_91_2", "text": "דיון על ברכה על נרות שבת כאשר הנרות כבר דולקות או כאשר שכחה לברך עד שחשכה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_92_0", "text": "מה הכוח של הדיבור לפי האר\"י?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_92_1", "text": "למה כתוב תנו לכם מופת ולא סתם תנו מופת?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_92_2", "text": "מה הקשר בין מטה אהרן לתנין לכוח הדיבור?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_93_0", "text": "דיבור של אדם עושה נחת רוח לבוראו ופועל פעולות טובות לישראל", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_93_1", "text": "הסבר על הכוח שיש לדיבור לעשות מופתים ולשנות מטה לתנין", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_93_2", "text": "הצורך לשמור את הדיבור מהבלים ולדבר רק בדברי תורה כדי שיפעל פעולות טובות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_94_0", "text": "מה פירוש יהללו שמו במחול?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_94_1", "text": "כיצד מהללים את שם ה' לפי הפסוק?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_94_2", "text": "איך מבטאים שבח לה' בריקוד?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_96_0", "text": "כף זהב קטורת", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_96_1", "text": "כלי זהב מלא קטורת", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_96_2", "text": "עשרה זהב קטורת משקל", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_95_0", "text": "שבח לשם ה' במחול ובריקוד", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_95_1", "text": "ביטוי של הלל לשם האל בתנועה ומחול", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_95_2", "text": "דיון בשבח שם ה' הנאמר בלשון רבים במחול", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_97_0", "text": "מה היה מלא בכף הזהב שהוקרבה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_97_1", "text": "כמה שקל שקלה כף הזהב שהוקרבה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_97_2", "text": "מה הייתה הכמות של הזהב בכף הקטורת?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_100_0", "text": "לקיחת אליהו מעל ראש אלישע", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_100_1", "text": "בטרם אלקח מאתך אליהו אלישע", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_100_2", "text": "לא לקחו אלהים במוחלט", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_99_0", "text": "תיאור דור שזמם סוד ודפק ולא שמע לאזהרה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_99_1", "text": "תגובת העם כאשר שמעו את ההשבעה ופקקו אוזניהם", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_99_2", "text": "תיאור של נמקים וספיקת כפיים לאחר שמיעת דברי אזהרה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_101_0", "text": "מה פירוש 'לוקח מעל ראשך' לגבי לקיחת אליהו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_101_1", "text": "האם אליהו נלקח לגמרי על ידי אלוהים או רק מעם אלישע?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_101_2", "text": "מה ההבדל בין לקיחת אליהו במוחלט לבין לקיחתו מעם אלישע?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_98_0", "text": "מה קרה כאשר העם שמע את הדברים ונתמקמקו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_98_1", "text": "מה פירוש השבעתי אתכם בקינות?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_98_2", "text": "מדוע ספקו על כפיים בקינה על החורבן?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_102_0", "text": "טורנוסרופוס שאל רבי עקיבא למה הקדוש ברוך הוא שונא אותנו", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_102_1", "text": "כלבים בחלום רופוס רופינא", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_102_2", "text": "עבודה זרה עץ קוראים אלוהים שנאה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_105_0", "text": "דין גגות הסוכה שמוטים על הסכך ואיסור ישיבה במקום המשופע", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_105_1", "text": "פטור מזוזה בסוכה מפני שאינה נחשבת דירת קבע בשבעת ימי החג", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_105_2", "text": "חיוב מזוזה בפתח הסוכה הפתוח לרשות הרבים כדין בית שער", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_103_0", "text": "דיון בשאלה מדוע הקדוש ברוך הוא שונא את עשו לפי הפסוק במלאכי", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_103_1", "text": "ויכוח בין רבי עקיבא לטורנוסרופוס על עבודה זרה ושנאת האומות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_103_2", "text": "סיפור על חלום שני כלבים ששמותיהם על שם טורנוסרופוס ואשתו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_106_0", "text": "תמורה בכלאים וטרפה קדושה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_106_1", "text": "הבדל בעל מום תמורה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_106_2", "text": "טומטום אנדרוגינוס קרבן תמורה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_104_0", "text": "האם סוכה חייבת במזוזה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_104_1", "text": "מה הדין אם גג הסוכה מוטה על הסכך?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_104_2", "text": "מי שיש לו שני חדרים זה לפנים מזה ויש לו סוכה, האם הפתח לסוכה צריך מזוזה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_108_0", "text": "מי היה עירא בן עקש התקועי?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_108_1", "text": "מי היה אביעזר הענתותי?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_108_2", "text": "אילו גיבורים היו מתקוע ומענתות?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_107_0", "text": "דיון בדין המימיר בכלאיים או בטרפה שאין הקדושה חלה עליהם", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_107_1", "text": "ההבדל בין בעל מום לבין כלאיים וטרפה בדיני תמורה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_107_2", "text": "המימיר בבהמה שאין במינה קרבן אינו לוקה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_110_0", "text": "ברכה על יין", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_110_1", "text": "בורא פרי הגפן", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_110_2", "text": "ברכת היין נוסח", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_109_0", "text": "עירא בן עקש התקועי מוזכר ברשימת הגיבורים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_109_1", "text": "אביעזר הענתותי נזכר יחד עם גיבורי דוד", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_109_2", "text": "רשימה המזכירה גיבורים ממקומות שונים כתקוע וענתות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_111_0", "text": "נוסח ברכת בורא פרי הגפן על היין", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_111_1", "text": "הברכה הנאמרת לפני שתיית יין", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_111_2", "text": "נוסח ברכה ראשונה על משקה היין לפי מנהג אשכנז", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_112_0", "text": "מי אמר שכל ישראל בני מלכים הם?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_112_1", "text": "מה ההלכה לגבי בני מלכים שיוצאים בזוגין בשבת?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_112_2", "text": "מה ההבדל בין דעת רבי שמעון לדעת רבא בנושא זוגין?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_114_0", "text": "איסורים מדרבנן בשאר איסורים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_114_1", "text": "מהרא\"י אגור איסורים דרבנן", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_114_2", "text": "ב\"י ד\"מ הר\"ן שאר איסורים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_113_0", "text": "דיון בדעת רבי שמעון שכל ישראל בני מלכים הם", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_113_1", "text": "מחלוקת תנאים לגבי בני מלכים שיוצאים בזוגין בשבת", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_113_2", "text": "פסיקת רבא שהדבר מדובר בארוג בכסותו ודברי הכל", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_115_0", "text": "דין בשאר איסורים שהוא מדרבנן בלבד", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_115_1", "text": "דיון בדעת האגור בשם מהרא\"י לגבי איסורים מדרבנן", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_115_2", "text": "הסכמת כל הפוסקים שאיסור מסוים אינו אלא מדרבנן", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_118_0", "text": "יחוד ביום אינו מביא לידי עבירה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_118_1", "text": "יוסף עשיית מלאכה הרהור עבירה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_118_2", "text": "יחוד המביא לידי עבירה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_116_0", "text": "אם יתום נאמן בטענה שלא קיבל מזונות מהלווה", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_116_1", "text": "מי נאמן כשיש מחלוקת בין לווה ליתום על תשלום מזונות?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_116_2", "text": "לווה שטוען שנתן מזונות ליתום והיתום מכחיש, מה הדין?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_117_0", "text": "מחלוקת בין לווה ליתום על מזונות שנטען שניתנו לו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_117_1", "text": "דין נאמנות יתום הטוען שלא קיבל מזונות מהלווה שקיבל עליו לזונו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_117_2", "text": "מקרה של לווה שקיבל על עצמו לזון יתום ורוצה לנכות ממה שחייב לו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_119_0", "text": "מדוע יחוד ביום אינו מביא לידי עבירה כמו יחוד בלילה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_119_1", "text": "למה יוסף לא פחד מהרהורים כשנכנס לבית לעשות מלאכתו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_119_2", "text": "מה הקשר בין עשיית מלאכה לבין שמירה מהרהורי עבירה?", "type": "question", "lang": "he"}
+{"query_id": "q_en_keyword_120_0", "text": "Hebrew verb amar say utter biblical conjugations", "type": "keyword", "lang": "en"}
+{"query_id": "q_en_keyword_120_1", "text": "say in the heart think Hebrew idiom", "type": "keyword", "lang": "en"}
+{"query_id": "q_en_keyword_120_2", "text": "Hebrew word command promise declare meanings", "type": "keyword", "lang": "en"}
+{"query_id": "q_en_question_122_0", "text": "Can you recite the evening Shema after midnight if you stayed out late?", "type": "question", "lang": "en"}
+{"query_id": "q_en_question_122_1", "text": "What is the latest time you can say the evening Shema?", "type": "question", "lang": "en"}
+{"query_id": "q_en_question_122_2", "text": "What happened when Rabban Gamaliel's sons came home late from a wedding and had not yet said Shema?", "type": "question", "lang": "en"}
+{"query_id": "q_en_sentence_121_0", "text": "discussion of the Hebrew verb meaning to say or utter across different conjugations and stems", "type": "sentence", "lang": "en"}
+{"query_id": "q_en_sentence_121_1", "text": "passage describing the phrase say in the heart as meaning to think or purpose in biblical Hebrew", "type": "sentence", "lang": "en"}
+{"query_id": "q_en_sentence_121_2", "text": "case of the Hiphil stem of a Hebrew speech verb meaning to avow or avouch as found in Deuteronomy", "type": "sentence", "lang": "en"}
+{"query_id": "q_he_keyword_124_0", "text": "אכילת פת חריבה במלח בשני בצורת", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_124_1", "text": "רבי אלעזר בר צדוק לומד תורה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_124_2", "text": "זיתים לחים סירוב לאכול", "type": "keyword", "lang": "he"}
+{"query_id": "q_en_sentence_123_0", "text": "discussion of reciting the evening Shema after being out all night at a wedding feast", "type": "sentence", "lang": "en"}
+{"query_id": "q_en_sentence_123_1", "text": "case of missing the evening Shema deadline and whether it can still be recited before dawn", "type": "sentence", "lang": "en"}
+{"query_id": "q_en_sentence_123_2", "text": "ruling that the obligation to recite the evening Shema remains valid until dawn", "type": "sentence", "lang": "en"}
+{"query_id": "q_he_keyword_128_0", "text": "חלוקת העם לשני שבטים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_128_1", "text": "ממלכת חמס אפרים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_128_2", "text": "פילוג ממלכה שבטים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_125_0", "text": "מה אכל רבי יוחנן החורני בשנות בצורת?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_125_1", "text": "מדוע סירב רבי יוחנן לאכול את הזיתים שהביאו לו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_125_2", "text": "סיפור על תלמיד שראה את רבו אוכל לחם יבש במלח ודיווח לאביו", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_127_0", "text": "דיון בדברי יעקב לאביו שאמר אנכי עשו בכורך", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_127_1", "text": "הסבר כיצד יעקב לא שיקר כשאמר אנכי עשו בכורך", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_127_2", "text": "פירוש המילים אנכי המביא לך ועשו הוא בכורך כדי להימנע משקר", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_129_0", "text": "חלוקת העם לשני שבטים ופילוג הממלכה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_129_1", "text": "תיאור ממלכת חמס שיצאה מאפרים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_129_2", "text": "מצב של פירוד בין שבטי ישראל וקום ממלכה נפרדת", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_126_0", "text": "למה יעקב אמר אנכי עשו בכורך?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_126_1", "text": "האם יעקב שיקר לאביו כשאמר שהוא עשו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_126_2", "text": "כיצד יעקב הצדיק את דבריו לאביו יצחק כשהתחזה לעשו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_130_0", "text": "קניית עבדים מגויים בשבת", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_130_1", "text": "ירידים של עובדי כוכבים עזה עכו בטנן", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_130_2", "text": "אברהם מילה גילוי שכינה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_132_0", "text": "כיבוד בפה ובשפתיים בלי לב", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_132_1", "text": "יראת ה' מצות אנשים מלומדה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_132_2", "text": "קיום מצוות מתוך הרגל בלי כוונה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_134_0", "text": "גמילה מינקות כמה חודשים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_134_1", "text": "זמן יניקה תינוק חודשים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_134_2", "text": "עד יגמל פירוש עשרים ושניים חודשים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_131_0", "text": "האם מותר לקנות עבדים מגויים בשבת?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_131_1", "text": "מדוע אברהם חשש שאחרי המילה לא יבואו אליו אורחים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_131_2", "text": "מה הם שלושת הירידים המוזכרים בגמרא ואיזה מהם הכי חשוב?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_133_0", "text": "דיון על כיבוד ה' בפה ובשפתיים בלבד בעוד הלב מרוחק", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_133_1", "text": "מצוות הנעשות מתוך הרגל ולימוד בלבד ללא כוונה ומחשבה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_133_2", "text": "טענה שמצוות ה' הן מעשים חיצוניים בלא מחשבה וכוונה ושאין האדם יכול להשיג את טעמי המצוות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_136_0", "text": "נחש אמר לאשה כל אומן שונא בני אומנתו", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_136_1", "text": "מן האילן הזה אכל הקב\"ה וברא את העולם", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_136_2", "text": "אם תאכלו תהיו כאלהים ותוכלו לברוא עולם", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_135_0", "text": "כמה חודשים יונק תינוק לפי המסורת?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_135_1", "text": "מה פירוש עד יגמל בהקשר של גמילה מהנקה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_135_2", "text": "כמה זמן אמא מניקה את התינוק?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_137_0", "text": "הנחש אמר לאשה שהקב\"ה אסר עליהם לאכול מהעץ כי כל אומן שונא בני אומנתו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_137_1", "text": "טענת הנחש שמן האילן אכל הקב\"ה וברא את העולם ואם יאכלו ממנו יהיו כאלהים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_137_2", "text": "דיון בטעם האיסור לאכול מעץ הדעת לפי דברי הנחש לחוה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_138_0", "text": "האם חייבים לקרוא בתורה עם טעמים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_138_1", "text": "מה עושים אם אין מי שיודע לקרוא בתורה בטעמים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_138_2", "text": "האם אפשר לצאת ידי חובת קריאת התורה בלי טעמים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_139_0", "text": "דיון בחובת קריאת התורה בטעמי המקרא וכיצד ניתן לצאת ידי חובה בדיעבד ללא טעמים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_139_1", "text": "מצב שבו אין מי שיודע לקרוא בתורה בטעמים ואפשר ללחוש לקורא מתוך חומש מנוקד", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_139_2", "text": "הסבר על כך שטעמי המקרא אינם כתובים בספר התורה ולכן הקורא חייב ללמוד אותם בעל פה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_142_0", "text": "שמו בועז", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_142_1", "text": "בועז שם", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_142_2", "text": "בועז רמז", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_141_0", "text": "דיון בסוד הבאר בשדה ושלושה עדרי הצאן הרובצים עליה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_141_1", "text": "פירוש על שלושת הכיוונים דרום מזרח וצפון הסובבים את הבאר ומשקים ממנה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_141_2", "text": "קשר בין הפסוק ישקו כל חיתו שדי לבין השקיית העדרים מן הבאר", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_143_0", "text": "דיון בשמו של בועז ומשמעותו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_143_1", "text": "אזכור שמו של בועז בהקשר של רמז", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_143_2", "text": "פסקה המתארת את שמו של בועז בדרך של רמז", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_140_0", "text": "מה המשמעות הרוחנית של הבאר בשדה שראה יעקב?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_140_1", "text": "מה הם שלושת עדרי הצאן הרובצים על הבאר ומה הם מסמלים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_140_2", "text": "מה הקשר בין דרום מזרח וצפון לבאר המים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_144_0", "text": "חלום על ספר מלכים גדולה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_144_1", "text": "רואה ישעיה בחלום נחמה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_144_2", "text": "ירמיה פורענות יחזקאל חכמה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_145_0", "text": "הרואה ספר מלכים בחלום יצפה לגדולה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_145_1", "text": "משמעות ראיית ספרי נביאים בחלום לגדולה חכמה ונחמה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_145_2", "text": "הרואה ירמיה בחלום ידאג מן הפורענות בניגוד לישעיה המבשר נחמה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_146_0", "text": "כמה מנה יש בככר של קודש?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_146_1", "text": "מה המשקל של המנורה עם כל כליה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_146_2", "text": "כמה זהובים שווה מנה אחד?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_147_0", "text": "משקל הככר של קודש הוא כפול ממשקל הככר של חול", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_147_1", "text": "המנורה ועם כל כליה לא יעלה משקלה על ככר זהב טהור", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_147_2", "text": "ערך המנה בזהובים וסלעים לפי משקל קולוניא", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_148_0", "text": "ספירת מחשבה לב נתיבות", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_148_1", "text": "בינה דולה מים מבאר עמוק מחשבה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_148_2", "text": "יוד ראשונה שם כתר עליון אין סוף", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_150_0", "text": "למה צריך לקרוא בספרים שוב ושוב כדי לא לשכוח?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_150_1", "text": "איך מתגברים על שכחה בדברים דקים ועדינים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_150_2", "text": "מה הקשר בין קריאה מתמדת בספרים לבין קיום המצוות?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_149_0", "text": "דיון בספירת המחשבה כנקודה פנימית סתומה בכתר עליון וקשרה לאין סוף", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_149_1", "text": "משל הדולה מים מבאר עמוק כדי להסביר את הדרך להתבונן בסוד המחשבה על ידי הבינה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_149_2", "text": "שלושים ושניים נתיבות המחשבה המתפשטים מן הכתר ואי האפשרות להתבונן בהם ישירות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_152_0", "text": "חלבון חלמון דם ביצה איסור", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_152_1", "text": "מנהג לאסור דם בביצה בכל ענין", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_152_2", "text": "סברת הרא\"ה חומרא חלבון לעומת חלמון", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_151_0", "text": "הצורך בקריאה מתמדת בספרים כדי לא לשכוח דברים דקים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_151_1", "text": "השכחה שכיחה בדברים הדקים ולכן יש להתמיד בלימוד כדי לזכור ולקיים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_151_2", "text": "דיון בחשיבות חידוש הזכירה בשכל על ידי קריאה חוזרת בספרים המבארים דקדוקים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_154_0", "text": "מות רחל בדרך לאפרת", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_154_1", "text": "קבורת רחל בית לחם", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_154_2", "text": "יעקב פדן כנען רחל מתה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_153_0", "text": "דיון על ההבדל בין חלבון לחלמון בדיני דם ביצה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_153_1", "text": "טעם המנהג לאסור דם ביצה בכל ענין בגלל ספק מקום הקשר", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_153_2", "text": "פסיקת מהרש\"ל שחלבון אסור מן הדין וחלמון אין להקל נגד הגאונים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_155_0", "text": "איפה נקברה רחל?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_155_1", "text": "מה קרה לרחל כשיעקב חזר מפדן?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_155_2", "text": "היכן בדיוק מתה רחל ומה המרחק שנותר לה להגיע לאפרתה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_156_0", "text": "מה יקרה לגר שיצטרף לעם ישראל לפי הנביא?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_156_1", "text": "מתי ה' ירחם על יעקב ויבחר שוב בישראל?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_156_2", "text": "מה ההבטחה על שיבת ישראל לאדמתם?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_157_0", "text": "דיון בנבואה על רחמי ה' על יעקב ובחירת ישראל מחדש", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_157_1", "text": "תיאור הגר המצטרף לבית יעקב לאחר שישראל ינוחו על אדמתם", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_157_2", "text": "נבואה על שיבת ישראל לאדמתם ועליית גרים להתחבר אליהם", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_158_0", "text": "גילוח בתער חיוב", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_158_1", "text": "מלקט ורהיטני חיוב פאות", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_158_2", "text": "רבי אליעזר לקיטת שיער כלים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_159_0", "text": "מה דעת רבי אליעזר על לקיטת פאה במלקט וברהיטני?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_159_1", "text": "האם יש חיוב על הסרת שיער בכלים שאינם תער?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_159_2", "text": "מה ההבדל בין תער למלקט ורהיטני בהלכות גילוח?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_162_0", "text": "נתן הנביא אמר למלך", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_162_1", "text": "כל אשר בלבבך לך עשה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_162_2", "text": "ה' עמך נתן", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_160_0", "text": "מי שאינו מאמין בבוראו בדרך", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_160_1", "text": "הסכל הולך לבו חסר פירוש", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_160_2", "text": "סיוע בדרך אמונה בקדוש ברוך הוא", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_164_0", "text": "השחזת סכין ביום טוב", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_164_1", "text": "העברת שמנונית סכין של עץ", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_164_2", "text": "סכין של אבן אסור ביום טוב", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_161_0", "text": "מה קורה למי שאינו מאמין בבוראו כשהוא יוצא לדרך?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_161_1", "text": "מה הפירוש של 'לבו חסר' בפסוק על הסכל ההולך בדרך?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_161_2", "text": "למה אדם שאינו מאמין בה' לא זוכה לסיוע אלוקי בדרכו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_163_0", "text": "מה אמר נתן הנביא למלך דוד לגבי מה שבלבו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_163_1", "text": "האם נתן הנביא עודד את דוד לבנות את בית המקדש?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_163_2", "text": "מה פירוש הביטוי כי ה' עמך שאמר נתן למלך?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_165_0", "text": "דיון בהיתר שימוש בכלי עץ ביום טוב להעברת שמנונית", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_165_1", "text": "איסור חידוד סכין ביום טוב אפילו בכלי עץ", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_165_2", "text": "הבחנה בין כלי עץ לכלי אבן לעניין איסור שימוש ביום טוב", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_166_0", "text": "נהר השפע יוצא מעדן להשקות את הגן", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_166_1", "text": "דוד עדינו מתעדן על דברי תורה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_166_2", "text": "ישראל גן השפע תורה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_167_0", "text": "מה הפירוש של 'עדינו העצני' בהקשר של דוד המלך?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_167_1", "text": "מה המשמעות של הנהר היוצא מעדן לפי הפרשנות הרמזית?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_167_2", "text": "מי הם הגן שהנהר משקה לפי חז\"ל?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_170_0", "text": "הקדים שנים ונושנתם", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_170_1", "text": "עולא שתי שנים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_170_2", "text": "ונושנתם שנים הקדמה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_169_0", "text": "דיון על מיקום כנפי השרפים ביחס לראשיהם לפי הכתוב", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_169_1", "text": "ראיה מלשון הכתוב שכנפי השרפים היו מעל ראשיהם ולא מולם", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_169_2", "text": "הסבר מדוע אין ללמוד מהכתוב שהכנפיים היו גבוהות מאוד מהראש", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_168_0", "text": "מה ראיה יש שהכנפיים של השרפים היו מעל ראשיהם?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_168_1", "text": "מה ההבדל בין 'למעלה' לבין 'למעלה למעלה' בפסוק?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_168_2", "text": "כיצד לומדים מהפסוק את מיקום כנפי השרפים ביחס לראשיהם?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_171_0", "text": "מה אמר עולא לגבי הקדמת שנתיים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_171_1", "text": "מה הקשר בין עולא לפסוק ונושנתם?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_171_2", "text": "כמה שנים הקדים לפסוק ונושנתם לפי עולא?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_173_0", "text": "אישה אומרת שיצאה לקראת האיש לחפש את פניו ומצאה אותו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_173_1", "text": "תיאור יציאה לקראת מישהו ושחר פנים עד שנמצא", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_173_2", "text": "דברי אישה המספרת שיצאה לחפש את פני האיש ומצאה אותו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_172_0", "text": "מדוע האישה יצאה לקראת הבחור ברחוב?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_172_1", "text": "מה פירוש לשחר פנים של מישהו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_172_2", "text": "איך מתואר המפגש בין האישה לבחור שהיא חיפשה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_174_0", "text": "מה הכוונה בשכיבה על בגדים חבולים אצל המזבח?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_174_1", "text": "מה הם החטאים של שתיית יין ענושים בבית אלוהים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_174_2", "text": "כיצד מתוארת חילול הקודש על ידי שימוש בחפצים גזולים במקום הפולחן?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_175_0", "text": "שימוש בבגדים שנלקחו כחבול לצורך שכיבה ליד המזבח", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_175_1", "text": "שתיית יין של ענושים בבית אלוהים כביטוי לעוול חברתי", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_175_2", "text": "תיאור של ניצול עניים על ידי שימוש בחפצים שנלקחו מהם בסמוך למקום הפולחן", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_177_0", "text": "דיון על הנזק שגורמת הדאגה ללב האדם", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_177_1", "text": "אזהרה מפני נתינת דאגה בלב", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_177_2", "text": "תיאור הדאגה כגורם מוות לרבים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_176_0", "text": "מה הנזק של דאגה לפי חכמים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_176_1", "text": "למה אסור לתת דאגה בלב?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_176_2", "text": "האם דאגה יכולה להרוג אדם?", "type": "question", "lang": "he"}
+{"query_id": "q_he_keyword_178_0", "text": "שמעיה בן נתנאל הסופר מן הלוי", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_178_1", "text": "רשימת כהנים לפני המלך צדוק אחימלך", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_178_2", "text": "חלוקת בתי אבות לאלעזר ואיתמר", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_180_0", "text": "קטן אין לו גואלין", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_180_1", "text": "חזרה על גואלין של נרצח", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_180_2", "text": "הבדל בין איש לקטן בדיני גואלים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_sentence_179_0", "text": "שמעיה בן נתנאל הסופר כותב את החלוקה לפני המלך והשרים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_179_1", "text": "חלוקת בתי האבות לכהנים ולוויים בין אלעזר ואיתמר", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_179_2", "text": "תיאור רישום החלוקה בנוכחות צדוק הכהן ואחימלך בן אביתר", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_181_0", "text": "דיון בהבדל בין איש לקטן לעניין חובת הבית דין לחזור ולבדוק אם יש לו גואלין", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_181_1", "text": "קטן אין צריך לחזור עליו כי בידוע שאין לו גואלין", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_181_2", "text": "הדין שאיש חייבים לבדוק אם יש לו גואלין לפני עונש", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_182_0", "text": "האם אישה שרואה דם שלושה ימים רצופים בתחילת נידה נחשבת לזבה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_182_1", "text": "מה ההבדל בין הלכות לבין פסוקים בדיני נידה וזבה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_182_2", "text": "מתי אישה נחשבת לזבה ולא לנידה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_183_0", "text": "דיון בשאלה האם ראיית שלושה ימים רצופים בתחילת נידה הופכת אישה לזבה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_183_1", "text": "מקור מהתורה לדין זבה הרואה שלושה ימים רצופים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_183_2", "text": "הבחנה בין הלכות לפסוקים בדין ראיית דם בימי נידה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_184_0", "text": "האם אפשר לכתוב גט לאיש כשאשתו לא נמצאת איתו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_184_1", "text": "מה הדין כשיש שני אנשים באותו מקום עם אותו שם ואותו שם אשה לגבי גט?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_184_2", "text": "מה צריכים העדים והסופר לדעת כדי לכתוב גט?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_185_0", "text": "כתיבת גט לאיש כאשר אשתו אינה נוכחת עם העדים והסופר", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_185_1", "text": "דין שני אנשים באותו מקום ששמותיהם שווים ושמות נשותיהם שווים בגירושין", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_185_2", "text": "חשש שמא יכתוב גט ויוליכו לאשת חברו ויאסרנה עליו", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_keyword_186_0", "text": "שמיטה ויובל שבע שנים", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_186_1", "text": "נייחא עילאין ותתאין", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_keyword_186_2", "text": "ה עילאה ה תתאה קבלה", "type": "keyword", "lang": "he"}
+{"query_id": "q_he_question_188_0", "text": "כמה פרים מקריבים ביום השביעי של סוכות?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_188_1", "text": "איך משתנה מספר הפרים בקרבנות חג הסוכות מיום ליום?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_188_2", "text": "מה הם הקרבנות המוקרבים ביום השביעי של החג?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_187_0", "text": "מה ההבדל בין שמיטה ליובל לפי הסוד?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_187_1", "text": "מה המשמעות של ה' עילאה וה' תתאה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_187_2", "text": "מה הקשר בין מנוחת העליונים והתחתונים לשמיטה וליובל?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_190_0", "text": "האם יכול להיות נחש בגודל של קורת בית הבד?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_190_1", "text": "מה קרה עם הנחש הגדול בימי שבור מלכא?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_190_2", "text": "מה ההסבר של שמואל על נחשים שבולעים דברים גדולים?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_191_0", "text": "סיפור על נחש ענק בימי שבור מלכא שבלע אורוות תבן", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_191_1", "text": "דיון על נחש גדול כקורת בית הבד ואם ייתכן שיהיה בגודל כזה", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_191_2", "text": "תשובת שמואל שכל הנחשים מטורפים בגבם ולא בבטנם", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_192_0", "text": "מה הקשר בין שש הסטרות לאות וו?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_192_1", "text": "כיצד שש הסטרות מאירות לירח בקבלה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_192_2", "text": "מה הקשר בין דיוקן אדם לשש הסטרות?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_189_0", "text": "מספר הפרים המוקרבים בכל יום בחג סוכות פוחת באחד", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_189_1", "text": "קרבנות היום השביעי של חג כוללים שבעה פרים שני אילים וארבעה עשר כבשים", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_189_2", "text": "תיאור הקרבנות הנוספים של חג הסוכות הכוללים עולות ושעיר חטאת", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_193_0", "text": "דיון על שש הסטרות הכלולות יחד כרשימו של האות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_193_1", "text": "תיאור של האות ו\"ו כדיוקנא דאדם הכוללת שישה צדדים בגוף אחד", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_193_2", "text": "הסבר על האופן שבו הירח מאיר מתוך רז שית סטרין כלולות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_question_194_0", "text": "האם אפשר להחזיק בנכסי קטן שהגדיל?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_194_1", "text": "כמה שנים צריך לאכול קרקע אחרי שהקטן הגדיל כדי לטעון חזקה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_question_194_2", "text": "אם אכלתי שדה בפני קטן ואחר כך הגדיל האם יש לי חזקה?", "type": "question", "lang": "he"}
+{"query_id": "q_he_sentence_195_0", "text": "דין חזקה בנכסי קטן שהגדיל לאחר מכן", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_195_1", "text": "דיון בחזקת קרקע שנאכלה בפני קטן ולאחר שהגדיל ללא שלוש שנים רצופות", "type": "sentence", "lang": "he"}
+{"query_id": "q_he_sentence_195_2", "text": "טענת מכירה או מתנה על נכסי קטן אינה מועילה ללא חזקה שלוש שנים לאחר הגדלה", "type": "sentence", "lang": "he"}

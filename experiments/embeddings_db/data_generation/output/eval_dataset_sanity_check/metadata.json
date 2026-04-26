@@ -1,0 +1,24 @@
+{
+  "generated_at": "2026-04-26T10:00:25.756835+00:00",
+  "llm_provider": "anthropic",
+  "llm_model": "claude-sonnet-4-6",
+  "text_langs": [
+    "en",
+    "he"
+  ],
+  "text_lang_selection_mode": "prefer_he_fallback_en",
+  "queries_per_type_per_doc": 3,
+  "query_types": [
+    "keyword",
+    "question",
+    "sentence"
+  ],
+  "query_types_per_doc": 2,
+  "query_type_sample_seed": 613,
+  "input_source": "mongo",
+  "input_mongo_collection": "sampled_segment_refs_to_embed",
+  "input_sample_run_id": null,
+  "documents_count": 98,
+  "queries_count": 588,
+  "qrels_count": 588
+}
