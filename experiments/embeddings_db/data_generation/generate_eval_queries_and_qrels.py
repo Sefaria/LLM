@@ -47,11 +47,17 @@ QUERIES_PER_TYPE_PER_DOC = 3
 QUERY_TYPES = ["keyword", "question", "sentence"]
 QUERY_TYPES_PER_DOC = 2
 QUERY_TYPE_SAMPLE_SEED = 613
+CONTEXT_EXPANSION_ENABLED = False
+CONTEXT_EXPANSION_MAX_STEPS = 3
+CONTEXT_EXPANSION_MAX_WORKERS = 4
+CONTEXT_EXPANSION_PROVIDER = "openai"  # openai or anthropic
+CONTEXT_EXPANSION_OPENAI_MODEL = "gpt-4o-mini"
 LLM_MAX_WORKERS = 4
 LLM_PROVIDER = "anthropic"  # anthropic or openai
 ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")
 ANTHROPIC_MAX_TOKENS = 4096
 OPENAI_MODEL = "gpt-4o-mini"
+CONTEXT_EXPANSION_ANTHROPIC_MODEL = os.getenv("ANTHROPIC_CONTEXT_MODEL", ANTHROPIC_MODEL)
 LAST_LLM_MODEL_USED = None
 _thread_local = threading.local()
 
@@ -173,6 +179,208 @@ def get_ref_text_for_llm(tref: str, lang: str) -> str:
         return ""
 
 
+def build_range_ref(start_tref: str, end_tref: str) -> str:
+    start_ref = Ref(start_tref)
+    end_ref = Ref(end_tref)
+    if start_ref.normal() == end_ref.normal():
+        return start_ref.normal()
+    if start_ref.book != end_ref.book:
+        raise ValueError(f"Cannot build range across books: {start_tref} -> {end_tref}")
+    return start_ref.to(end_ref).normal()
+
+
+def get_prev_segment_tref(tref: str) -> Optional[str]:
+    try:
+        current_ref = Ref(tref)
+        prev_ref = current_ref.prev_segment_ref()
+    except Exception:
+        return None
+    if not prev_ref or prev_ref.book != current_ref.book:
+        return None
+    return prev_ref.normal() if prev_ref else None
+
+
+def get_next_segment_tref(tref: str) -> Optional[str]:
+    try:
+        current_ref = Ref(tref)
+        next_ref = current_ref.next_segment_ref()
+    except Exception:
+        return None
+    if not next_ref or next_ref.book != current_ref.book:
+        return None
+    return next_ref.normal() if next_ref else None
+
+
+def make_context_expansion_prompt(
+    current_ref: str,
+    current_text: str,
+    left_ref: Optional[str],
+    left_text: str,
+    right_ref: Optional[str],
+    right_text: str,
+    lang: str,
+) -> str:
+    query_language_name = QUERY_LANGUAGE_NAMES.get(lang, lang)
+    payload = {
+        "lang": query_language_name,
+        "current_ref": current_ref,
+        "current_text": current_text,
+        "left_neighbor_ref": left_ref,
+        "left_neighbor_text": left_text,
+        "right_neighbor_ref": right_ref,
+        "right_neighbor_text": right_text,
+    }
+    return f"""
+You are deciding whether a passage has enough local context to stand on its own for retrieval query generation.
+
+Evaluate only the text itself.
+
+Decision rules:
+- If the current passage already forms a coherent standalone idea, explanation, narrative unit, or legal statement, set enough_context to true.
+- If the current passage is too short, elliptical, starts or ends mid-thought, or depends on adjacent lines to be understandable, set enough_context to false.
+- If more context is needed, choose the smallest useful next expansion:
+  - "left"
+  - "right"
+  - "both"
+  - "stop" only if no useful expansion is possible
+- Prefer minimal expansion.
+
+Return only valid JSON:
+{{
+  "enough_context": true or false,
+  "action": "left" | "right" | "both" | "stop",
+  "reason": "short explanation"
+}}
+
+Passage:
+{json.dumps(payload, ensure_ascii=False)}
+""".strip()
+
+
+def get_context_expansion_client():
+    client = getattr(_thread_local, "context_expansion_client", None)
+    if client is not None:
+        return client
+    if CONTEXT_EXPANSION_PROVIDER == "openai":
+        client = OpenAI()
+    elif CONTEXT_EXPANSION_PROVIDER == "anthropic":
+        client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    else:
+        raise ValueError("CONTEXT_EXPANSION_PROVIDER must be one of: openai, anthropic.")
+    _thread_local.context_expansion_client = client
+    return client
+
+
+def call_context_expansion_llm(
+    current_ref: str,
+    current_text: str,
+    left_ref: Optional[str],
+    left_text: str,
+    right_ref: Optional[str],
+    right_text: str,
+    lang: str,
+) -> dict:
+    client = get_context_expansion_client()
+    prompt = make_context_expansion_prompt(
+        current_ref,
+        current_text,
+        left_ref,
+        left_text,
+        right_ref,
+        right_text,
+        lang,
+    )
+    if CONTEXT_EXPANSION_PROVIDER == "openai":
+        response = client.chat.completions.create(
+            model=CONTEXT_EXPANSION_OPENAI_MODEL,
+            temperature=0,
+            response_format={"type": "json_object"},
+            messages=[
+                {"role": "system", "content": "You judge whether a passage needs adjacent context. Return only valid JSON."},
+                {"role": "user", "content": prompt},
+            ],
+        )
+        return json.loads(response.choices[0].message.content)
+    if CONTEXT_EXPANSION_PROVIDER == "anthropic":
+        response = client.messages.create(
+            model=CONTEXT_EXPANSION_ANTHROPIC_MODEL,
+            temperature=0,
+            max_tokens=512,
+            system="You judge whether a passage needs adjacent context. Return only valid JSON.",
+            messages=[{"role": "user", "content": prompt}],
+        )
+        content = "".join(block.text for block in response.content if getattr(block, "type", None) == "text")
+        return parse_json_response(content)
+    raise ValueError("CONTEXT_EXPANSION_PROVIDER must be one of: openai, anthropic.")
+
+
+def normalize_context_expansion_action(action: str, has_left: bool, has_right: bool) -> str:
+    action = (action or "").strip().lower()
+    if action == "left" and has_left:
+        return "left"
+    if action == "right" and has_right:
+        return "right"
+    if action == "both":
+        if has_left and has_right:
+            return "both"
+        if has_left:
+            return "left"
+        if has_right:
+            return "right"
+    return "stop"
+
+
+def maybe_expand_ref_for_context(tref: str, lang: str) -> dict:
+    if not CONTEXT_EXPANSION_ENABLED:
+        return {"ref": tref, "expanded": False, "steps": 0, "reason": "Context expansion disabled"}
+
+    start_ref = tref
+    end_ref = tref
+    last_reason = "Current segment has enough context"
+
+    for step in range(1, CONTEXT_EXPANSION_MAX_STEPS + 1):
+        current_ref = build_range_ref(start_ref, end_ref)
+        current_text = get_ref_text_for_llm(current_ref, lang)
+        if not current_text:
+            break
+
+        left_ref = get_prev_segment_tref(start_ref)
+        right_ref = get_next_segment_tref(end_ref)
+        decision = call_context_expansion_llm(
+            current_ref=current_ref,
+            current_text=current_text,
+            left_ref=left_ref,
+            left_text=get_ref_text_for_llm(left_ref, lang) if left_ref else "",
+            right_ref=right_ref,
+            right_text=get_ref_text_for_llm(right_ref, lang) if right_ref else "",
+            lang=lang,
+        )
+        last_reason = (decision.get("reason") or "").strip() or last_reason
+        if decision.get("enough_context"):
+            return {
+                "ref": current_ref,
+                "expanded": current_ref != tref,
+                "steps": step - 1,
+                "reason": last_reason,
+            }
+
+        action = normalize_context_expansion_action(decision.get("action"), bool(left_ref), bool(right_ref))
+        if action == "stop":
+            break
+        if action in {"left", "both"} and left_ref:
+            start_ref = left_ref
+        if action in {"right", "both"} and right_ref:
+            end_ref = right_ref
+
+    final_ref = build_range_ref(start_ref, end_ref)
+    return {
+        "ref": final_ref,
+        "expanded": final_ref != tref,
+        "steps": CONTEXT_EXPANSION_MAX_STEPS if final_ref != tref else 0,
+        "reason": last_reason,
+    }
+
+
 def choose_langs_for_ref(available_by_lang: dict[str, Optional[str]]) -> list[str]:
     available_langs = [lang for lang in TEXT_LANGS if available_by_lang.get(lang)]
     if TEXT_LANG_SELECTION_MODE == "all_available":
@@ -192,6 +400,7 @@ def build_documents(sampled_refs: list[dict]) -> list[dict]:
     seen_doc_ids = set()
     ref_iter = tqdm(sampled_refs, desc="Fetching Sefaria texts") if VERBOSE else sampled_refs
     missing_by_lang = {lang: 0 for lang in TEXT_LANGS}
+    candidates = []
     for row in ref_iter:
         tref = row["ref"]
         texts_by_lang = {}
@@ -201,24 +410,61 @@ def build_documents(sampled_refs: list[dict]) -> list[dict]:
             if text is None:
                 missing_by_lang[lang] = missing_by_lang.get(lang, 0) + 1
         for lang in choose_langs_for_ref(texts_by_lang):
-            doc_id = make_doc_id(tref, lang)
-            if doc_id in seen_doc_ids:
-                continue
-            seen_doc_ids.add(doc_id)
-            oref = Ref(tref)
-            documents.append({
-                "doc_id": doc_id,
-                "text": texts_by_lang[lang],
-                "metadata": {
-                    "ref": tref,
-                    "url": f"https://www.sefaria.org/{oref.url()}",
-                    "source": oref.index.title,
-                    "category": oref.index.get_primary_category(),
-                    "lang": lang,
-                    "pagesheetrank": row.get("pagesheetrank"),
-                    "sample_run_id": row.get("sample_run_id"),
-                },
-            })
+            candidates.append({"row": row, "original_ref": tref, "lang": lang})
+
+    expansion_results = []
+    if CONTEXT_EXPANSION_ENABLED:
+        progress = tqdm(total=len(candidates), desc="Expanding segment context") if VERBOSE else None
+        with ThreadPoolExecutor(max_workers=CONTEXT_EXPANSION_MAX_WORKERS) as executor:
+            futures = {
+                executor.submit(maybe_expand_ref_for_context, candidate["original_ref"], candidate["lang"]): candidate
+                for candidate in candidates
+            }
+            for future in as_completed(futures):
+                candidate = futures[future]
+                expansion = future.result()
+                expansion_results.append((candidate, expansion))
+                if progress is not None:
+                    progress.update(1)
+        if progress is not None:
+            progress.close()
+    else:
+        expansion_results = [
+            (
+                candidate,
+                {"ref": candidate["original_ref"], "expanded": False, "steps": 0, "reason": "Context expansion disabled"},
+            )
+            for candidate in candidates
+        ]
+
+    for candidate, expansion in expansion_results:
+        final_ref = expansion["ref"]
+        text = get_ref_text(final_ref, candidate["lang"])
+        if text is None:
+            missing_by_lang[candidate["lang"]] = missing_by_lang.get(candidate["lang"], 0) + 1
+            continue
+        doc_id = make_doc_id(final_ref, candidate["lang"])
+        if doc_id in seen_doc_ids:
+            continue
+        seen_doc_ids.add(doc_id)
+        oref = Ref(final_ref)
+        documents.append({
+            "doc_id": doc_id,
+            "text": text,
+            "metadata": {
+                "ref": final_ref,
+                "original_ref": candidate["original_ref"],
+                "url": f"https://www.sefaria.org/{oref.url()}",
+                "source": oref.index.title,
+                "category": oref.index.get_primary_category(),
+                "lang": candidate["lang"],
+                "pagesheetrank": candidate["row"].get("pagesheetrank"),
+                "sample_run_id": candidate["row"].get("sample_run_id"),
+                "context_expanded": expansion["expanded"],
+                "context_expansion_steps": expansion["steps"],
+                "context_expansion_reason": expansion["reason"],
+            },
+        })
     log(f"Built {len(documents)} documents in {time.perf_counter() - start:.2f}s")
     if VERBOSE:
         for lang, count in missing_by_lang.items():
@@ -442,6 +688,14 @@ def write_dataset_jsonl(documents: list[dict], queries: list[dict], qrels: list[
         "query_types": QUERY_TYPES,
         "query_types_per_doc": QUERY_TYPES_PER_DOC,
         "query_type_sample_seed": QUERY_TYPE_SAMPLE_SEED,
+        "context_expansion_enabled": CONTEXT_EXPANSION_ENABLED,
+        "context_expansion_max_steps": CONTEXT_EXPANSION_MAX_STEPS,
+        "context_expansion_provider": CONTEXT_EXPANSION_PROVIDER,
+        "context_expansion_model": (
+            CONTEXT_EXPANSION_OPENAI_MODEL
+            if CONTEXT_EXPANSION_PROVIDER == "openai"
+            else CONTEXT_EXPANSION_ANTHROPIC_MODEL
+        ),
         "input_source": INPUT_SOURCE,
         "input_mongo_collection": INPUT_MONGO_COLLECTION,
         "input_sample_run_id": INPUT_SAMPLE_RUN_ID,

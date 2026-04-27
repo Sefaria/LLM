@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-26T10:00:25.756835+00:00",
+  "generated_at": "2026-04-27T10:07:00.834610+00:00",
   "llm_provider": "anthropic",
   "llm_model": "claude-sonnet-4-6",
   "text_langs": [
@@ -15,6 +15,10 @@
   ],
   "query_types_per_doc": 2,
   "query_type_sample_seed": 613,
+  "context_expansion_enabled": true,
+  "context_expansion_max_steps": 3,
+  "context_expansion_provider": "openai",
+  "context_expansion_model": "gpt-4o-mini",
   "input_source": "mongo",
   "input_mongo_collection": "sampled_segment_refs_to_embed",
   "input_sample_run_id": null,
