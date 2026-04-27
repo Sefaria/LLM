@@ -15,6 +15,9 @@ from typing import Optional
 import django
 import paramiko
 from anthropic import Anthropic
+from langchain_community.cache import SQLiteCache
+from langchain_core.globals import get_llm_cache, set_llm_cache
+from langchain_core.outputs import Generation
 from openai import OpenAI
 from pymongo import MongoClient
 from sshtunnel import SSHTunnelForwarder
@@ -52,6 +55,9 @@ CONTEXT_EXPANSION_MAX_STEPS = 3
 CONTEXT_EXPANSION_MAX_WORKERS = 4
 CONTEXT_EXPANSION_PROVIDER = "openai"  # openai or anthropic
 CONTEXT_EXPANSION_OPENAI_MODEL = "gpt-4o-mini"
+LLM_CACHE_ENABLED = False
+LLM_CACHE_PATH = Path(__file__).resolve().parent / "output" / "cache" / "llm_cache.sqlite"
+LLM_CACHE_FLUSH_BEFORE_RUN = False
 LLM_MAX_WORKERS = 4
 LLM_PROVIDER = "anthropic"  # anthropic or openai
 ANTHROPIC_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")
@@ -60,6 +66,8 @@ OPENAI_MODEL = "gpt-4o-mini"
 CONTEXT_EXPANSION_ANTHROPIC_MODEL = os.getenv("ANTHROPIC_CONTEXT_MODEL", ANTHROPIC_MODEL)
 LAST_LLM_MODEL_USED = None
 _thread_local = threading.local()
+_llm_cache_lock = threading.Lock()
+_llm_cache_initialized = False
 
 OUTPUT_DESTINATION = "jsonl"  # jsonl or mongo
 OUTPUT_DIR = Path(__file__).resolve().parent / "output" / "eval_dataset"
@@ -72,6 +80,59 @@ VERBOSE = True
 def log(message: str) -> None:
     if VERBOSE:
         print(message)
+
+
+def configure_llm_cache() -> None:
+    global _llm_cache_initialized
+    if not LLM_CACHE_ENABLED:
+        return
+    if _llm_cache_initialized:
+        return
+    with _llm_cache_lock:
+        if _llm_cache_initialized:
+            return
+        cache = get_llm_cache()
+        cache_path = str(LLM_CACHE_PATH)
+        if not isinstance(cache, SQLiteCache):
+            Path(cache_path).parent.mkdir(parents=True, exist_ok=True)
+            set_llm_cache(SQLiteCache(database_path=cache_path))
+            log(f"Using persistent LLM cache at {cache_path}")
+        _llm_cache_initialized = True
+
+
+def flush_llm_cache() -> None:
+    if not LLM_CACHE_ENABLED:
+        return
+    configure_llm_cache()
+    cache = get_llm_cache()
+    if cache is None:
+        return
+    cache.clear()
+    log(f"Flushed persistent LLM cache at {LLM_CACHE_PATH}")
+
+
+def cache_lookup(prompt: str, llm_string: str) -> Optional[str]:
+    if not LLM_CACHE_ENABLED:
+        return None
+    configure_llm_cache()
+    cache = get_llm_cache()
+    if cache is None:
+        return None
+    generations = cache.lookup(prompt, llm_string)
+    if not generations:
+        return None
+    first = generations[0]
+    return getattr(first, "text", None)
+
+
+def cache_update(prompt: str, llm_string: str, content: str) -> None:
+    if not LLM_CACHE_ENABLED:
+        return
+    configure_llm_cache()
+    cache = get_llm_cache()
+    if cache is None:
+        return
+    cache.update(prompt, llm_string, [Generation(text=content)])
 
 
 @contextmanager
@@ -280,7 +341,6 @@ def call_context_expansion_llm(
     right_text: str,
     lang: str,
 ) -> dict:
-    client = get_context_expansion_client()
     prompt = make_context_expansion_prompt(
         current_ref,
         current_text,
@@ -290,6 +350,16 @@ def call_context_expansion_llm(
         right_text,
         lang,
     )
+    llm_string = (
+        f"context_expansion|provider={CONTEXT_EXPANSION_PROVIDER}|"
+        f"model={CONTEXT_EXPANSION_OPENAI_MODEL if CONTEXT_EXPANSION_PROVIDER == 'openai' else CONTEXT_EXPANSION_ANTHROPIC_MODEL}|"
+        "temperature=0"
+    )
+    cached = cache_lookup(prompt, llm_string)
+    if cached is not None:
+        return parse_json_response(cached)
+
+    client = get_context_expansion_client()
     if CONTEXT_EXPANSION_PROVIDER == "openai":
         response = client.chat.completions.create(
             model=CONTEXT_EXPANSION_OPENAI_MODEL,
@@ -300,7 +370,9 @@ def call_context_expansion_llm(
                 {"role": "user", "content": prompt},
             ],
         )
-        return json.loads(response.choices[0].message.content)
+        content = response.choices[0].message.content
+        cache_update(prompt, llm_string, content)
+        return json.loads(content)
     if CONTEXT_EXPANSION_PROVIDER == "anthropic":
         response = client.messages.create(
             model=CONTEXT_EXPANSION_ANTHROPIC_MODEL,
@@ -310,6 +382,7 @@ def call_context_expansion_llm(
             messages=[{"role": "user", "content": prompt}],
         )
         content = "".join(block.text for block in response.content if getattr(block, "type", None) == "text")
+        cache_update(prompt, llm_string, content)
         return parse_json_response(content)
     raise ValueError("CONTEXT_EXPANSION_PROVIDER must be one of: openai, anthropic.")
 
@@ -542,6 +615,11 @@ def parse_json_response(content: str) -> dict:
 
 
 def call_openai_for_query_type(client: OpenAI, doc: dict, query_type: str) -> dict:
+    prompt = make_query_type_prompt(doc, query_type)
+    llm_string = f"query_generation|provider=openai|model={OPENAI_MODEL}|temperature=0|query_type={query_type}"
+    cached = cache_lookup(prompt, llm_string)
+    if cached is not None:
+        return json.loads(cached)
     log(f"Calling OpenAI {OPENAI_MODEL} for {doc['doc_id']} {query_type}")
     response = client.chat.completions.create(
         model=OPENAI_MODEL,
@@ -549,14 +627,21 @@ def call_openai_for_query_type(client: OpenAI, doc: dict, query_type: str) -> di
         response_format={"type": "json_object"},
         messages=[
             {"role": "system", "content": "You create careful retrieval evaluation datasets."},
-            {"role": "user", "content": make_query_type_prompt(doc, query_type)},
+            {"role": "user", "content": prompt},
         ],
     )
-    return json.loads(response.choices[0].message.content)
+    content = response.choices[0].message.content
+    cache_update(prompt, llm_string, content)
+    return json.loads(content)
 
 
 def call_anthropic_for_query_type(client: Anthropic, doc: dict, query_type: str) -> dict:
     global LAST_LLM_MODEL_USED
+    prompt = make_query_type_prompt(doc, query_type)
+    llm_string = f"query_generation|provider=anthropic|model={ANTHROPIC_MODEL}|temperature=0|max_tokens={ANTHROPIC_MAX_TOKENS}|query_type={query_type}"
+    cached = cache_lookup(prompt, llm_string)
+    if cached is not None:
+        return parse_json_response(cached)
     log(f"Calling Anthropic {ANTHROPIC_MODEL} for {doc['doc_id']} {query_type}")
     response = client.messages.create(
         model=ANTHROPIC_MODEL,
@@ -564,11 +649,12 @@ def call_anthropic_for_query_type(client: Anthropic, doc: dict, query_type: str)
         max_tokens=ANTHROPIC_MAX_TOKENS,
         system="You create careful retrieval evaluation datasets. Return only valid JSON.",
         messages=[
-            {"role": "user", "content": make_query_type_prompt(doc, query_type)},
+            {"role": "user", "content": prompt},
         ],
     )
     LAST_LLM_MODEL_USED = ANTHROPIC_MODEL
     content = "".join(block.text for block in response.content if getattr(block, "type", None) == "text")
+    cache_update(prompt, llm_string, content)
     return parse_json_response(content)
 
 
@@ -625,7 +711,7 @@ def normalize_query_type_output(output: dict, doc: dict, query_type: str, job_in
         qrels.append({
             "query_id": query_id,
             "doc_id": doc["doc_id"],
-            "relevance": 2,
+            "relevance": 1,
             "reason": (raw_query.get("reason") or "").strip(),
         })
     return queries, qrels
@@ -696,6 +782,9 @@ def write_dataset_jsonl(documents: list[dict], queries: list[dict], qrels: list[
             if CONTEXT_EXPANSION_PROVIDER == "openai"
             else CONTEXT_EXPANSION_ANTHROPIC_MODEL
         ),
+        "llm_cache_enabled": LLM_CACHE_ENABLED,
+        "llm_cache_path": str(LLM_CACHE_PATH) if LLM_CACHE_ENABLED else None,
+        "llm_cache_flush_before_run": LLM_CACHE_FLUSH_BEFORE_RUN if LLM_CACHE_ENABLED else False,
         "input_source": INPUT_SOURCE,
         "input_mongo_collection": INPUT_MONGO_COLLECTION,
         "input_sample_run_id": INPUT_SAMPLE_RUN_ID,

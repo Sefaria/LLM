@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-04-27T10:07:00.834610+00:00",
+  "generated_at": "2026-04-27T11:28:49.700066+00:00",
   "llm_provider": "anthropic",
   "llm_model": "claude-sonnet-4-6",
   "text_langs": [
@@ -19,6 +19,9 @@
   "context_expansion_max_steps": 3,
   "context_expansion_provider": "openai",
   "context_expansion_model": "gpt-4o-mini",
+  "llm_cache_enabled": true,
+  "llm_cache_path": "/Users/yon/projects/LLM/experiments/embeddings_db/data_generation/output/cache/llm_cache_sanity_check.sqlite",
+  "llm_cache_flush_before_run": false,
   "input_source": "mongo",
   "input_mongo_collection": "sampled_segment_refs_to_embed",
   "input_sample_run_id": null,
