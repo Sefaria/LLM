@@ -1,0 +1,23 @@
+{
+  "generated_at": "2026-04-28T11:46:32Z",
+  "input_documents_path": "/Users/yon/projects/LLM/experiments/embeddings_db/data_generation/output/eval_dataset_sanity_check/documents.jsonl",
+  "output_confounding_path": "/Users/yon/projects/LLM/experiments/embeddings_db/data_generation/output/eval_dataset_sanity_check/confounding_documents.jsonl",
+  "output_merged_documents_path": "/Users/yon/projects/LLM/experiments/embeddings_db/data_generation/output/eval_dataset_sanity_check/documents_with_confounders.jsonl",
+  "use_remote": true,
+  "remote_db": "sefaria",
+  "min_pagesheetrank": 2.0,
+  "seed": 613,
+  "confounders_per_document": 10,
+  "require_same_category": true,
+  "require_different_source": false,
+  "require_same_source": false,
+  "token_tolerance_ratio": 0.15,
+  "min_token_tolerance": 8,
+  "max_acceptable_relative_error": 0.25,
+  "max_expansion_steps": 12,
+  "max_segments_per_document": 8,
+  "max_seed_attempts_per_document": 600,
+  "source_documents_count": 98,
+  "confounding_documents_count": 956,
+  "merged_documents_count": 1054
+}
