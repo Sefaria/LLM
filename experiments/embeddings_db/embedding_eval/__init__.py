@@ -1,0 +1,2 @@
+"""Gemini embedding evaluation package."""
+
