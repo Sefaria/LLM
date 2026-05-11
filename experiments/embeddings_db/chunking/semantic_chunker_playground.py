@@ -14,9 +14,11 @@ from matplotlib import pyplot as plt
 from bidi.algorithm import get_display
 from pydantic.v1 import PrivateAttr
 from semantic_chunkers import StatisticalChunker
+from semantic_chunkers.chunkers import statistical as statistical_chunker_module
 from semantic_router.encoders.base import BaseEncoder
 from semantic_chunkers.splitters.base import BaseSplitter
 from semantic_chunkers.splitters.regex import RegexSplitter
+from transformers import AutoTokenizer
 
 
 # Edit everything here.
@@ -32,13 +34,14 @@ SIM = "dot"
 DOC = "raw_text"
 QUERY = "raw_query"
 NORM = True
+TOKENIZER_MODEL = "dicta-il/BEREL_3.0"
 
 SCORE_THRESHOLD = None
 THRESHOLD_ADJUSTMENT = 0.01
 DYNAMIC_THRESHOLD = True
 WINDOW_SIZE = 5
 MIN_SPLIT_TOKENS = 200
-MAX_SPLIT_TOKENS = 400
+MAX_SPLIT_TOKENS = 500
 SPLIT_TOKENS_TOLERANCE = 10
 PLOT_CHUNKS = True
 ENABLE_STATISTICS = True
@@ -109,6 +112,21 @@ def preprocess_text(text: str) -> str:
     if STRIP_HEBREW_NIQQUD:
         text = strip_hebrew_niqqud(text)
     return text
+
+
+_hf_tokenizer = None
+
+
+def get_chunking_tokenizer():
+    global _hf_tokenizer
+    if _hf_tokenizer is None:
+        _hf_tokenizer = AutoTokenizer.from_pretrained(TOKENIZER_MODEL)
+    return _hf_tokenizer
+
+
+def hf_token_length(text: str) -> int:
+    tokenizer = get_chunking_tokenizer()
+    return len(tokenizer.encode(text, add_special_tokens=False))
 
 
 def detect_language(text: str) -> str:
@@ -228,6 +246,7 @@ def build_splitter(text: str) -> BaseSplitter:
 
 
 def build_chunker(api_key: str, text: str) -> StatisticalChunker:
+    statistical_chunker_module.tiktoken_length = hf_token_length
     encoder = RepoGeminiEncoder(api_key=api_key)
     return StatisticalChunker(
         encoder=encoder,
@@ -267,6 +286,7 @@ def format_config_lines() -> list[str]:
         f"doc={DOC}",
         f"query={QUERY}",
         f"norm={NORM}",
+        f"tokenizer_model={TOKENIZER_MODEL}",
         "",
         "Chunker config:",
         f"score_threshold={SCORE_THRESHOLD}",
