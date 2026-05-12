@@ -17,7 +17,7 @@ from experiments.embeddings_db.chunking.patot_segment_chunker.sefaria_loader imp
 
 SEFARIA_SOURCE = SefariaSourceConfig(
     sefaria_project_path=REPO_ROOT.parent / "Sefaria-Project",
-    tref="Berakhot 2-3",
+    tref="Talmud_Series;_Shemitah,_Editor's_Introduction.12",
     lang="he",
     version_title=None,
 )
@@ -31,7 +31,7 @@ CHUNKER_CONFIG = ChunkerConfig(
     doc="raw_text",
     query="raw_query",
     norm=True,
-    min_split_tokens=50,
+    min_split_tokens=200,
     max_split_tokens=500,
     split_tokens_tolerance=10,
     dynamic_threshold=True,

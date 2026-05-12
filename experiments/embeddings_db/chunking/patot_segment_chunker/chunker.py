@@ -14,7 +14,14 @@ from experiments.embeddings_db.embedding_eval.gemini_embedder import GeminiEmbed
 from .config import ChunkerConfig
 from .sefaria_loader import SegmentRecord
 from .splitters import HebrewTokenizerSplitter, fallback_clause_split, sentence_splitter_for_language
-from .text_utils import detect_language, normalize_whitespace, strip_hebrew_niqqud, strip_html
+from .text_utils import (
+    detect_language,
+    extract_html_footnotes,
+    normalize_whitespace,
+    remove_html_footnotes,
+    strip_hebrew_niqqud,
+    strip_html,
+)
 
 
 @dataclass(frozen=True)
@@ -61,6 +68,7 @@ class DebugPass3Adjustment:
     original_kind: str
     source_segment_refs: list[str]
     original_token_count: int
+    original_text: str
     produced_chunks: list[DebugStatisticalChunk]
 
 
@@ -163,6 +171,56 @@ class PatotChunker:
             )
         self._debug_block(title, rows)
 
+    def _debug_similarity_analysis(
+        self,
+        title: str,
+        units: list[str],
+        similarities: list[float],
+        threshold: float,
+        split_indices: list[int],
+        chunks,
+    ) -> None:
+        if not self.config.debug:
+            return
+        rows = [
+            f"unit_count={len(units)}",
+            f"window_size={self.config.window_size}",
+            f"threshold={threshold}",
+            f"split_indices={split_indices}",
+        ]
+        for i, score in enumerate(similarities):
+            current_unit = i + 2
+            window_start = max(1, current_unit - self.config.window_size)
+            rows.append(
+                " ".join(
+                    [
+                        f"score[{i + 1}]={score}",
+                        f"current_unit={current_unit}",
+                        f"context_units={window_start}-{current_unit - 1}",
+                        f"below_threshold={score < threshold}",
+                    ]
+                )
+            )
+
+        split_cursor = 0
+        for chunk_index, chunk in enumerate(chunks, start=1):
+            start_unit = split_cursor + 1
+            split_cursor += len(chunk.splits)
+            end_unit = split_cursor
+            rows.append(
+                " ".join(
+                    [
+                        f"chunk[{chunk_index}]",
+                        f"unit_range={start_unit}-{end_unit}",
+                        f"split_count={len(chunk.splits)}",
+                        f"token_count={chunk.token_count}",
+                        f"triggered={chunk.is_triggered}",
+                        f"score={chunk.triggered_score}",
+                    ]
+                )
+            )
+        self._debug_block(title, rows)
+
     def _build_debug_statistical_chunks(self, chunks) -> list[DebugStatisticalChunk]:
         return [
             DebugStatisticalChunk(
@@ -233,6 +291,96 @@ class PatotChunker:
             )
         return text
 
+    def _expand_segments_with_footnotes(self, segments: list[SegmentRecord]) -> list[SegmentRecord]:
+        if not self.config.extract_html_footnotes_to_segments:
+            return segments
+
+        expanded_segments: list[SegmentRecord] = []
+        next_segment_index = 1
+
+        for segment in segments:
+            footnotes = extract_html_footnotes(segment.text)
+            main_text = remove_html_footnotes(segment.text) if footnotes else segment.text
+            main_segment = SegmentRecord(
+                tref=segment.tref,
+                text=main_text,
+                segment_index=next_segment_index,
+                kind=segment.kind,
+                base_tref=segment.base_tref,
+            )
+            next_segment_index += 1
+            expanded_segments.append(main_segment)
+
+            if not footnotes:
+                continue
+
+            grouped_footnotes: list[list[str]] = []
+            current_group: list[str] = []
+            current_group_tokens = 0
+
+            for footnote_html in footnotes:
+                normalized_footnote = self._preprocess(footnote_html)
+                if not normalized_footnote:
+                    continue
+                footnote_tokens = self._token_length(normalized_footnote)
+
+                if footnote_tokens > self.config.max_split_tokens:
+                    if current_group:
+                        grouped_footnotes.append(current_group)
+                        current_group = []
+                        current_group_tokens = 0
+                    split_pieces = self._split_text_evenly_by_max_tokens(normalized_footnote)
+                    for piece in split_pieces:
+                        grouped_footnotes.append([piece])
+                    continue
+
+                if current_group and current_group_tokens + footnote_tokens > self.config.max_split_tokens:
+                    grouped_footnotes.append(current_group)
+                    current_group = []
+                    current_group_tokens = 0
+
+                current_group.append(footnote_html)
+                current_group_tokens += footnote_tokens
+
+            if current_group:
+                grouped_footnotes.append(current_group)
+
+            for i, group in enumerate(grouped_footnotes, start=1):
+                if len(group) == 1 and "<" not in group[0] and ">" not in group[0]:
+                    footnote_text = group[0]
+                else:
+                    footnote_text = "\n\n".join(group)
+                expanded_segments.append(
+                    SegmentRecord(
+                        tref=f"{segment.tref}::fn:{i}",
+                        text=footnote_text,
+                        segment_index=next_segment_index,
+                        kind="footnote",
+                        base_tref=segment.tref,
+                    )
+                )
+                next_segment_index += 1
+
+        self._debug_block(
+            "Footnote Expansion",
+            [
+                f"original_segment_count={len(segments)}",
+                f"expanded_segment_count={len(expanded_segments)}",
+                *[
+                    " ".join(
+                        [
+                            f"{i}.",
+                            f"kind={segment.kind}",
+                            f"tref={segment.tref}",
+                            f"base_tref={segment.base_tref}",
+                        ]
+                    )
+                    for i, segment in enumerate(expanded_segments, start=1)
+                ],
+            ],
+        )
+        return expanded_segments
+
     def _make_statistical_chunker(self, lang: str) -> StatisticalChunker:
         statistical_chunker_module.tiktoken_length = self._token_length
         return StatisticalChunker(
@@ -248,6 +396,32 @@ class PatotChunker:
             enable_statistics=False,
         )
 
+    def _run_statistical_chunking(self, units: list[str], lang: str, stage_label: str):
+        chunker = self._make_statistical_chunker(lang)
+        if self.config.debug and len(units) > 1:
+            encoded_units = chunker._encode_documents(units)
+            similarities = chunker._calculate_similarity_scores(encoded_units)
+            if self.config.dynamic_threshold and similarities:
+                threshold = chunker._find_optimal_threshold(units, similarities)
+            else:
+                threshold = chunker.encoder.score_threshold or chunker.DEFAULT_THRESHOLD
+            split_indices = chunker._find_split_indices(similarities, threshold)
+            chunks = chunker._split_documents(units, split_indices, similarities)
+            self._debug_similarity_analysis(
+                f"{stage_label} Similarity Analysis",
+                units,
+                similarities,
+                threshold,
+                split_indices,
+                chunks,
+            )
+            self._debug_statistical_chunks(f"{stage_label} Statistical Chunks", chunks)
+            return chunks
+
+        chunks = chunker._chunk(units)
+        self._debug_statistical_chunks(f"{stage_label} Statistical Chunks", chunks)
+        return chunks
+
     def _get_second_pass_hebrew_splitter(self):
         if self._second_pass_hebrew_splitter is None:
             self._second_pass_hebrew_splitter = HebrewTokenizerSplitter()
@@ -255,11 +429,8 @@ class PatotChunker:
 
     def _chunk_atomic_units(self, unit_texts: list[str], lang: str):
         # Pass 1 works at the library-segment level: each input unit is one full source segment.
-        chunker = self._make_statistical_chunker(lang)
         self._debug_units("Pass 1 Atomic Units", unit_texts)
-        chunks = chunker._chunk(unit_texts)
-        self._debug_statistical_chunks("Pass 1 Statistical Chunks", chunks)
-        return chunks
+        return self._run_statistical_chunking(unit_texts, lang, "Pass 1")
 
     def _chunk_segment_internally(self, segment: SegmentRecord, lang: str) -> tuple[list[PatotChunk], DebugPass2Segment]:
         # Pass 2 only runs on singleton pass-1 outputs, so it is allowed to split inside one segment.
@@ -267,7 +438,6 @@ class PatotChunker:
             f"\n[Pass 2 Segment]\nref={segment.tref}\nsegment_tokens={self._token_length(segment.text)}\nsegment_text={segment.text}"
         )
         processed = self._preprocess(segment.text)
-        sentence_chunker = self._make_statistical_chunker(lang)
         splitter_name = "HebrewTokenizerSplitter" if lang == "he" else "default_language_splitter"
         if lang == "he":
             self._debug(f"second_pass_splitter={splitter_name}")
@@ -283,6 +453,26 @@ class PatotChunker:
             fallback_splits = fallback_clause_split(processed)
             sentence_splits = fallback_splits
             self._debug_units("Pass 2 Fallback Clause Splits", fallback_splits)
+        elif lang == "he":
+            refined_sentence_splits: list[str] = []
+            oversized_split_refined = False
+            for split in sentence_splits:
+                if self._token_length(split) <= self.config.max_split_tokens:
+                    refined_sentence_splits.append(split)
+                    continue
+
+                split_fallback = fallback_clause_split(split)
+                if len(split_fallback) > 1:
+                    oversized_split_refined = True
+                    refined_sentence_splits.extend(split_fallback)
+                else:
+                    refined_sentence_splits.append(split)
+
+            if oversized_split_refined:
+                self._debug("second_pass_fallback=refine_oversized_sentence_splits_with_clause_split")
+                fallback_splits = refined_sentence_splits
+                sentence_splits = refined_sentence_splits
+                self._debug_units("Pass 2 Fallback Clause Splits", fallback_splits)
         if len(sentence_splits) <= 1:
             # If we still have one atomic unit here, the statistical chunker cannot split inside it.
             self._debug("pass_2_result=single_segment_no_internal_split")
@@ -306,8 +496,7 @@ class PatotChunker:
             )
             return [returned_chunk], debug_segment
 
-        chunks = sentence_chunker._chunk(sentence_splits)
-        self._debug_statistical_chunks("Pass 2 Statistical Chunks", chunks)
+        chunks = self._run_statistical_chunking(sentence_splits, lang, "Pass 2")
         chunk_list = [
             PatotChunk(
                 text=chunk.content.strip(),
@@ -381,6 +570,17 @@ class PatotChunker:
         for segment_ref in chunk.source_segment_refs:
             segment_text = segment_text_by_ref[segment_ref]
             segment_token_count = self._token_length(segment_text)
+            self._debug(
+                " ".join(
+                    [
+                        "[Pass 3 Segment Check]",
+                        f"segment_ref={segment_ref}",
+                        f"segment_token_count={segment_token_count}",
+                        f"current_group_refs={current_group_refs}",
+                        f"current_group_tokens={current_group_tokens}",
+                    ]
+                )
+            )
 
             if segment_token_count > self.config.max_split_tokens:
                 if current_group_refs:
@@ -403,6 +603,16 @@ class PatotChunker:
                 continue
 
             if current_group_refs and current_group_tokens + segment_token_count > self.config.max_split_tokens:
+                self._debug(
+                    " ".join(
+                        [
+                            "[Pass 3 Group Flush]",
+                            f"flushed_refs={current_group_refs}",
+                            f"flushed_token_count={current_group_tokens}",
+                            f"next_segment_ref={segment_ref}",
+                        ]
+                    )
+                )
                 output_chunks.append(self._build_chunk_from_whole_segments(current_group_refs, segment_text_by_ref))
                 current_group_refs = []
                 current_group_tokens = 0
@@ -411,6 +621,15 @@ class PatotChunker:
             current_group_tokens += segment_token_count
 
         if current_group_refs:
+            self._debug(
+                " ".join(
+                    [
+                        "[Pass 3 Final Group]",
+                        f"refs={current_group_refs}",
+                        f"token_count={current_group_tokens}",
+                    ]
+                )
+            )
             output_chunks.append(self._build_chunk_from_whole_segments(current_group_refs, segment_text_by_ref))
 
         return output_chunks
@@ -477,6 +696,7 @@ class PatotChunker:
                     original_kind=chunk.kind,
                     source_segment_refs=chunk.source_segment_refs,
                     original_token_count=actual_token_count,
+                    original_text=chunk.text,
                     produced_chunks=self._build_debug_chunks_from_final_chunks(split_chunks),
                 )
             )
@@ -487,6 +707,7 @@ class PatotChunker:
         if not segments:
             return PatotChunkResult(0, 0, 0, [])
 
+        segments = self._expand_segments_with_footnotes(segments)
         original_text_by_tref: dict[str, str] = {}
         prepared_segments = []
         for segment in segments:
@@ -510,6 +731,10 @@ class PatotChunker:
                 f"prepared_segment_count={len(prepared_segments)}",
                 f"min_split_tokens={self.config.min_split_tokens}",
                 f"max_split_tokens={self.config.max_split_tokens}",
+                f"split_tokens_tolerance={self.config.split_tokens_tolerance}",
+                f"dynamic_threshold={self.config.dynamic_threshold}",
+                f"threshold_adjustment={self.config.threshold_adjustment}",
+                f"enforce_hard_max_in_pass3={self.config.enforce_hard_max_in_pass3}",
                 f"tokenizer_model={self.config.tokenizer_model}",
             ],
         )

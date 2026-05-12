@@ -102,11 +102,13 @@ def add_summary_page(pdf, result: PatotChunkResult, tref: str, lang: str, config
         "Chunk = one final output piece returned by the algorithm.",
         "A chunk may contain several units. A segment may contain several units.",
         "The table is read row by row from top to bottom.",
+        "Segment boundaries are always preserved, including after pass 3.",
         "",
         "Columns:",
         "Seg = which original source segment this row belongs to.",
         "Unit = which sentence-like piece inside that segment this row represents.",
         "Chunk = which final output chunk this row ends up inside.",
+        "Unit = P3 means a single oversized segment was force-split in pass 3.",
     ]
 
     for line in summary_lines:
@@ -156,11 +158,12 @@ def add_summary_page(pdf, result: PatotChunkResult, tref: str, lang: str, config
 
     if result.debug_trace.pass3_adjustments:
         y -= 6
-        warning_lines = [
+        pass3_lines = [
             f"Pass 3 hard-max fallback was used on {len(result.debug_trace.pass3_adjustments)} chunk(s).",
-            "Those forced token-window cuts are reflected in the final chunk list, but not drawn exactly inside the table below.",
+            "Pass 3 only splits inside one oversized segment; it never cuts across segment boundaries.",
+            "When that happens, the table marks the affected row with Unit = P3.",
         ]
-        for line in warning_lines:
+        for line in pass3_lines:
             for wrapped in wrap_text_for_pdf(line, BODY_FONT, 10, usable_width):
                 draw_pdf_line(pdf, wrapped, 40, y, usable_width)
                 y -= 12
@@ -168,73 +171,130 @@ def add_summary_page(pdf, result: PatotChunkResult, tref: str, lang: str, config
 
 
 def build_table_rows(result: PatotChunkResult) -> list[dict]:
-    prepared_segments = result.debug_trace.prepared_segments
-    pass2_by_tref = {segment.tref: segment for segment in result.debug_trace.pass2_segments}
-    pass1_refs = result.debug_trace.pass1_chunk_segment_refs
+    prepared_by_ref = {segment.tref: segment for segment in result.debug_trace.prepared_segments}
+    segment_number_by_ref = {segment.tref: i for i, segment in enumerate(result.debug_trace.prepared_segments, start=1)}
+    pass2_by_ref = {segment.tref: segment for segment in result.debug_trace.pass2_segments}
+    pass3_by_ref: dict[str, list] = {}
+    for adjustment in result.debug_trace.pass3_adjustments:
+        if len(adjustment.source_segment_refs) != 1:
+            continue
+        tref = adjustment.source_segment_refs[0]
+        pass3_by_ref.setdefault(tref, []).append(adjustment)
+
+    segment_states = {}
+    for tref, pass2_segment in pass2_by_ref.items():
+        units = pass2_segment.fallback_splits or pass2_segment.initial_splits or [prepared_by_ref[tref].processed_text]
+        segment_states[tref] = {
+            "units": units,
+            "unit_cursor": 0,
+            "chunk_cursor": 0,
+            "split_counts": [chunk.split_count for chunk in pass2_segment.final_chunks],
+            "returned_single_segment": pass2_segment.returned_single_segment,
+            "pass3_queue": list(pass3_by_ref.get(tref, [])),
+            "active_pass3": None,
+        }
+
+    last_final_chunk_index_by_ref = {}
+    for final_chunk_index, chunk in enumerate(result.chunks, start=1):
+        if len(chunk.source_segment_refs) == 1:
+            last_final_chunk_index_by_ref[chunk.source_segment_refs[0]] = final_chunk_index
 
     rows = []
-    segment_idx = 0
-    chunk_idx = 0
-
-    for pass1_group_refs in pass1_refs:
-        if len(pass1_group_refs) > 1:
-            for local_index, tref in enumerate(pass1_group_refs, start=1):
-                segment = prepared_segments[segment_idx]
-                segment_idx += 1
+    for final_chunk_index, chunk in enumerate(result.chunks, start=1):
+        if len(chunk.source_segment_refs) > 1:
+            for local_index, tref in enumerate(chunk.source_segment_refs, start=1):
                 rows.append(
                     {
-                        "segment_number": segment_idx,
+                        "segment_number": segment_number_by_ref[tref],
                         "unit_number": "-",
-                        "chunk_number": chunk_idx + 1,
-                        "text": segment.processed_text,
+                        "chunk_number": final_chunk_index,
+                        "text": prepared_by_ref[tref].processed_text,
                         "segment_boundary_after": True,
-                        "final_chunk_boundary_after": local_index == len(pass1_group_refs),
+                        "final_chunk_boundary_after": local_index == len(chunk.source_segment_refs),
                     }
                 )
-            chunk_idx += 1
             continue
 
-        segment = prepared_segments[segment_idx]
-        segment_idx += 1
-        pass2_segment = pass2_by_tref.get(segment.tref)
-        if not pass2_segment:
+        tref = chunk.source_segment_refs[0]
+        segment_number = segment_number_by_ref[tref]
+        state = segment_states.get(tref)
+
+        if chunk.pass_number == 3 and chunk.kind == "hard_max_split" and state:
+            active_pass3 = state["active_pass3"]
+            if active_pass3 is None:
+                if not state["pass3_queue"]:
+                    raise RuntimeError(f"Missing pass-3 adjustment metadata for {tref}")
+                adjustment = state["pass3_queue"].pop(0)
+                active_pass3 = {
+                    "adjustment": adjustment,
+                    "produced_index": 0,
+                }
+                state["active_pass3"] = active_pass3
+
+            adjustment = active_pass3["adjustment"]
+            produced_index = active_pass3["produced_index"]
+            if produced_index >= len(adjustment.produced_chunks):
+                raise RuntimeError(f"Pass-3 adjustment over-consumed for {tref}")
+
+            expected_text = adjustment.produced_chunks[produced_index].text
+            if expected_text != chunk.text:
+                raise RuntimeError(
+                    f"Pass-3 report mismatch for {tref}: expected produced chunk {produced_index + 1} to match final chunk text"
+                )
+
             rows.append(
                 {
-                    "segment_number": segment_idx,
-                    "unit_number": "-",
-                    "chunk_number": chunk_idx + 1,
-                    "text": segment.processed_text,
-                    "segment_boundary_after": True,
+                    "segment_number": segment_number,
+                    "unit_number": "P3",
+                    "chunk_number": final_chunk_index,
+                    "text": chunk.text,
+                    "segment_boundary_after": final_chunk_index == last_final_chunk_index_by_ref.get(tref),
                     "final_chunk_boundary_after": True,
                 }
             )
-            chunk_idx += 1
+
+            active_pass3["produced_index"] += 1
+            if active_pass3["produced_index"] == len(adjustment.produced_chunks):
+                if state["chunk_cursor"] < len(state["split_counts"]):
+                    split_count = state["split_counts"][state["chunk_cursor"]]
+                    state["unit_cursor"] = min(state["unit_cursor"] + split_count, len(state["units"]))
+                    state["chunk_cursor"] += 1
+                elif state["returned_single_segment"]:
+                    state["chunk_cursor"] += 1
+                state["active_pass3"] = None
             continue
 
-        effective_units = pass2_segment.fallback_splits or pass2_segment.initial_splits or [segment.processed_text]
-        final_chunk_split_counts = [chunk.split_count for chunk in pass2_segment.final_chunks] or [len(effective_units)]
-        chunk_unit_cursor = 0
-        current_chunk_end = final_chunk_split_counts[0]
-        local_chunk_idx = 0
+        if chunk.kind == "intra_segment" and state and state["chunk_cursor"] < len(state["split_counts"]):
+            split_count = state["split_counts"][state["chunk_cursor"]]
+            start = state["unit_cursor"]
+            end = min(start + split_count, len(state["units"]))
+            chunk_units = state["units"][start:end]
+            for local_index, unit_text in enumerate(chunk_units, start=1):
+                absolute_unit_number = start + local_index
+                rows.append(
+                    {
+                        "segment_number": segment_number,
+                        "unit_number": absolute_unit_number,
+                        "chunk_number": final_chunk_index,
+                        "text": unit_text,
+                        "segment_boundary_after": absolute_unit_number == len(state["units"]),
+                        "final_chunk_boundary_after": local_index == len(chunk_units),
+                    }
+                )
+            state["unit_cursor"] = end
+            state["chunk_cursor"] += 1
+            continue
 
-        for unit_idx, unit_text in enumerate(effective_units, start=1):
-            if unit_idx > current_chunk_end and local_chunk_idx + 1 < len(final_chunk_split_counts):
-                local_chunk_idx += 1
-                current_chunk_end += final_chunk_split_counts[local_chunk_idx]
-            is_last_unit_in_chunk = unit_idx == current_chunk_end
-            rows.append(
-                {
-                    "segment_number": segment_idx,
-                    "unit_number": unit_idx,
-                    "chunk_number": chunk_idx + local_chunk_idx + 1,
-                    "text": unit_text,
-                    "segment_boundary_after": unit_idx == len(effective_units),
-                    "final_chunk_boundary_after": is_last_unit_in_chunk,
-                }
-            )
-            chunk_unit_cursor += 1
-
-        chunk_idx += max(len(final_chunk_split_counts), 1)
+        rows.append(
+            {
+                "segment_number": segment_number,
+                "unit_number": "P3" if chunk.pass_number == 3 else "-",
+                "chunk_number": final_chunk_index,
+                "text": chunk.text,
+                "segment_boundary_after": final_chunk_index == last_final_chunk_index_by_ref.get(tref),
+                "final_chunk_boundary_after": True,
+            }
+        )
 
     return rows
 

@@ -10,6 +10,8 @@ class SegmentRecord:
     tref: str
     text: str
     segment_index: int
+    kind: str = "base"
+    base_tref: Optional[str] = None
 
 
 def bootstrap_sefaria(sefaria_project_path: Path) -> None:
@@ -45,6 +47,6 @@ def load_segment_records(
         cleaned = text.strip()
         if not cleaned:
             continue
-        rows.append(SegmentRecord(tref=segment_ref.normal(), text=cleaned, segment_index=i))
+        normal_tref = segment_ref.normal()
+        rows.append(SegmentRecord(tref=normal_tref, text=cleaned, segment_index=i, kind="base", base_tref=normal_tref))
     return rows
-

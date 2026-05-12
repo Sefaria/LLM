@@ -21,6 +21,7 @@ class ChunkerConfig:
     split_tokens_tolerance: int = 10
     tokenizer_model: str = "dicta-il/BEREL_3.0"
     strip_hebrew_niqqud: bool = True
+    extract_html_footnotes_to_segments: bool = True
     stanza_model_dir: str = "/Users/yon/stanza_resources"
     enforce_hard_max_in_pass3: bool = True
     debug: bool = True
