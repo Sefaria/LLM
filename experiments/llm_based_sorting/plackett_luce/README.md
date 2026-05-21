@@ -1,6 +1,8 @@
 # Plackett-Luce Active Learning
 
 This experiment ranks items by repeatedly sending small `K`-item groups to an experiment function, observing a full ranking, and updating a Plackett-Luce posterior over item scores.
+The main use case here is quoting commentary: instead of asking an LLM to rank every passage at once, we ask it to rank only `K` passages per prompt, collect many partial `K`-way rankings, and then aggregate them into a global ranking with uncertainty estimates.
+The active-learning loop then chooses the next `K`-item prompts adaptively, aiming to spend LLM calls where they will reveal the most information about the overall ordering.
 
 ## Algorithm
 
