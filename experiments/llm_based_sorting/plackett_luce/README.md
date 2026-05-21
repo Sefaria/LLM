@@ -1,8 +1,8 @@
 # Plackett-Luce Active Learning
 
-This experiment ranks items by repeatedly sending small `K`-item groups to an experiment function, observing a full ranking, and updating a Plackett-Luce posterior over item scores.
+This experiment ranks items by repeatedly sending small `K`-item groups to an experiment function, observing a full ranking, and updating a Plackett-Luce posterior over item scores with a Gibbs sampler based on the Bayesian Plackett-Luce strategy of [Caron and Doucet](https://arxiv.org/pdf/1011.1761).
 The main use case here is quoting commentary: instead of asking an LLM to rank every passage at once, we ask it to rank only `K` passages per prompt, collect many partial `K`-way rankings, and then aggregate them into a global ranking with uncertainty estimates.
-The active-learning loop then chooses the next `K`-item prompts adaptively, aiming to spend LLM calls where they will reveal the most information about the overall ordering.
+The active-learning loop then chooses the next `K`-item prompts adaptively, aiming to spend LLM calls where they will reveal the most information about the overall ordering, with the MST-style acquisition heuristic implemented here as an adaptation of the active-preference ideas in [Brunelli et al.](https://papers.nips.cc/paper_files/paper/2018/file/8b6a80c3cf2cbd5f967063618dc54f39-Paper.pdf).
 
 ## Algorithm
 
