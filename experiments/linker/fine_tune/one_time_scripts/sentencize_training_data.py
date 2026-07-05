@@ -34,4 +34,5 @@ def sentencize_training_data(input_collection, output_collection, skip, total, s
 
 
 if __name__ == '__main__':
-    sentencize_training_data('ner_he_input', 'ner_he_input_broken', 22000, 500, 'claude')
+    # sentencize_training_data('ner_he_input', 'ner_he_input_broken', 24500, 2500, 'claude')
+    sentencize_training_data('ner_en_input', 'ner_en_input_broken', 50000, 7500, 'claude')

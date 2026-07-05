@@ -17,7 +17,8 @@ from db_manager import MongoProdigyDBManager
 
 import langchain
 from langchain_community.cache import SQLiteCache
-from sefaria.spacy_function_registry import inner_punct_tokenizer_factory
+import spacy
+from spacy.tokenizer import Tokenizer
 import json
 import spacy
 from spacy.tokens import Doc
@@ -32,12 +33,27 @@ langchain.llm_cache = SQLiteCache(database_path=".langchain.db")
 
 random.seed(613)
 
-# entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-ner:AGOjNn8z"
-# entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-entity-class:AGhwTqKL"
+entity_recognizer_model = "ft:gpt-4.1-mini-2025-04-14:sefaria:en-ner:C9SQ4gJF"
+entity_classifier_model = "ft:gpt-4.1-mini-2025-04-14:sefaria:en-entity-class:C9U7r63R"
 # entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-ref-part:AMglNq8l"
 # entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:en-ref-part-class:ALTYw0jR"
-entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-ner:BFU9Emis"
-entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-entity-class:B7qRll0M"
+# entity_recognizer_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-ner:BYrjPIh5"
+# entity_classifier_model = "ft:gpt-4o-mini-2024-07-18:sefaria:he-entity-class:B7qRll0M"
+
+
+def inner_punct_tokenizer_factory():
+    def inner_punct_tokenizer(nlp):
+        # infix_re = spacy.util.compile_infix_regex(nlp.Defaults.infixes)
+        infix_re = re.compile(r'''[.,?!:;…‘’`“”"'~–—\-‐‑‒־―⸺⸻/()<>]''')
+        prefix_re = spacy.util.compile_prefix_regex(nlp.Defaults.prefixes)
+        suffix_re = spacy.util.compile_suffix_regex(nlp.Defaults.suffixes)
+
+        return Tokenizer(nlp.vocab, prefix_search=prefix_re.search,
+                         suffix_search=suffix_re.search,
+                         infix_finditer=infix_re.finditer,
+                         token_match=None)
+    return inner_punct_tokenizer
+
 
 nlp = English()
 nlp.tokenizer = inner_punct_tokenizer_factory()(nlp)
@@ -134,14 +150,10 @@ class EntityDoc:
 
     @staticmethod
     def _spacy_serialize_entity(spacy_doc: Doc, entity: Entity) -> dict:
-        from sefaria.model.linker.ref_part import span_inds
         span = spacy_doc.char_span(entity.start, entity.end)
-        span_start, span_end = span_inds(span)
         return {
             "start": entity.start,
             "end": entity.end,
-            "token_start": span_start,
-            "token_end": span_end-1,
             "label": entity.label,
         }
 
@@ -282,7 +294,7 @@ def _save_docs_to_collection(collection, docs):
 
 def run_llm_linker_on_mongo(input_collection, output_collection):
     generator = ExampleGenerator([input_collection], files=[], skip=0, sentencizer_type=False)
-    examples = list(generator.get())[:20000]
+    examples = list(generator.get())
     docs = run_parallel(examples, tag_example, max_workers=50, desc="Tagging examples")
     _save_docs_to_collection(output_collection, docs)
 

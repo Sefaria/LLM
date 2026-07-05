@@ -5,10 +5,9 @@ import django
 django.setup()
 from sefaria.model import *
 from sefaria.model.linker.linker import LinkedDoc
-from sefaria.model.linker.ref_part import span_inds, span_char_inds
 from db_manager import MongoProdigyDBManager
 from util.sefaria_specific import load_mongo_docs
-from spacy.tokens import Doc
+from spacy.tokens import Span, Token, Doc
 
 
 def linker_doc_to_mongo_doc(linker_doc: LinkedDoc, orig_mongo_doc: dict) -> dict:
@@ -16,12 +15,9 @@ def linker_doc_to_mongo_doc(linker_doc: LinkedDoc, orig_mongo_doc: dict) -> dict
     for resolved in linker_doc.all_resolved:
         entity = resolved.raw_entity
         start_char, end_char = entity.char_indices
-        token_start, token_end = span_inds(entity.span)
         spans.append({
             'start': start_char,
             'end': end_char,
-            'token_start': token_start,
-            'token_end': token_end,
             'label': entity.type.value.capitalize()
         })
     return {
@@ -30,16 +26,25 @@ def linker_doc_to_mongo_doc(linker_doc: LinkedDoc, orig_mongo_doc: dict) -> dict
     }
 
 
+def span_char_inds(span) -> (int, int):
+    """
+    @param span:
+    @return: start and end char-indices for `span`, relative to `spacy.Doc` which contains the span.
+    """
+    if isinstance(span, Span):
+        return span.start_char, span.end_char
+    elif isinstance(span, Token):
+        idx = span.idx
+        return idx, idx + len(span)
+
+
 def spacy_doc_to_mongo_doc(spacy_doc: Doc, orig_mongo_doc: dict) -> dict:
     spans = []
     for span in spacy_doc.ents:
         start_char, end_char = span_char_inds(span)
-        token_start, token_end = span_inds(span)
         spans.append({
             'start': start_char,
             'end': end_char,
-            'token_start': token_start,
-            'token_end': token_end,
             'label': span.label_,
         })
     return {

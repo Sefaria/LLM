@@ -45,7 +45,7 @@ def convert_en_labels_to_he(doc):
     return doc
 
 
-def diff_prodigy_collections(original_collection, modified_collection, output_collection):
+def diff_prodigy_collections(original_collection, modified_collection, output_collection, lang):
     original_docs = list(load_mongo_docs(original_collection))
     modified_docs = list(load_mongo_docs(modified_collection))
 
@@ -66,10 +66,12 @@ def diff_prodigy_collections(original_collection, modified_collection, output_co
         else:
             # docs are the same
             num_common_spans += get_num_spans_in_common(modified_doc, modified_doc)
+    if lang == 'he':
+        diff_docs = [convert_en_labels_to_he(d) for d in diff_docs]
 
     my_db = MongoProdigyDBManager(output_collection)
     my_db.output_collection.delete_many({})
-    my_db.output_collection.bulk_write([InsertOne(convert_en_labels_to_he(d)) for d in diff_docs])
+    my_db.output_collection.bulk_write([InsertOne(d) for d in diff_docs])
     print("Accuracy:", num_common_spans/total_spans)
 
 
